@@ -1,5 +1,65 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Prerequisites
+
+- [Node.js](https://nodejs.org/) (version 18 or higher)
+- [npm](https://www.npmjs.com/) (comes with Node.js)
+- [Git](https://git-scm.com/)
+
+## Ollama Setup
+
+Before running the development server, you'll need to install Ollama and pull the phi4 model:
+
+### macOS
+
+1. Install Ollama:
+```bash
+curl -fsSL https://ollama.com/install.sh | sh
+```
+
+2. Start Ollama:
+```bash
+ollama serve
+```
+
+### Windows
+
+1. Download and install [Windows Subsystem for Linux (WSL)](https://learn.microsoft.com/en-us/windows/wsl/install)
+2. Install Ollama in WSL:
+```bash
+curl -fsSL https://ollama.com/install.sh | sh
+```
+
+3. Start Ollama in WSL:
+```bash
+ollama serve
+```
+
+### Pull the Model (Both Platforms)
+
+In a new terminal, pull the phi4 model:
+```bash
+ollama pull phi4
+```
+
+## Project Setup
+
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd chat_in_a_box
+```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Create a `.env.local` file in the root directory:
+```bash
+OLLAMA_HOST=http://localhost:11434
+```
+
 ## Getting Started
 
 First, run the development server:
@@ -29,8 +89,9 @@ To learn more about Next.js, take a look at the following resources:
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
+## Troubleshooting
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Windows Users**: Make sure WSL is running and Ollama is started in WSL before running the application
+- **Mac Users**: If you get a security warning, you may need to approve Ollama in System Settings > Security & Privacy
+- If the model isn't responding, ensure Ollama is running with `ollama serve` in a separate terminal
+- Check that the OLLAMA_HOST environment variable matches your Ollama server address
