@@ -3,19 +3,107 @@
 @tailwind utilities;
 
 :root {
+  /* Base colors */
   --background: #ffffff;
   --foreground: #171717;
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Message colors */
+  --user-message-bg: #264d8b;  /* blue-500 */
+  --user-message-text: #ffffff;  /* gray-800 */
+  --assistant-message-bg: #68758b;
+  --assistant-message-text: #ffffff;
+
+  /* Input and button colors */
+  --input-border: #d1d5db;  /* gray-300 */
+  --button-bg: #3b82f6;  /* blue-500 */
+  --button-hover: #2563eb;  /* blue-600 */
+  --button-disabled: #d1d5db;
+  --ring-color: #3b82f6;  /* blue-500 */
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+/* Custom classes for message styling */
+.message-user {
+  background-color: var(--user-message-bg);
+  color: var(--user-message-text);
+}
+
+.message-assistant {
+  background-color: var(--assistant-message-bg);
+  color: var(--assistant-message-text);
+}
+
+.button-primary {
+  background-color: var(--button-bg);
+  color: var(--assistant-message-text);
+}
+
+.button-primary:hover {
+  background-color: var(--button-hover);
+}
+
+.button-primary:disabled {
+  cursor: not-allowed;
+}
+
+@layer components {
+  .input-primary {
+    border-color: var(--input-border);
+  }
+
+  .input-primary:focus {
+    outline: none;
+    border-color: transparent;
+    --ring-color: var(--ring-color);
+    @apply ring-2 ring-[color:var(--ring-color)];
+  }
+}
+
+/* Message container styles */
+.messages-container {
+  height: calc(100vh - 80px) !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  scroll-behavior: smooth !important;
+  padding: 1rem !important;
+}
+
+.messages-container::-webkit-scrollbar {
+  width: 10px !important;
+}
+
+.messages-container::-webkit-scrollbar-track {
+  background: #f1f1f1 !important;
+  border-radius: 5px !important;
+}
+
+.messages-container::-webkit-scrollbar-thumb {
+  background: #888 !important;
+  border-radius: 5px !important;
+}
+
+.messages-container::-webkit-scrollbar-thumb:hover {
+  background: #666 !important;
+}
+
+.prose {
+  max-width: none !important;
+  width: 100% !important;
+}
+
+.prose pre {
+  background-color: #1a1b26 !important;
+  border-radius: 0.5rem !important;
+  padding: 1rem !important;
+  margin: 1rem 0 !important;
+  white-space: pre-wrap !important;
+  word-wrap: break-word !important;
 }

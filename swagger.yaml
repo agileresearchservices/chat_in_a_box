@@ -1,0 +1,84 @@
+openapi: 3.0.0
+info:
+  title: Chat in a Box API
+  description: API documentation for Chat in a Box, a streaming chat application using Ollama
+  version: 1.0.0
+  contact:
+    name: Chat in a Box Support
+
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+
+paths:
+  /api/chat:
+    post:
+      summary: Send a chat message
+      description: Sends a message to the chat API and receives a streaming response
+      operationId: sendChatMessage
+      tags:
+        - Chat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                prompt:
+                  type: string
+                  description: The user's message to process
+                  example: "What is the capital of France?"
+              required:
+                - prompt
+      responses:
+        '200':
+          description: Successful response with streaming content
+          content:
+            text/event-stream:
+              schema:
+                type: object
+                properties:
+                  response:
+                    type: string
+                    description: The generated response text
+                    example: "Paris is the capital of France."
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message
+                    example: "Internal Server Error"
+
+components:
+  schemas:
+    Message:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the message
+        role:
+          type: string
+          enum: [user, assistant]
+          description: Role of the message sender
+        content:
+          type: string
+          description: Content of the message
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp when the message was sent
+      required:
+        - id
+        - role
+        - content
+
+tags:
+  - name: Chat
+    description: Chat operations
