@@ -388,7 +388,7 @@ export default function Home() {
                 className={cn(
                   "px-6 py-3 bg-blue-600 text-white font-medium rounded-lg transition-colors",
                   "hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500",
-                  "disabled:opacity-50 disabled:cursor-not-allowed"
+                  "disabled:cursor-not-allowed"
                 )}
                 aria-label="Send message"
               >
