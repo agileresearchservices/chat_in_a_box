@@ -12,7 +12,7 @@ const createConfig = () => {
 
 // Input Validation Schema
 const ChatRequestSchema = z.object({
-  prompt: z.string().min(1, 'Prompt must not be empty').max(1000, 'Prompt is too long')
+  prompt: z.string().min(1, 'Prompt must not be empty').max(10000, 'Prompt is too long')
 })
 
 // Streaming Transformer
