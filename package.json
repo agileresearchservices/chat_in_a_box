@@ -30,7 +30,8 @@
     "swagger-ui-react": "^5.18.2",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
-    "yaml": "^2.7.0"
+    "yaml": "^2.7.0",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
