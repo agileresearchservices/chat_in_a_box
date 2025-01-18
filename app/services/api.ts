@@ -11,7 +11,7 @@ export async function sendMessage(prompt: string) {
     if (!response.ok) {
       const error = await response.json()
       console.error('API error:', error)
-      throw new Error(error.details || error.error || 'Failed to send message')
+      throw new Error(error.details + ' - Is Ollama Running?' || error.error || 'Failed to send message')
     }
 
     if (!response.body) {
