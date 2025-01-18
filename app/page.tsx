@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useCallback, useMemo, useReducer, useState } from 'react'
+import { useMemo, useReducer, useState, useRef, useCallback } from 'react'
 import { Message } from 'ai'
 import ReactMarkdown from 'react-markdown'
 import Image from 'next/image'
@@ -10,7 +10,6 @@ import { oneDark } from 'react-syntax-highlighter/dist/cjs/styles/prism'
 import { format } from 'date-fns'
 import { ClipboardDocumentIcon, ClipboardDocumentCheckIcon, StopIcon, PaperAirplaneIcon } from '@heroicons/react/24/outline'
 import { sendMessage } from './services/api'
-import { Components } from 'react-markdown'
 import { toast } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
 
