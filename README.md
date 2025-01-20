@@ -57,7 +57,7 @@ npm install
 
 3. Create a `.env.local` file in the root directory:
 ```bash
-OLLAMA_HOST=http://localhost:11434
+NEXT_PUBLIC_API_URL=http://localhost:11434
 ```
 
 ## Getting Started
@@ -94,4 +94,4 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 - **Windows Users**: Make sure WSL is running and Ollama is started in WSL before running the application
 - **Mac Users**: If you get a security warning, you may need to approve Ollama in System Settings > Security & Privacy
 - If the model isn't responding, ensure Ollama is running with `ollama serve` in a separate terminal
-- Check that the OLLAMA_HOST environment variable matches your Ollama server address
+- Check that the NEXT_PUBLIC_API_URL environment variable matches your Ollama server address

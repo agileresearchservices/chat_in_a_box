@@ -1,3 +1,15 @@
+// Import necessary hooks and components from React and other libraries
+// useMemo, useReducer, useState, useRef, useCallback are React hooks for state and lifecycle management
+// Message is an interface from ai
+// ReactMarkdown is used for rendering markdown content
+// Image is used for optimized image rendering
+// remarkGfm is a plugin for GitHub Flavored Markdown
+// SyntaxHighlighter is used for syntax highlighting code blocks
+// format is used for date formatting
+// Icons are imported from heroicons for UI elements
+// sendMessage is a service function for sending messages
+// toast is used for displaying notifications
+// cn is a utility function for class names
 'use client'
 
 import { useMemo, useReducer, useState, useRef, useCallback } from 'react'
@@ -13,22 +25,41 @@ import { sendMessage } from './services/api'
 import { toast } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
 
+/**
+ * Interface for a message with a timestamp.
+ * Extends the Message interface from ai.
+ */
 interface MessageWithTimestamp extends Message {
   timestamp: Date // Made required
 }
 
+/**
+ * Interface for the chat state.
+ * Includes messages, loading, and streaming states.
+ */
 interface ChatState {
   messages: MessageWithTimestamp[]
   isLoading: boolean
   isStreaming: boolean
 }
 
+/**
+ * Type for chat actions.
+ * Includes actions to add messages, update the last message, and set loading/streaming states.
+ */
 type ChatAction =
   | { type: 'ADD_MESSAGE'; message: MessageWithTimestamp }
   | { type: 'UPDATE_LAST_MESSAGE'; content: string }
   | { type: 'SET_LOADING'; isLoading: boolean }
   | { type: 'SET_STREAMING'; isStreaming: boolean }
 
+/**
+ * Reducer function to manage chat state.
+ * Handles actions to add messages, update the last message, and set loading/streaming states.
+ * @param state - The current state of the chat.
+ * @param action - The action to be processed.
+ * @returns The updated state.
+ */
 const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
   switch (action.type) {
     case 'ADD_MESSAGE':
@@ -58,11 +89,20 @@ const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
   }
 }
 
+/**
+ * Interface for the CopyButton component.
+ * Includes text and optional className props.
+ */
 interface CopyButtonProps {
   text: string
   className?: string
 }
 
+/**
+ * Component for copying text to the clipboard.
+ * @param text - The text to be copied.
+ * @param className - Optional class name for styling.
+ */
 const CopyButton = ({ text, className }: CopyButtonProps) => {
   const [copied, setCopied] = useState(false)
 
@@ -95,10 +135,18 @@ const CopyButton = ({ text, className }: CopyButtonProps) => {
   )
 }
 
+/**
+ * Interface for the ChatMessage component.
+ * Includes a message prop.
+ */
 interface ChatMessageProps {
   message: MessageWithTimestamp
 }
 
+/**
+ * Component for rendering a chat message.
+ * @param message - The message to be rendered.
+ */
 const ChatMessage = ({ message }: ChatMessageProps) => {
   const isUser = message.role === 'user'
   
@@ -215,6 +263,9 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
   )
 }
 
+/**
+ * Main component for the chat interface.
+ */
 export default function Home() {
   const [input, setInput] = useState('')
   const [state, dispatch] = useReducer(chatReducer, {
@@ -227,10 +278,17 @@ export default function Home() {
   const readerRef = useRef<ReadableStreamDefaultReader | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
+  /**
+   * Scrolls to the bottom of the chat log.
+   * @param behavior - The scroll behavior (smooth or auto).
+   */
   const scrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
     messagesEndRef.current?.scrollIntoView({ behavior })
   }, [])
 
+  /**
+   * Stops the streaming of the response.
+   */
   const stopStreaming = useCallback(() => {
     if (readerRef.current) {
       readerRef.current.cancel()
@@ -240,6 +298,10 @@ export default function Home() {
     }
   }, [])
 
+  /**
+   * Handles the submission of a message.
+   * @param e - The form event.
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -327,6 +389,9 @@ export default function Home() {
     }
   }
 
+  /**
+   * Memoized component for rendering the chat messages.
+   */
   const messageComponents = useMemo(() => (
     state.messages.map((message) => (
       <ChatMessage
