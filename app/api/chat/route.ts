@@ -3,9 +3,9 @@ import { z } from 'zod'
 
 // Configuration Utility: Sets up the API endpoint and model to be used
 const createConfig = () => {
-  const OLLAMA_HOST = process.env.NEXT_PUBLIC_API_URL 
+  const OLLAMA_HOST = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:11434'
   return {
-    ollamaUrl: new URL('/api/generate', OLLAMA_HOST).toString(),
+    ollamaUrl: new URL('/api/chat', OLLAMA_HOST).toString(),
     model: process.env.OLLAMA_MODEL || 'phi4',
   }
 }
@@ -20,16 +20,18 @@ const createStreamTransformer = () => new TransformStream({
   transform(chunk, controller) {
     try {
       const text = new TextDecoder().decode(chunk)
+      console.log('Raw chunk from Ollama:', text)
       const lines = text.split('\n').filter(Boolean)
       
       lines.forEach(line => {
         try {
           const data = JSON.parse(line)
+          console.log('Parsed data:', data)
           controller.enqueue(
             new TextEncoder().encode(
               JSON.stringify({
                 done: data.done,
-                message: { content: data.response || '' }
+                message: { content: data.message?.content || '' }
               }) + '\n'
             )
           )
@@ -57,23 +59,29 @@ export async function POST(request: NextRequest) {
     // Create configuration for the API request
     const config = createConfig()
     const body = await request.json()
-
+    console.log('Config:', config)
+    
     // Validate input using the defined schema
     const validatedBody = ChatRequestSchema.parse(body)
+
+    // Prepare the request body for the Ollama API
+    const requestBody = {
+      model: config.model,
+      messages: [{ role: 'user', content: validatedBody.prompt }],
+      stream: true
+    }
+    console.log('Sending request to Ollama:', requestBody)
 
     // Send POST request to the Ollama API
     const response = await fetch(config.ollamaUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: config.model,
-        prompt: validatedBody.prompt,
-        stream: true,
-      }),
+      body: JSON.stringify(requestBody),
     })
 
     if (!response.ok) {
       const errorText = await response.text()
+      console.error('Ollama error response:', errorText)
       // Return error response if the API call fails
       return new Response(
         JSON.stringify({ 
