@@ -20,13 +20,11 @@ const createStreamTransformer = () => new TransformStream({
   transform(chunk, controller) {
     try {
       const text = new TextDecoder().decode(chunk)
-      console.log('Raw chunk from Ollama:', text)
       const lines = text.split('\n').filter(Boolean)
       
       lines.forEach(line => {
         try {
           const data = JSON.parse(line)
-          console.log('Parsed data:', data)
           controller.enqueue(
             new TextEncoder().encode(
               JSON.stringify({
@@ -59,7 +57,6 @@ export async function POST(request: NextRequest) {
     // Create configuration for the API request
     const config = createConfig()
     const body = await request.json()
-    console.log('Config:', config)
     
     // Validate input using the defined schema
     const validatedBody = ChatRequestSchema.parse(body)
@@ -70,7 +67,6 @@ export async function POST(request: NextRequest) {
       messages: [{ role: 'user', content: validatedBody.prompt }],
       stream: true
     }
-    console.log('Sending request to Ollama:', requestBody)
 
     // Send POST request to the Ollama API
     const response = await fetch(config.ollamaUrl, {
