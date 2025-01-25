@@ -55,10 +55,30 @@ cd chat_in_a_box
 npm install
 ```
 
-3. Create a `.env.local` file in the root directory:
+3. Create a `.env.local` file in the root directory with the following content:
 ```bash
 NEXT_PUBLIC_API_URL=http://localhost:11434
+OLLAMA_MODEL=phi4
 ```
+
+## Conversation Memory Management
+
+### ConversationMemory Class
+
+The `ConversationMemory` class is a crucial component of the application's conversational context management. It provides the following key functionalities:
+
+- **Message Tracking**: Maintains a rolling history of conversation messages
+- **Context Preservation**: Limits memory to the last 10 messages to prevent token overflow
+- **Context Generation**: Generates a context prompt for maintaining conversational context
+
+#### Key Methods
+
+- `addMessage(message)`: Adds a new message to the memory, automatically trimming older messages if the memory exceeds the maximum length
+- `getMemory()`: Retrieves the current conversation memory
+- `getContextPrompt()`: Generates a formatted string representation of the conversation history
+- `clear()`: Resets the conversation memory
+
+This mechanism ensures that the AI maintains context across multiple interactions while preventing excessive memory usage.
 
 ## Getting Started
 
