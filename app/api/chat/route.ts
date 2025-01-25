@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
       ],
       stream: true
     }
-    console.log(process.env.OLLAMA_SYSTEM_PROMPT)
+
     // Send POST request to the Ollama API
     const response = await fetch(config.ollamaUrl, {
       method: 'POST',

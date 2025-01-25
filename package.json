@@ -13,6 +13,7 @@
     "@radix-ui/react-slot": "^1.0.2",
     "@tailwindcss/typography": "^0.5.16",
     "@types/react-syntax-highlighter": "^15.5.13",
+    "@types/uuid": "^10.0.0",
     "ai": "^4.0.36",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
@@ -28,6 +29,7 @@
     "swagger-ui-react": "^5.18.2",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
+    "uuid": "^11.0.5",
     "yaml": "^2.7.0",
     "zod": "^3.24.1"
   },

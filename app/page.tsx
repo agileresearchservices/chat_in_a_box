@@ -24,6 +24,7 @@ import { ClipboardDocumentIcon, ClipboardDocumentCheckIcon, StopIcon, PaperAirpl
 import { sendMessage } from './services/api'
 import { toast } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
+import { v4 as uuidv4 } from 'uuid';
 
 /**
  * Interface for a message with a timestamp.
@@ -308,7 +309,7 @@ export default function Home() {
     if (!input.trim() || state.isLoading) return
 
     const userMessage: MessageWithTimestamp = {
-      id: crypto.randomUUID(),
+      id: uuidv4(),
       role: 'user',
       content: input.trim(),
       timestamp: new Date()
@@ -335,7 +336,7 @@ export default function Home() {
       dispatch({ type: 'SET_STREAMING', isStreaming: true })
 
       const assistantMessage: MessageWithTimestamp = {
-        id: crypto.randomUUID(),
+        id: uuidv4(),
         role: 'assistant',
         content: '',
         timestamp: new Date()
