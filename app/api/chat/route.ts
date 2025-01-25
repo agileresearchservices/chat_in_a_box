@@ -73,11 +73,15 @@ export async function POST(request: NextRequest) {
           role: 'system', 
           content: `Previous conversation context:\n${conversationContext}` 
         }] : []),
+        { 
+          role: 'system', 
+          content: process.env.OLLAMA_SYSTEM_PROMPT || 'You are an AI assistant.' 
+        },
         { role: 'user', content: validatedBody.prompt }
       ],
       stream: true
     }
-
+    console.log(process.env.OLLAMA_SYSTEM_PROMPT)
     // Send POST request to the Ollama API
     const response = await fetch(config.ollamaUrl, {
       method: 'POST',
