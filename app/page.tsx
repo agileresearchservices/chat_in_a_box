@@ -154,20 +154,20 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
   return (
     <div
       className={cn(
-        "flex",
+        "flex px-2 sm:px-0",
         isUser ? "justify-end" : "justify-start"
       )}
     >
       <div
         className={cn(
-          "flex items-start space-x-4 w-full",
-          isUser ? "flex-row-reverse space-x-reverse" : "flex-row"
+          "flex items-start space-x-2 sm:space-x-4 w-full max-w-[85%] sm:max-w-[75%]",
+          isUser ? "flex-row-reverse space-x-reverse sm:space-x-reverse" : "flex-row"
         )}
       >
         <div className="flex-shrink-0">
           <div 
             className={cn(
-              "w-10 h-10 rounded-full flex items-center justify-center",
+              "w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center",
               isUser ? "bg-blue-500" : "bg-gray-500"
             )}
             aria-label={isUser ? "User Avatar" : "Assistant Avatar"}
@@ -177,22 +177,22 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
         </div>
         <div
           className={cn(
-            "flex flex-col flex-1",
+            "flex flex-col flex-1 min-w-0",
             isUser ? "items-end" : "items-start"
           )}
         >
-          <time className="text-xs text-gray-500 mb-1">
+          <time className="text-xs text-gray-500 mb-1 px-1">
             {format(message.timestamp, 'HH:mm')}
           </time>
           <div
             className={cn(
-              "p-4 pr-8 rounded-lg w-full message-content relative",
+              "p-3 sm:p-4 rounded-lg w-full message-content relative break-words",
               isUser
                 ? "bg-blue-500 text-white"
                 : "bg-gray-100 text-gray-900"
             )}
           >
-            {!isUser && <CopyButton text={message.content} />}
+            {!isUser && <CopyButton text={message.content} className="hidden sm:block" />}
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{
@@ -404,7 +404,7 @@ export default function Home() {
 
   return (
     <main className="flex flex-col min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      <div className="flex-1 max-w-5xl w-full mx-auto px-4 py-6">
+      <div className="flex-1 w-full mx-auto px-2 sm:px-4 py-4 sm:py-6 max-w-5xl">
         <div className="flex flex-col h-[calc(100vh-3rem)]">
           <div 
             className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent"
@@ -412,19 +412,19 @@ export default function Home() {
             aria-label="Chat messages"
           >
             {state.messages.length === 0 ? (
-              <div className="flex items-center justify-center h-full text-gray-500">
+              <div className="flex items-center justify-center h-full text-gray-500 px-4 text-center">
                 Start a conversation by typing a message below
               </div>
             ) : (
-              <div className="space-y-6 py-4">
+              <div className="space-y-4 sm:space-y-6 py-2 sm:py-4">
                 {messageComponents}
                 <div ref={messagesEndRef} />
               </div>
             )}
           </div>
 
-          <form onSubmit={handleSubmit} className="mt-4">
-            <div className="flex space-x-4">
+          <form onSubmit={handleSubmit} className="mt-2 sm:mt-4 px-2 sm:px-0">
+            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
               <div className="relative flex-grow">
                 <input
                   ref={inputRef}
@@ -432,7 +432,7 @@ export default function Home() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Type your message..."
-                  className="w-full p-3 pr-10 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full p-3 sm:p-3 text-base border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   disabled={state.isLoading}
                   aria-label="Message input"
                 />
@@ -440,10 +440,10 @@ export default function Home() {
                   <button
                     type="button"
                     onClick={stopStreaming}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500"
                     aria-label="Stop streaming"
                   >
-                    <StopIcon className="w-4 h-4" />
+                    <StopIcon className="w-5 h-5" />
                   </button>
                 )}
               </div>
@@ -451,13 +451,13 @@ export default function Home() {
                 type="submit"
                 disabled={state.isLoading || !input.trim()}
                 className={cn(
-                  "px-6 py-3 bg-blue-600 text-white font-medium rounded-lg transition-colors",
+                  "w-full sm:w-auto px-6 py-3 bg-blue-600 text-white font-medium rounded-lg transition-colors",
                   "hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500",
-                  "disabled:cursor-not-allowed"
+                  "disabled:opacity-50 disabled:cursor-not-allowed"
                 )}
                 aria-label="Send message"
               >
-                <span className="flex items-center space-x-2">
+                <span className="flex items-center justify-center space-x-2">
                   <PaperAirplaneIcon className="w-5 h-5" />
                   <span>Send</span>
                 </span>
