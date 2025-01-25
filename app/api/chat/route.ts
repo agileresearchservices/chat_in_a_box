@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server'
 import { z } from 'zod'
+import { conversationMemory } from '@/app/utils/memory'
 
 // Configuration Utility: Sets up the API endpoint and model to be used
 const createConfig = () => {
@@ -61,10 +62,19 @@ export async function POST(request: NextRequest) {
     // Validate input using the defined schema
     const validatedBody = ChatRequestSchema.parse(body)
 
+    // Get conversation context from memory
+    const conversationContext = conversationMemory.getContextPrompt()
+
     // Prepare the request body for the Ollama API
     const requestBody = {
       model: config.model,
-      messages: [{ role: 'user', content: validatedBody.prompt }],
+      messages: [
+        ...(conversationContext ? [{ 
+          role: 'system', 
+          content: `Previous conversation context:\n${conversationContext}` 
+        }] : []),
+        { role: 'user', content: validatedBody.prompt }
+      ],
       stream: true
     }
 
@@ -91,8 +101,31 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Create a stream transformer that will capture the full response
+    const capturedResponseStream = new TransformStream({
+      transform(chunk, controller) {
+        controller.enqueue(chunk)
+      },
+      flush(controller) {
+        // This is where we'll add the response to memory
+        controller.terminate()
+      }
+    })
+
+    // Pipe the response through our capture stream and the existing transformer
+    const transformedStream = response.body
+      ?.pipeThrough(capturedResponseStream)
+      .pipeThrough(createStreamTransformer())
+
+    // Add user message to memory immediately
+    conversationMemory.addMessage({ 
+      role: 'user', 
+      content: validatedBody.prompt,
+      id: Date.now().toString()
+    })
+
     // Return the transformed response stream
-    return new Response(response.body?.pipeThrough(createStreamTransformer()), {
+    return new Response(transformedStream, {
       headers: {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',

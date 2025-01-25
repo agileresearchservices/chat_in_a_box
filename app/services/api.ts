@@ -1,3 +1,5 @@
+import { conversationMemory } from '@/app/utils/memory'
+
 /**
  * Sends a message to the chat API.
  * @param prompt - The prompt to be sent to the API.
