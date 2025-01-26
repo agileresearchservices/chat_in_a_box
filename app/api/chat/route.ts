@@ -1,6 +1,5 @@
 import { NextRequest } from 'next/server'
 import { z } from 'zod'
-import { conversationMemory } from '@/app/utils/memory'
 
 // Configuration Utility: Sets up the API endpoint and model to be used
 const createConfig = () => {
@@ -13,7 +12,12 @@ const createConfig = () => {
 
 // Input Validation Schema: Ensures the prompt is a non-empty string and not too long
 const ChatRequestSchema = z.object({
-  prompt: z.string().min(1, 'Prompt must not be empty').max(10000, 'Prompt is too long')
+  prompt: z.string().min(1, 'Prompt must not be empty').max(10000, 'Prompt is too long'),
+  messages: z.array(z.object({
+    role: z.string(),
+    content: z.string(),
+    id: z.string()
+  })).optional()
 })
 
 // Streaming Transformer: Transforms the response stream into a structured format
@@ -44,12 +48,10 @@ const createStreamTransformer = () => new TransformStream({
   }
 })
 
-export const runtime = 'edge'
 export const dynamic = 'force-dynamic'
 
 /**
  * Handles POST requests to the chat API.
- * Validates the input, sends a request to the Ollama API, and streams the response.
  * @param request - The incoming request object.
  * @returns A Response object with the transformed stream or an error message.
  */
@@ -62,26 +64,33 @@ export async function POST(request: NextRequest) {
     // Validate input using the defined schema
     const validatedBody = ChatRequestSchema.parse(body)
 
-    // Get conversation context from memory
-    const conversationContext = conversationMemory.getContextPrompt()
+    // Prepare messages array
+    const messages = [
+      { 
+        role: 'system', 
+        content: process.env.OLLAMA_SYSTEM_PROMPT || 'You are an AI assistant.' 
+      }
+    ]
+
+    // Add previous messages if available
+    if (validatedBody.messages?.length) {
+      // Filter out system messages and transform the rest
+      messages.push(...validatedBody.messages
+        .filter(msg => msg.role !== 'system')
+        .map(msg => ({
+          role: msg.role,
+          content: msg.content
+        }))
+      )
+    }
+
+    // Add the current user message
+    messages.push({ role: 'user', content: validatedBody.prompt })
 
     // Prepare the request body for the Ollama API
     const requestBody = {
       model: config.model,
-      messages: [
-        { 
-          role: 'system', 
-          content: process.env.OLLAMA_SYSTEM_PROMPT || 'You are an AI assistant.' 
-        },
-        ...conversationContext ? conversationContext.split('\n').map(line => {
-          const [role, content] = line.split(': ')
-          return {
-            role: role.toLowerCase(),
-            content
-          }
-        }) : [],
-        { role: 'user', content: validatedBody.prompt }
-      ],
+      messages,
       stream: true
     }
 
@@ -108,50 +117,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Transform and return the response stream
-    const transformedStream = response.body?.pipeThrough(new TransformStream({
-      transform(chunk, controller) {
-        try {
-          const text = new TextDecoder().decode(chunk)
-          const lines = text.split('\n').filter(Boolean)
-          
-          lines.forEach(line => {
-            try {
-              const data = JSON.parse(line)
-              const content = data.message?.content || ''
-              
-              // Add message to memory if it's the final message
-              if (data.done && content) {
-                conversationMemory.addMessage({
-                  role: 'assistant',
-                  content,
-                  id: Date.now().toString()
-                })
-              }
-              
-              controller.enqueue(
-                new TextEncoder().encode(
-                  JSON.stringify({
-                    done: data.done,
-                    message: { content }
-                  }) + '\n'
-                )
-              )
-            } catch (parseError) {
-              console.warn('Chunk parsing error:', parseError)
-            }
-          })
-        } catch (error) {
-          console.error('Stream transformation error:', error)
-        }
-      }
-    }))
-
-    // Add user message to memory
-    conversationMemory.addMessage({ 
-      role: 'user', 
-      content: validatedBody.prompt,
-      id: Date.now().toString()
-    })
+    const transformedStream = response.body?.pipeThrough(createStreamTransformer())
 
     return new Response(transformedStream, {
       headers: {

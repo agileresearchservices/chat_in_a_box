@@ -1,32 +1,51 @@
 import { Message } from 'ai'
 
-export class ConversationMemory {
-  private memory: Message[] = []
+class ConversationMemory {
+  private static instance: ConversationMemory
+  private messages: Message[] = []
   private maxMemoryLength = 10 // Limit to last 10 messages to prevent token overflow
 
+  private constructor() {}
+
+  public static getInstance(): ConversationMemory {
+    if (!ConversationMemory.instance) {
+      ConversationMemory.instance = new ConversationMemory()
+    }
+    return ConversationMemory.instance
+  }
+
   addMessage(message: Message) {
-    this.memory.push(message)
+    this.messages.push(message)
     
     // Trim memory if it exceeds max length
-    if (this.memory.length > this.maxMemoryLength) {
-      this.memory = this.memory.slice(-this.maxMemoryLength)
+    if (this.messages.length > this.maxMemoryLength) {
+      this.messages = this.messages.slice(-this.maxMemoryLength)
     }
   }
 
-  getMemory(): Message[] {
-    return this.memory
+  getMessages(): Message[] {
+    return this.messages
   }
 
-  getContextPrompt(): string {
-    return this.memory
-      .map(msg => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`)
-      .join('\n')
-  }
-
+  /**
+   * Clears all messages from memory.
+   */
   clear() {
-    this.memory = []
+    this.messages = []
+  }
+
+  /**
+   * Gets the context prompt from memory.
+   * @returns The context prompt string.
+   */
+  getContextPrompt(): string {
+    if (this.messages.length === 0) return ''
+    
+    return this.messages
+      .map(msg => `${msg.role}: ${msg.content}`)
+      .join('\n')
   }
 }
 
-// Singleton instance to maintain conversation context
-export const conversationMemory = new ConversationMemory()
+// Export a singleton instance
+export const conversationMemory = ConversationMemory.getInstance()
