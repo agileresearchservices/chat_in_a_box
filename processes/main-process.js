@@ -8,7 +8,7 @@ const mainProcess = async () => {
   console.log('Starting main process...');
   try {
     console.log('Reading text file...');
-    const text = await fs.readFile('sample_text.txt', 'utf8');
+    const text = await fs.readFile('processes/sample_text.txt', 'utf8');
     console.log('Text read successfully:', text);
 
     console.log('Chunking text...');

@@ -196,6 +196,41 @@ npx prisma studio
 
 This setup ensures efficient storage and retrieval of data, making it a cornerstone of the RAG application's search and retrieval capabilities.
 
+## Text Chunking and Embedding Features
+
+The application now includes advanced text processing capabilities using LlamaIndex and Ollama text embeddings:
+
+### Text Chunking
+- Implemented intelligent text chunking for processing large documents
+- Uses a specialized chunker utility that breaks down text while preserving context
+- Configurable chunk sizes and overlap settings
+
+### Embedding Generation
+- Integration with Ollama's text embedding model for semantic understanding
+- Efficient vector representation of text chunks
+- Supports both document and query embedding generation
+
+### Key Components:
+- `embed.model.js`: Handles the core embedding functionality
+- `embed-process.js`: Manages the embedding generation process
+- `chunker.js`: Provides text chunking utilities
+- `embed.service.js`: Service layer for embedding operations
+
+### Usage Example:
+```javascript
+// Generate embeddings for a document
+const embedService = new EmbedService();
+const embedding = await embedService.generateEmbedding(textContent);
+
+// Store document with embedding
+await prisma.document.create({
+  data: {
+    content: textContent,
+    embedding: embedding
+  }
+});
+```
+
 ## Conversation Memory Management
 
 ### ConversationMemory Class
