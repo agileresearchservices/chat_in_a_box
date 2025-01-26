@@ -3,11 +3,12 @@ const nextConfig = {
   async rewrites() {
     return [
       {
-        source: '/api/chat',
+        source: '/api/ollama/:path*',
         destination: 'http://localhost:11434/api/chat',
       },
     ]
-  }
-}
+  },
+  reactStrictMode: true,
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;
