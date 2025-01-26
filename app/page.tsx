@@ -12,7 +12,7 @@
 // cn is a utility function for class names
 'use client'
 
-import { useMemo, useReducer, useState, useRef, useCallback } from 'react'
+import { useMemo, useReducer, useState, useRef, useCallback, useEffect } from 'react'
 import { Message } from 'ai'
 import ReactMarkdown from 'react-markdown'
 import Image from 'next/image'
@@ -53,6 +53,7 @@ type ChatAction =
   | { type: 'UPDATE_LAST_MESSAGE'; content: string }
   | { type: 'SET_LOADING'; isLoading: boolean }
   | { type: 'SET_STREAMING'; isStreaming: boolean }
+  | { type: 'SET_MESSAGES'; messages: MessageWithTimestamp[] }
 
 /**
  * Reducer function to manage chat state.
@@ -86,6 +87,11 @@ const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
       return {
         ...state,
         isStreaming: action.isStreaming
+      }
+    case 'SET_MESSAGES':
+      return {
+        ...state,
+        messages: action.messages
       }
   }
 }
@@ -288,6 +294,29 @@ export default function Home() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const readerRef = useRef<ReadableStreamDefaultReader | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  // Load messages from localStorage on component mount
+  useEffect(() => {
+    const savedMessages = localStorage.getItem('chatMessages')
+    if (savedMessages) {
+      try {
+        const parsedMessages = JSON.parse(savedMessages)
+        // Convert ISO date strings back to Date objects
+        const messagesWithDates = parsedMessages.map((msg: any) => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp)
+        }))
+        dispatch({ type: 'SET_MESSAGES', messages: messagesWithDates })
+      } catch (error) {
+        console.error('Error loading saved messages:', error)
+      }
+    }
+  }, [])
+
+  // Save messages to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('chatMessages', JSON.stringify(state.messages))
+  }, [state.messages])
 
   /**
    * Scrolls to the bottom of the chat log.

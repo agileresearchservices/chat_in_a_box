@@ -69,14 +69,17 @@ export async function POST(request: NextRequest) {
     const requestBody = {
       model: config.model,
       messages: [
-        ...(conversationContext ? [{ 
-          role: 'system', 
-          content: `Previous conversation context:\n${conversationContext}` 
-        }] : []),
         { 
           role: 'system', 
           content: process.env.OLLAMA_SYSTEM_PROMPT || 'You are an AI assistant.' 
         },
+        ...conversationContext ? conversationContext.split('\n').map(line => {
+          const [role, content] = line.split(': ')
+          return {
+            role: role.toLowerCase(),
+            content
+          }
+        }) : [],
         { role: 'user', content: validatedBody.prompt }
       ],
       stream: true
@@ -92,7 +95,6 @@ export async function POST(request: NextRequest) {
     if (!response.ok) {
       const errorText = await response.text()
       console.error('Ollama error response:', errorText)
-      // Return error response if the API call fails
       return new Response(
         JSON.stringify({ 
           error: 'Ollama communication failed',
@@ -105,30 +107,52 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create a stream transformer that will capture the full response
-    const capturedResponseStream = new TransformStream({
+    // Transform and return the response stream
+    const transformedStream = response.body?.pipeThrough(new TransformStream({
       transform(chunk, controller) {
-        controller.enqueue(chunk)
-      },
-      flush(controller) {
-        // This is where we'll add the response to memory
-        controller.terminate()
+        try {
+          const text = new TextDecoder().decode(chunk)
+          const lines = text.split('\n').filter(Boolean)
+          
+          lines.forEach(line => {
+            try {
+              const data = JSON.parse(line)
+              const content = data.message?.content || ''
+              
+              // Add message to memory if it's the final message
+              if (data.done && content) {
+                conversationMemory.addMessage({
+                  role: 'assistant',
+                  content,
+                  id: Date.now().toString()
+                })
+              }
+              
+              controller.enqueue(
+                new TextEncoder().encode(
+                  JSON.stringify({
+                    done: data.done,
+                    message: { content }
+                  }) + '\n'
+                )
+              )
+            } catch (parseError) {
+              console.warn('Chunk parsing error:', parseError)
+            }
+          })
+        } catch (error) {
+          console.error('Stream transformation error:', error)
+        }
       }
-    })
+    }))
 
-    // Pipe the response through our capture stream and the existing transformer
-    const transformedStream = response.body
-      ?.pipeThrough(capturedResponseStream)
-      .pipeThrough(createStreamTransformer())
-
-    // Add user message to memory immediately
+    // Add user message to memory
     conversationMemory.addMessage({ 
       role: 'user', 
       content: validatedBody.prompt,
       id: Date.now().toString()
     })
 
-    // Return the transformed response stream
     return new Response(transformedStream, {
       headers: {
         'Content-Type': 'text/event-stream',
@@ -140,7 +164,6 @@ export async function POST(request: NextRequest) {
     console.error('Chat API error:', error)
     
     if (error instanceof z.ZodError) {
-      // Return error response for invalid input
       return new Response(
         JSON.stringify({ 
           error: 'Invalid input',
@@ -153,7 +176,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Return error response for internal server errors
     return new Response(
       JSON.stringify({ 
         error: 'Internal server error',
