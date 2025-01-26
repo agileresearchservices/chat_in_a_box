@@ -35,3 +35,26 @@ export async function sendMessage(prompt: string) {
     throw error
   }
 }
+
+/**
+ * Gets embeddings for the given text.
+ * @param text - The text to get embeddings for.
+ * @returns The API response.
+ * @throws An error if the API call fails or no response body is received.
+ */
+export const getEmbedding = async (text: string): Promise<Response> => {
+  const response = await fetch('/api/embed', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ text }),
+  })
+
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.details || error.error || 'Failed to get embedding')
+  }
+
+  return response
+}

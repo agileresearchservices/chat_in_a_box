@@ -54,6 +54,61 @@ paths:
                     type: string
                     description: Error message
                     example: "Internal Server Error"
+  /api/embed:
+    post:
+      summary: Generate text embeddings
+      description: Generate vector embeddings for the provided text using Ollama's embedding model
+      operationId: generateEmbedding
+      tags:
+        - Embeddings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                text:
+                  type: string
+                  description: The text to generate embeddings for
+                  example: "This is a sample text for embedding"
+              required:
+                - text
+      responses:
+        '200':
+          description: Successful response with embedding vector
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  embedding:
+                    type: array
+                    items:
+                      type: number
+                    description: The embedding vector
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message
+                    example: "Text is required and must be a string"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message
+                    example: "Failed to generate embedding"
 
 components:
   schemas:
@@ -82,3 +137,5 @@ components:
 tags:
   - name: Chat
     description: Chat operations
+  - name: Embeddings
+    description: Embeddings operations

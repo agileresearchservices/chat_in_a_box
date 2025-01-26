@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const ollamaEmbedService = async (text) => {
   try {
-    console.log('Attempting to embed text:', text);
+    //console.log('Attempting to embed text:', text);
     
     const response = await axios.post('http://localhost:11434/api/embeddings', {
       model: 'nomic-embed-text',
@@ -13,7 +13,7 @@ const ollamaEmbedService = async (text) => {
       }
     });
     
-    console.log('Embedding response received:', response.data);
+    //console.log('Embedding response received:', response.data);
     
     // Verify the response structure
     if (!response.data || !response.data.embedding) {

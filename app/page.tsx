@@ -21,7 +21,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { oneDark } from 'react-syntax-highlighter/dist/cjs/styles/prism'
 import { format } from 'date-fns'
 import { ClipboardDocumentIcon, ClipboardDocumentCheckIcon, StopIcon, PaperAirplaneIcon } from '@heroicons/react/24/outline'
-import { sendMessage } from './services/api'
+import { sendMessage, getEmbedding } from './services/api'
 import { toast } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
 import { v4 as uuidv4 } from 'uuid';
@@ -186,13 +186,17 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
           </time>
           <div
             className={cn(
-              "p-3 sm:p-4 rounded-lg w-full message-content relative break-words",
+              "p-3 sm:p-4 rounded-lg w-full message-content relative break-words min-h-[3rem]",
               isUser
                 ? "bg-blue-500 text-white"
-                : "bg-gray-100 text-gray-900"
+                : "bg-gray-100 text-gray-900 pr-12"
             )}
           >
-            {!isUser && <CopyButton text={message.content} className="hidden sm:block" />}
+            {!isUser && (
+              <div className="absolute top-2 right-2 z-10">
+                <CopyButton text={message.content} className="hidden sm:block" />
+              </div>
+            )}
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{
@@ -313,6 +317,15 @@ export default function Home() {
       role: 'user',
       content: input.trim(),
       timestamp: new Date()
+    }
+
+    // Generate embedding for the user's message
+    try {
+      const embeddingResponse = await getEmbedding(input.trim())
+      const embeddingData = await embeddingResponse.json()
+      console.log('Message embedding:', embeddingData)
+    } catch (error) {
+      console.error('Error generating embedding:', error)
     }
 
     dispatch({ type: 'ADD_MESSAGE', message: userMessage })
