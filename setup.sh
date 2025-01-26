@@ -12,3 +12,5 @@ docker compose exec postgres bash -c 'until pg_isready -h localhost; do echo "Wa
 # Run Prisma DB Push
 npx prisma db push
 
+# Generate Prisma client
+npx prisma generate

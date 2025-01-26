@@ -61,6 +61,22 @@ NEXT_PUBLIC_API_URL=http://localhost:11434
 OLLAMA_MODEL=phi4
 ```
 
+## Docker and Database Setup
+
+To set up the project using Docker and initialize the database, run the setup script:
+
+```bash
+./setup.sh
+```
+
+This script will:
+- Start the Docker containers
+- Wait for the PostgreSQL database to be ready
+- Run Prisma database migrations
+- Generate Prisma client
+
+**Note**: Ensure you have Docker and Docker Compose installed before running the script.
+
 ## Prisma and Database Setup
 
 This application uses [Prisma](https://www.prisma.io/) as the ORM for interacting with the PostgreSQL database. Additionally, it leverages the `pgvector` extension for vector storage to facilitate document and embedding retrieval, which is critical for the RAG (Retrieval-Augmented Generation) application.
