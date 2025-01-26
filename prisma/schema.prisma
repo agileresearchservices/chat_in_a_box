@@ -1,0 +1,15 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model docs {
+  id        Int     @id @default(autoincrement())
+  doc_id    String
+  content   String
+  embedding Float[]
+}
