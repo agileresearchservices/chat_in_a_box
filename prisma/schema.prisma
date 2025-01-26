@@ -12,4 +12,5 @@ model docs {
   doc_id    String
   content   String
   embedding Float[]
+  createdAt DateTime @default(now())
 }
