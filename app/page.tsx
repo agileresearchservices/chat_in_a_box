@@ -189,78 +189,84 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
               "p-3 sm:p-4 rounded-lg w-full message-content relative break-words min-h-[3rem]",
               isUser
                 ? "bg-blue-500 text-white"
-                : "bg-gray-100 text-gray-900 pr-12"
+                : "bg-gray-100 text-gray-900"
             )}
           >
             {!isUser && (
-              <div className="absolute top-2 right-2 z-10">
+              <div className="absolute top-2 right-2 z-10 w-8 h-8 flex items-center justify-center bg-gray-100">
                 <CopyButton text={message.content} className="hidden sm:block" />
               </div>
             )}
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm]}
-              components={{
-                code({ node, className, children, ...props }) {
-                  const match = /language-(\w+)/.exec(className || '')
-                  const codeString = String(children).replace(/\n$/, '')
-                  const isInline = !match
+            <div className={cn(
+              "prose max-w-none",
+              !isUser && "pr-10", // Add padding only for assistant messages
+              isUser ? "text-white" : "text-gray-900"
+            )}>
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  code({ node, className, children, ...props }) {
+                    const match = /language-(\w+)/.exec(className || '')
+                    const codeString = String(children).replace(/\n$/, '')
+                    const isInline = !match
 
-                  if (isInline) {
+                    if (isInline) {
+                      return (
+                        <code 
+                          className={cn("px-1 py-0.5 rounded bg-gray-200", className)} 
+                          {...props}
+                        >
+                          {children}
+                        </code>
+                      )
+                    }
+
                     return (
-                      <code 
-                        className={cn("px-1 py-0.5 rounded bg-gray-200", className)} 
+                      <div className="relative mt-2">
+                        <CopyButton text={codeString} />
+                        <SyntaxHighlighter
+                          style={oneDark}
+                          language={match?.[1] || 'text'}
+                          PreTag="div"
+                          className="rounded-md !mt-0"
+                        >
+                          {codeString}
+                        </SyntaxHighlighter>
+                      </div>
+                    )
+                  },
+                  a({ node, children, href, ...props }) {
+                    return (
+                      <a 
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
                         {...props}
                       >
                         {children}
-                      </code>
+                      </a>
+                    )
+                  },
+                  img({ node, src, alt, ...props }) {
+                    if (!src || typeof src !== 'string') return null
+                    return (
+                      <Image
+                        src={src}
+                        alt={alt || ''}
+                        width={500}
+                        height={300}
+                        className="rounded-lg max-w-full h-auto"
+                        loading="lazy"
+                        unoptimized
+                      />
                     )
                   }
-
-                  return (
-                    <div className="relative mt-2">
-                      <CopyButton text={codeString} />
-                      <SyntaxHighlighter
-                        style={oneDark}
-                        language={match?.[1] || 'text'}
-                        PreTag="div"
-                        className="rounded-md !mt-0"
-                      >
-                        {codeString}
-                      </SyntaxHighlighter>
-                    </div>
-                  )
-                },
-                a({ node, children, href, ...props }) {
-                  return (
-                    <a 
-                      href={href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
-                      {...props}
-                    >
-                      {children}
-                    </a>
-                  )
-                },
-                img({ node, src, alt, ...props }) {
-                  if (!src || typeof src !== 'string') return null
-                  return (
-                    <Image
-                      src={src}
-                      alt={alt || ''}
-                      width={500}
-                      height={300}
-                      className="rounded-lg max-w-full h-auto"
-                      loading="lazy"
-                      unoptimized
-                    />
-                  )
-                }
-              }}
-            >
-              {message.content}
-            </ReactMarkdown>
+                }}
+              >
+                {message.content}
+              </ReactMarkdown>
+            </div>
           </div>
         </div>
       </div>
