@@ -12,7 +12,7 @@
 // cn is a utility function for class names
 'use client'
 
-import { useMemo, useReducer, useState, useRef, useCallback, useEffect } from 'react'
+import { useMemo, useReducer, useState, useRef, useCallback, useEffect, Fragment } from 'react'
 import { Message as AiMessage } from 'ai'
 import ReactMarkdown from 'react-markdown'
 import Image from 'next/image'
@@ -20,17 +20,28 @@ import remarkGfm from 'remark-gfm'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { oneDark } from 'react-syntax-highlighter/dist/cjs/styles/prism'
 import { format } from 'date-fns'
-import { ClipboardDocumentIcon, ClipboardDocumentCheckIcon, StopIcon, PaperAirplaneIcon, TrashIcon } from '@heroicons/react/24/outline'
+import { Dialog, Transition } from '@headlessui/react'
+import { 
+  ClipboardDocumentIcon, 
+  ClipboardDocumentCheckIcon, 
+  StopIcon, 
+  PaperAirplaneIcon, 
+  TrashIcon, 
+  BeakerIcon,
+  XMarkIcon 
+} from '@heroicons/react/24/outline'
 import { sendMessage, getEmbedding, clearMemory } from './services/api'
 import { toast } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from 'uuid'
+import { parseMessage } from '@/utils/message-parser'
 
 /**
  * Extended Message type that includes a timestamp
  */
 interface TimestampedMessage extends AiMessage {
   timestamp: Date
+  thinkingProcess?: string
 }
 
 /**
@@ -49,10 +60,11 @@ interface ChatState {
  */
 type ChatAction =
   | { type: 'ADD_MESSAGE'; message: TimestampedMessage }
-  | { type: 'UPDATE_LAST_MESSAGE'; content: string }
+  | { type: 'UPDATE_LAST_MESSAGE'; content: string; thinkingProcess?: string }
   | { type: 'SET_MESSAGES'; messages: TimestampedMessage[] }
   | { type: 'SET_LOADING'; isLoading: boolean }
   | { type: 'SET_STREAMING'; isStreaming: boolean }
+  | { type: 'UPDATE_THINKING_PROCESS'; thinkingProcess: string }
 
 /**
  * Reducer function to manage chat state.
@@ -75,10 +87,22 @@ const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
       const lastMessage = updatedMessages[updatedMessages.length - 1]
       if (lastMessage.role === 'assistant') {
         lastMessage.content = action.content
+        lastMessage.thinkingProcess = action.thinkingProcess
         // Save to local storage
         localStorage.setItem('chatMessages', JSON.stringify(updatedMessages))
       }
       return { ...state, messages: updatedMessages }
+      
+    case 'UPDATE_THINKING_PROCESS':
+      if (state.messages.length === 0) return state
+      const updatedMessagesThinking = [...state.messages]
+      const lastMessageThinking = updatedMessagesThinking[updatedMessagesThinking.length - 1]
+      if (lastMessageThinking.role === 'assistant') {
+        lastMessageThinking.thinkingProcess = action.thinkingProcess
+        // Save to local storage
+        localStorage.setItem('chatMessages', JSON.stringify(updatedMessagesThinking))
+      }
+      return { ...state, messages: updatedMessagesThinking }
       
     case 'SET_MESSAGES':
       return { ...state, messages: action.messages }
@@ -155,6 +179,7 @@ interface ChatMessageProps {
 const ChatMessage = ({ message }: ChatMessageProps) => {
   const isUser = message.role === 'user'
   const [isCopied, setIsCopied] = useState(false)
+  const [showThinking, setShowThinking] = useState(false)
   const messageContentRef = useRef<HTMLDivElement>(null)
 
   const copyToClipboard = async () => {
@@ -171,115 +196,202 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
     }
   }
 
+  const hasThinkingProcess = !isUser && message.thinkingProcess
+
   return (
-    <div
-      className={cn(
-        "flex px-2 sm:px-0",
-        isUser ? "justify-end" : "justify-start"
-      )}
-    >
+    <>
       <div
         className={cn(
-          "flex items-start space-x-2 sm:space-x-4 w-full max-w-[85%] sm:max-w-[75%]",
-          isUser ? "flex-row-reverse space-x-reverse sm:space-x-reverse" : "flex-row"
+          "flex px-2 sm:px-0",
+          isUser ? "justify-end" : "justify-start"
         )}
       >
-        <div className="flex-shrink-0">
-          <div 
-            className={cn(
-              "w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center",
-              isUser ? "bg-blue-500" : "bg-gray-500"
-            )}
-            aria-label={isUser ? "User Avatar" : "Assistant Avatar"}
-          >
-            {isUser ? '👤' : '🤖'}
-          </div>
-        </div>
-
         <div
           className={cn(
-            "flex flex-col flex-1 min-w-0",
-            isUser ? "items-end" : "items-start"
+            "flex items-start space-x-2 sm:space-x-4 w-full max-w-[85%] sm:max-w-[75%]",
+            isUser ? "flex-row-reverse space-x-reverse sm:space-x-reverse" : "flex-row"
           )}
         >
-          <time className="text-xs text-gray-500 mb-1 px-1">
-            {message.timestamp ? format(message.timestamp, 'HH:mm') : ''}
-          </time>
+          <div className="flex-shrink-0">
+            <div 
+              className={cn(
+                "w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center",
+                isUser ? "bg-blue-500" : "bg-gray-500"
+              )}
+              aria-label={isUser ? "User Avatar" : "Assistant Avatar"}
+            >
+              {isUser ? '👤' : '🤖'}
+            </div>
+          </div>
+
           <div
-            ref={messageContentRef}
             className={cn(
-              "p-3 sm:p-4 rounded-lg w-full message-content relative break-words min-h-[3rem]",
-              isUser
-                ? "bg-blue-500 text-white"
-                : "bg-gray-100 text-gray-900"
+              "flex flex-col flex-1 min-w-0",
+              isUser ? "items-end" : "items-start"
             )}
           >
-            {!isUser && (
-              <button
-                onClick={copyToClipboard}
-                className="absolute top-2 right-2 p-1 text-gray-500 hover:text-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                aria-label="Copy message"
-              >
-                {isCopied ? (
-                  <ClipboardDocumentCheckIcon className="w-5 h-5" />
-                ) : (
-                  <ClipboardDocumentIcon className="w-5 h-5" />
-                )}
-              </button>
-            )}
-            <div className={cn(
-              "prose max-w-none",
-              !isUser && "pr-10",
-              isUser ? "text-white" : "text-gray-900"
-            )}>
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
-                components={{
-                  code({ node, className, children, ...props }) {
-                    const match = /language-(\w+)/.exec(className || '')
-                    const codeString = String(children).replace(/\n$/, '')
-                    const isInline = !match
+            <time className="text-xs text-gray-500 mb-1 px-1">
+              {message.timestamp ? format(message.timestamp, 'HH:mm') : ''}
+            </time>
+            <div
+              ref={messageContentRef}
+              className={cn(
+                "p-3 sm:p-4 rounded-lg w-full message-content relative break-words min-h-[3rem]",
+                isUser
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-100 text-gray-900"
+              )}
+            >
+              {!isUser && (
+                <div className="absolute top-2 right-2 flex space-x-1">
+                  {hasThinkingProcess && (
+                    <button
+                      onClick={() => setShowThinking(true)}
+                      className="p-1 text-gray-500 hover:text-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      aria-label="Show thinking process"
+                    >
+                      <BeakerIcon className="w-5 h-5" />
+                    </button>
+                  )}
+                  <button
+                    onClick={copyToClipboard}
+                    className="p-1 text-gray-500 hover:text-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    aria-label="Copy message"
+                  >
+                    {isCopied ? (
+                      <ClipboardDocumentCheckIcon className="w-5 h-5" />
+                    ) : (
+                      <ClipboardDocumentIcon className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
+              )}
+              <div className={cn(
+                "prose max-w-none",
+                !isUser && "pr-20",
+                isUser ? "text-white" : "text-gray-900"
+              )}>
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    code({ node, className, children, ...props }) {
+                      const match = /language-(\w+)/.exec(className || '')
+                      const codeString = String(children).replace(/\n$/, '')
+                      const isInline = !match
 
-                    if (isInline) {
+                      if (isInline) {
+                        return (
+                          <code 
+                            className={cn("px-1 py-0.5 rounded bg-gray-200", className)} 
+                            {...props}
+                          >
+                            {children}
+                          </code>
+                        )
+                      }
+
                       return (
-                        <code 
-                          className={cn("px-1 py-0.5 rounded bg-gray-200", className)} 
-                          {...props}
-                        >
-                          {children}
-                        </code>
+                        <div className="relative mt-2">
+                          <button
+                            onClick={() => navigator.clipboard.writeText(codeString)}
+                            className="absolute top-2 right-2 p-1 text-gray-400 hover:text-white rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            aria-label="Copy code"
+                          >
+                            <ClipboardDocumentIcon className="w-5 h-5" />
+                          </button>
+                          <SyntaxHighlighter
+                            style={oneDark}
+                            language={match?.[1] || 'text'}
+                            PreTag="div"
+                            className="rounded-md !mt-0"
+                          >
+                            {codeString}
+                          </SyntaxHighlighter>
+                        </div>
                       )
                     }
-
-                    return (
-                      <div className="relative mt-2">
-                        <button
-                          onClick={() => navigator.clipboard.writeText(codeString)}
-                          className="absolute top-2 right-2 p-1 text-gray-400 hover:text-white rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          aria-label="Copy code"
-                        >
-                          <ClipboardDocumentIcon className="w-5 h-5" />
-                        </button>
-                        <SyntaxHighlighter
-                          style={oneDark}
-                          language={match?.[1] || 'text'}
-                          PreTag="div"
-                          className="rounded-md !mt-0"
-                        >
-                          {codeString}
-                        </SyntaxHighlighter>
-                      </div>
-                    )
-                  }
-                }}
-              >
-                {message.content}
-              </ReactMarkdown>
+                  }}
+                >
+                  {message.content}
+                </ReactMarkdown>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+      {hasThinkingProcess && (
+        <ThinkingModal
+          isOpen={showThinking}
+          onClose={() => setShowThinking(false)}
+          content={message.thinkingProcess || ''}
+        />
+      )}
+    </>
+  )
+}
+
+interface ThinkingModalProps {
+  isOpen: boolean
+  onClose: () => void
+  content: string
+}
+
+const ThinkingModal = ({ isOpen, onClose, content }: ThinkingModalProps) => {
+  return (
+    <Transition.Root show={isOpen} as={Fragment}>
+      <Dialog as="div" className="relative z-50" onClose={onClose}>
+        <Transition.Child
+          as={Fragment}
+          enter="ease-out duration-300"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-200"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+        </Transition.Child>
+
+        <div className="fixed inset-0 z-10 overflow-y-auto">
+          <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+              enterTo="opacity-100 translate-y-0 sm:scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+              leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+            >
+              <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl sm:p-6">
+                <div className="absolute right-0 top-0 pr-4 pt-4">
+                  <button
+                    type="button"
+                    className="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onClick={onClose}
+                  >
+                    <span className="sr-only">Close</span>
+                    <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+                  </button>
+                </div>
+                <div>
+                  <div className="mt-3 sm:mt-0">
+                    <Dialog.Title as="h3" className="text-lg font-semibold leading-6 text-gray-900 mb-4">
+                      Thinking Process
+                    </Dialog.Title>
+                    <div className="mt-2">
+                      <pre className="whitespace-pre-wrap text-sm text-gray-600 font-mono bg-gray-50 p-4 rounded-lg overflow-auto max-h-[60vh]">
+                        {content}
+                      </pre>
+                    </div>
+                  </div>
+                </div>
+              </Dialog.Panel>
+            </Transition.Child>
+          </div>
+        </div>
+      </Dialog>
+    </Transition.Root>
   )
 }
 
@@ -422,9 +534,12 @@ export default function Home() {
           currentMessage += data.message.content
           
           if (data.done) {
+            // Parse the message to extract thinking process
+            const parsedMessage = parseMessage(currentMessage)
             dispatch({ 
               type: 'UPDATE_LAST_MESSAGE', 
-              content: currentMessage 
+              content: parsedMessage.content,
+              thinkingProcess: parsedMessage.thinkingProcess
             })
             break
           } else {
