@@ -10,7 +10,9 @@ datasource db {
 model docs {
   id        Int     @id @default(autoincrement())
   doc_id    String
-  content   String
+  source    String
+  type      String
+  chunk     String
   embedding Float[]
   createdAt DateTime @default(now())
 }

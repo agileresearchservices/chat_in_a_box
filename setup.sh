@@ -3,6 +3,19 @@
 # Navigate to the project root directory
 cd "$(dirname "$0")"
 
+# Create and activate virtual environment
+if [ ! -d ".venv" ]; then
+    python3.11 -m venv .venv
+fi
+source .venv/bin/activate
+
+# Install requirements
+if [ -f "requirements.txt" ]; then
+    pip install -r requirements.txt
+else
+    echo "requirements.txt not found, skipping installation."
+fi
+
 # Run docker compose
 docker compose up --build -d
 
