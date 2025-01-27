@@ -86,11 +86,7 @@ export async function POST(request: NextRequest) {
     const messagesWithContext = [
       {
         role: 'system',
-        content: config.systemPrompt
-      },
-      {
-        role: 'system',
-        content: `Use the following context to help answer the user's question:\n\n${context}\n\nIf the context is not relevant to the question, you may ignore it.`
+        content: `${config.systemPrompt}\n\nContext for the current question:\n${context}`
       },
       ...(messages || []),
       { role: 'user', content: prompt }
