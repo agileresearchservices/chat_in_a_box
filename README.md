@@ -250,6 +250,22 @@ The `ConversationMemory` class is a crucial component of the application's conve
 
 This mechanism ensures that the AI maintains context across multiple interactions while preventing excessive memory usage.
 
+## Recent Changes
+
+### Virtual Environment Setup
+- The `setup.sh` script now includes steps to create and activate a Python 3.11 virtual environment and install dependencies from `requirements.txt`.
+
+### Data Processing Enhancements
+- Introduced `services/text_extractor.py` for extracting text from `.txt`, `.pdf`, and `.docx` files.
+- Updated `main-process.js` to process text content in chunks using the new text extraction functionality.
+
+### Database Schema Update
+- Updated the Prisma schema to include new fields (`source`, `type`, `chunk`) in the `docs` model.
+- Purged old migrations and created a new initial migration reflecting the current schema.
+
+### Requirements
+- Added a `requirements.txt` file to manage Python dependencies, including `python-magic`, `PyPDF2`, `python-docx`, `tqdm`, and `pathlib`.
+
 ## Getting Started
 
 First, run the development server:
