@@ -1,6 +1,6 @@
 import { SentenceSplitter } from 'llamaindex';
 
-const chunkText = async (text, chunkSize = 256, chunkOverlap = 20) => {
+const chunkText = async (text, chunkSize = parseInt(process.env.CHUNK_SIZE || '256', 10), chunkOverlap = parseInt(process.env.CHUNK_OVERLAP || '20', 10)) => {
   try {
     // Create a text splitter with specified chunk size and overlap
     const splitter = new SentenceSplitter({

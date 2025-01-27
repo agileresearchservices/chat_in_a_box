@@ -3,7 +3,7 @@ import { Message } from 'ai'
 class ConversationMemory {
   private static instance: ConversationMemory
   private messages: Message[] = []
-  private maxMemoryLength = 10 // Limit to last 10 messages to prevent token overflow
+  private maxMemoryLength = parseInt(process.env.MAX_MEMORY_LENGTH || '10', 10) // Limit messages to prevent token overflow
 
   private constructor() {}
 

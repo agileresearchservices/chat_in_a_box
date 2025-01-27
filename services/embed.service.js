@@ -4,8 +4,11 @@ const ollamaEmbedService = async (text) => {
   try {
     console.log('Attempting to embed text:', text);
     
-    const response = await axios.post('http://localhost:11434/api/embeddings', {
-      model: 'nomic-embed-text',
+    const OLLAMA_HOST = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:11434';
+    const EMBED_MODEL = process.env.OLLAMA_EMBED_MODEL || 'nomic-embed-text';
+    
+    const response = await axios.post(`${OLLAMA_HOST}/api/embeddings`, {
+      model: EMBED_MODEL,
       prompt: text
     }, {
       headers: {
