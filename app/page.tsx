@@ -12,7 +12,7 @@
 // cn is a utility function for class names
 'use client'
 
-import { useMemo, useReducer, useState, useRef, useCallback, useEffect, Fragment } from 'react'
+import React, { Fragment, useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import { Message as AiMessage } from 'ai'
 import ReactMarkdown from 'react-markdown'
 import Image from 'next/image'
@@ -28,7 +28,9 @@ import {
   PaperAirplaneIcon, 
   TrashIcon, 
   BeakerIcon,
-  XMarkIcon 
+  XMarkIcon,
+  UserIcon,
+  SparklesIcon
 } from '@heroicons/react/24/outline'
 import { sendMessage, getEmbedding, clearMemory } from './services/api'
 import { toast } from 'react-hot-toast'
@@ -42,6 +44,7 @@ import { parseMessage } from '@/utils/message-parser'
 interface TimestampedMessage extends AiMessage {
   timestamp: Date
   thinkingProcess?: string
+  isThinking?: boolean
 }
 
 /**
@@ -60,7 +63,7 @@ interface ChatState {
  */
 type ChatAction =
   | { type: 'ADD_MESSAGE'; message: TimestampedMessage }
-  | { type: 'UPDATE_LAST_MESSAGE'; content: string; thinkingProcess?: string }
+  | { type: 'UPDATE_LAST_MESSAGE'; content: string; thinkingProcess?: string; isThinking?: boolean }
   | { type: 'SET_MESSAGES'; messages: TimestampedMessage[] }
   | { type: 'SET_LOADING'; isLoading: boolean }
   | { type: 'SET_STREAMING'; isStreaming: boolean }
@@ -88,6 +91,7 @@ const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
       if (lastMessage.role === 'assistant') {
         lastMessage.content = action.content
         lastMessage.thinkingProcess = action.thinkingProcess
+        lastMessage.isThinking = action.isThinking
         // Save to local storage
         localStorage.setItem('chatMessages', JSON.stringify(updatedMessages))
       }
@@ -179,7 +183,7 @@ interface ChatMessageProps {
 const ChatMessage = ({ message }: ChatMessageProps) => {
   const isUser = message.role === 'user'
   const [isCopied, setIsCopied] = useState(false)
-  const [showThinking, setShowThinking] = useState(false)
+  const [showThinkingModal, setShowThinkingModal] = useState(false)
   const messageContentRef = useRef<HTMLDivElement>(null)
 
   const copyToClipboard = async () => {
@@ -220,52 +224,22 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
               )}
               aria-label={isUser ? "User Avatar" : "Assistant Avatar"}
             >
-              {isUser ? '👤' : '🤖'}
+              {isUser ? (
+                <UserIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+              ) : (
+                <SparklesIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+              )}
             </div>
           </div>
 
-          <div
-            className={cn(
-              "flex flex-col flex-1 min-w-0",
-              isUser ? "items-end" : "items-start"
-            )}
-          >
-            <time className="text-xs text-gray-500 mb-1 px-1">
-              {message.timestamp ? format(message.timestamp, 'HH:mm') : ''}
-            </time>
+          <div className="flex-grow space-y-2">
             <div
               ref={messageContentRef}
               className={cn(
-                "p-3 sm:p-4 rounded-lg w-full message-content relative break-words min-h-[3rem]",
-                isUser
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-100 text-gray-900"
+                "relative rounded-lg px-3 py-2 overflow-x-auto",
+                isUser ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-900"
               )}
             >
-              {!isUser && (
-                <div className="absolute top-2 right-2 flex space-x-1">
-                  {hasThinkingProcess && (
-                    <button
-                      onClick={() => setShowThinking(true)}
-                      className="p-1 text-gray-500 hover:text-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      aria-label="Show thinking process"
-                    >
-                      <BeakerIcon className="w-5 h-5" />
-                    </button>
-                  )}
-                  <button
-                    onClick={copyToClipboard}
-                    className="p-1 text-gray-500 hover:text-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    aria-label="Copy message"
-                  >
-                    {isCopied ? (
-                      <ClipboardDocumentCheckIcon className="w-5 h-5" />
-                    ) : (
-                      <ClipboardDocumentIcon className="w-5 h-5" />
-                    )}
-                  </button>
-                </div>
-              )}
               <div className={cn(
                 "prose max-w-none",
                 !isUser && "pr-20",
@@ -314,18 +288,48 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
                 >
                   {message.content}
                 </ReactMarkdown>
+                {message.isThinking && (
+                  <div className="inline-flex items-center gap-1 bg-blue-50 text-blue-600 px-2 py-1 rounded-md my-1">
+                    <BeakerIcon className="w-4 h-4 animate-bounce" />
+                    <span>Thinking...</span>
+                  </div>
+                )}
               </div>
+
+              {!isUser && (
+                <div className="absolute top-2 right-2 flex space-x-1">
+                  {hasThinkingProcess && (
+                    <button
+                      onClick={() => setShowThinkingModal(true)}
+                      className="p-1 text-gray-500 hover:text-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      aria-label="Show thinking process"
+                    >
+                      <BeakerIcon className="w-5 h-5" />
+                    </button>
+                  )}
+                  <button
+                    onClick={copyToClipboard}
+                    className="p-1 text-gray-500 hover:text-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    aria-label="Copy message"
+                  >
+                    {isCopied ? (
+                      <ClipboardDocumentCheckIcon className="w-5 h-5" />
+                    ) : (
+                      <ClipboardDocumentIcon className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
-      {hasThinkingProcess && (
-        <ThinkingModal
-          isOpen={showThinking}
-          onClose={() => setShowThinking(false)}
-          content={message.thinkingProcess || ''}
-        />
-      )}
+
+      <ThinkingModal
+        isOpen={showThinkingModal}
+        onClose={() => setShowThinkingModal(false)}
+        content={message.thinkingProcess || ''}
+      />
     </>
   )
 }
@@ -337,61 +341,58 @@ interface ThinkingModalProps {
 }
 
 const ThinkingModal = ({ isOpen, onClose, content }: ThinkingModalProps) => {
-  return (
-    <Transition.Root show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={onClose}>
-        <Transition.Child
-          as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
-        </Transition.Child>
+  const [isCopied, setIsCopied] = useState(false)
 
-        <div className="fixed inset-0 z-10 overflow-y-auto">
-          <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-              enterTo="opacity-100 translate-y-0 sm:scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-              leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(content)
+      setIsCopied(true)
+      setTimeout(() => setIsCopied(false), 2000)
+      toast.success('Copied to clipboard')
+    } catch (error) {
+      console.error('Failed to copy:', error)
+      toast.error('Failed to copy')
+    }
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+        <div className="flex items-center justify-between p-4 border-b">
+          <h2 className="text-lg font-semibold">Thinking Process</h2>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={copyToClipboard}
+              className="p-1 text-gray-500 hover:text-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              aria-label="Copy content"
             >
-              <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl sm:p-6">
-                <div className="absolute right-0 top-0 pr-4 pt-4">
-                  <button
-                    type="button"
-                    className="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    onClick={onClose}
-                  >
-                    <span className="sr-only">Close</span>
-                    <XMarkIcon className="h-6 w-6" aria-hidden="true" />
-                  </button>
-                </div>
-                <div>
-                  <div className="mt-3 sm:mt-0">
-                    <Dialog.Title as="h3" className="text-lg font-semibold leading-6 text-gray-900 mb-4">
-                      Thinking Process
-                    </Dialog.Title>
-                    <div className="mt-2">
-                      <pre className="whitespace-pre-wrap text-sm text-gray-600 font-mono bg-gray-50 p-4 rounded-lg overflow-auto max-h-[60vh]">
-                        {content}
-                      </pre>
-                    </div>
-                  </div>
-                </div>
-              </Dialog.Panel>
-            </Transition.Child>
+              {isCopied ? (
+                <ClipboardDocumentCheckIcon className="w-5 h-5" />
+              ) : (
+                <ClipboardDocumentIcon className="w-5 h-5" />
+              )}
+            </button>
+            <button
+              onClick={onClose}
+              className="p-1 text-gray-500 hover:text-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              aria-label="Close modal"
+            >
+              <XMarkIcon className="w-5 h-5" />
+            </button>
           </div>
         </div>
-      </Dialog>
-    </Transition.Root>
+        <div className="p-4 overflow-y-auto">
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            className="prose max-w-none"
+          >
+            {content}
+          </ReactMarkdown>
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -512,6 +513,9 @@ export default function Home() {
 
       dispatch({ type: 'SET_STREAMING', isStreaming: true })
       let currentMessage = ''
+      let displayMessage = ''
+      let insideThinkTag = false
+      let showThinking = false
 
       // Add an empty assistant message that we'll update
       const assistantMessage: TimestampedMessage = {
@@ -531,10 +535,27 @@ export default function Home() {
 
         for (const line of lines) {
           const data = JSON.parse(line)
-          currentMessage += data.message.content
+          const chunk = data.message.content
+          currentMessage += chunk
+          
+          // Check for think tag boundaries
+          if (chunk.includes('<think>')) {
+            insideThinkTag = true
+            showThinking = true
+          }
+          
+          // Only accumulate display content when not inside think tags
+          if (!insideThinkTag) {
+            displayMessage += chunk
+          }
+          
+          if (chunk.includes('</think>')) {
+            insideThinkTag = false
+            showThinking = false
+          }
           
           if (data.done) {
-            // Parse the message to extract thinking process
+            // Parse the complete message to extract thinking process
             const parsedMessage = parseMessage(currentMessage)
             dispatch({ 
               type: 'UPDATE_LAST_MESSAGE', 
@@ -545,7 +566,8 @@ export default function Home() {
           } else {
             dispatch({ 
               type: 'UPDATE_LAST_MESSAGE', 
-              content: currentMessage 
+              content: showThinking ? displayMessage + ' ' : displayMessage,
+              isThinking: showThinking
             })
           }
         }
