@@ -379,6 +379,16 @@ export default function Home() {
       dispatch({ type: 'ADD_MESSAGE', message: userMessage })
       setInput('')
 
+      // Generate embedding for the user message
+      try {
+        const embeddingResponse = await getEmbedding(input)
+        if (!embeddingResponse.ok) {
+          console.warn('Failed to generate embedding:', await embeddingResponse.text())
+        }
+      } catch (error) {
+        console.warn('Error generating embedding:', error)
+      }
+
       // Send message with full conversation history
       const response = await sendMessage(input, state.messages)
       if (!response.ok) throw new Error('Failed to send message')
