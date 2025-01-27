@@ -14,7 +14,9 @@ export const createEmbed = async (text) => {
         return prisma.docs.create({
           data: {
             doc_id: uuidv4(),
-            content: item.text,
+            source: text.source || 'unknown',
+            type: text.type || 'text',
+            chunk: item.text,
             embedding: item.embedding
           }
         });

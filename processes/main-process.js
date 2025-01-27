@@ -1,9 +1,15 @@
-import fs from 'fs/promises';
-import { spawn } from 'child_process';
+import { Client } from 'pg';
+import dotenv from 'dotenv';
+import { readFile } from 'fs/promises';
+import { join } from 'path';
+import ollamaEmbedService from '@/services/embed.service';
 import chunkText from '../utils/chunker.js';
-import ollamaEmbedService from '../services/embed.service.js';
-import prisma from '../models/embed.model.js';
 import { v4 as uuidv4 } from 'uuid';
+
+// Create a connection pool
+const pool = new Client({
+  connectionString: process.env.DATABASE_URL
+});
 
 const processTextContent = async (text) => {
   const chunks = chunkText(text.content, 256, 20);
@@ -14,20 +20,31 @@ const processTextContent = async (text) => {
     try {
       console.log('Attempting to embed text:', chunk);
       
-      const response = await ollamaEmbedService(chunk);
-      console.log('Embedding response received:', response);
+      const { embedding } = await ollamaEmbedService(chunk);
+      console.log('Embedding received, length:', embedding.length);
       
-      const createdDoc = await prisma.docs.create({
-        data: {
-          doc_id: uuidv4(),
-          source: text.file_path,
-          type: text.file_type,
-          chunk: chunk,
-          embedding: response.embedding
-        }
-      });
-      console.log('Document created with ID:', createdDoc.id);
-      results.push(createdDoc);
+      // Convert embedding array to a Postgres array literal
+      const embeddingStr = `[${embedding.join(',')}]`;
+      
+      // Use pg to insert with vector type
+      const query = {
+        text: `
+          INSERT INTO docs (doc_id, source, type, chunk, embedding)
+          VALUES ($1, $2, $3, $4, $5::vector)
+          RETURNING *
+        `,
+        values: [
+          uuidv4(),
+          text.file_path,
+          text.file_type,
+          chunk,
+          embeddingStr
+        ]
+      };
+      
+      const { rows } = await pool.query(query);
+      console.log('Document created with ID:', rows[0].id);
+      results.push(rows[0]);
     } catch (chunkError) {
       console.error('Error processing chunk:', chunkError);
     }
@@ -89,7 +106,7 @@ const mainProcess = async () => {
     console.error(error.stack);
   } finally {
     console.log('Main process finished. Closing connections...');
-    await prisma.$disconnect();
+    await pool.end();
   }
 };
 

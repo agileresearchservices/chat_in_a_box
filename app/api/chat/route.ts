@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server'
 import { z } from 'zod'
+import { searchSimilarDocs } from '@/utils/vector-search'
 
 // Configuration Utility: Sets up the API endpoint and model to be used
 const createConfig = () => {
@@ -7,6 +8,7 @@ const createConfig = () => {
   return {
     ollamaUrl: new URL('/api/chat', OLLAMA_HOST).toString(),
     model: process.env.OLLAMA_MODEL || 'phi4',
+    systemPrompt: process.env.OLLAMA_SYSTEM_PROMPT || 'You are a helpful AI assistant.',
   }
 }
 
@@ -59,74 +61,73 @@ export const dynamic = 'force-dynamic'
  */
 export async function POST(request: NextRequest) {
   try {
-    // Create configuration for the API request
-    const config = createConfig()
-    const body = await request.json()
+    const { prompt, messages } = await request.json()
+    const validation = ChatRequestSchema.safeParse({ prompt, messages })
     
-    // Validate input using the defined schema
-    const validatedBody = ChatRequestSchema.parse(body)
+    if (!validation.success) {
+      return new Response(JSON.stringify({ error: validation.error }), { status: 400 })
+    }
 
-    // Prepare messages array
-    const messages = [
-      { 
-        role: 'system', 
-        content: process.env.OLLAMA_SYSTEM_PROMPT || 'You are an AI assistant.' 
-      }
+    // Get relevant context from similar documents
+    const similarDocs = await searchSimilarDocs(prompt, 3)
+    const context = similarDocs.map(doc => doc.chunk).join('\n')
+    
+    // Log retrieved context and similarity scores
+    console.log('\n=== Query Context ===')
+    console.log('User Question:', prompt)
+    console.log('\nRetrieved Documents:')
+    similarDocs.forEach((doc, i) => {
+      console.log(`\nDocument ${i + 1} (similarity: ${doc.similarity.toFixed(4)}):\n${doc.chunk}`)
+    })
+
+    const config = createConfig()
+    
+    // Prepare messages array with context
+    const messagesWithContext = [
+      {
+        role: 'system',
+        content: config.systemPrompt
+      },
+      {
+        role: 'system',
+        content: `Use the following context to help answer the user's question:\n\n${context}\n\nIf the context is not relevant to the question, you may ignore it.`
+      },
+      ...(messages || []),
+      { role: 'user', content: prompt }
     ]
 
-    // Add previous messages if available
-    if (validatedBody.messages?.length) {
-      // Filter out system messages and transform the rest
-      messages.push(...validatedBody.messages
-        .filter(msg => msg.role !== 'system')
-        .map(msg => ({
-          role: msg.role,
-          content: msg.content
-        }))
-      )
-    }
+    // Log final prompt sent to LLM
+    console.log('\n=== Final LLM Prompt ===')
+    messagesWithContext.forEach((msg, i) => {
+      console.log(`\n[${msg.role}]:\n${msg.content}`)
+    })
+    console.log('\n===================\n')
 
-    // Add the current user message
-    messages.push({ role: 'user', content: validatedBody.prompt })
-
-    // Prepare the request body for the Ollama API
-    const requestBody = {
-      model: config.model,
-      messages,
-      stream: true
-    }
-
-    // Send POST request to the Ollama API
     const response = await fetch(config.ollamaUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(requestBody),
+      body: JSON.stringify({
+        model: config.model,
+        messages: messagesWithContext,
+        stream: true
+      })
     })
 
     if (!response.ok) {
-      const errorText = await response.text()
-      console.error('Ollama error response:', errorText)
-      return new Response(
-        JSON.stringify({ 
-          error: 'Ollama communication failed',
-          details: errorText
-        }),
-        { 
-          status: response.status,
-          headers: { 'Content-Type': 'application/json' }
-        }
-      )
+      throw new Error(`Ollama API error: ${response.statusText}`)
     }
 
-    // Transform and return the response stream
-    const transformedStream = response.body?.pipeThrough(createStreamTransformer())
+    const stream = response.body
+    if (!stream) {
+      throw new Error('No response stream available')
+    }
 
-    return new Response(transformedStream, {
-      headers: {
+    return new Response(stream.pipeThrough(createStreamTransformer()), {
+      headers: { 
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
         'Connection': 'keep-alive',
-      },
+      }
     })
   } catch (error) {
     console.error('Chat API error:', error)

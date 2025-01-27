@@ -1,18 +1,20 @@
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  extensions = [vector]
 }
 
 model docs {
-  id        Int     @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   doc_id    String
   source    String
   type      String
   chunk     String
-  embedding Float[]
+  embedding Unsupported("vector")?
   createdAt DateTime @default(now())
 }

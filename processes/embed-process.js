@@ -1,6 +1,6 @@
 import pkg from 'chunker';
 const { chunk } = pkg;
-import ollamaEmbedService from '../services/embed.service.js';
+import ollamaEmbedService from '@/services/embed.service';
 
 const chunkSize = 256;
 
