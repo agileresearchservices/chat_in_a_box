@@ -445,6 +445,11 @@ export default function Home() {
     }
   }
 
+  // Scroll to bottom when messages update or during streaming
+  useEffect(() => {
+    scrollToBottom()
+  }, [state.messages, scrollToBottom])
+
   /**
    * Memoized component for rendering the chat messages.
    */
