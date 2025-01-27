@@ -445,6 +445,18 @@ export default function Home() {
     }
   }
 
+  // Handle Escape key to stop streaming
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && state.isStreaming) {
+        stopStreaming()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [state.isStreaming, stopStreaming])
+
   // Scroll to bottom when messages update or during streaming
   useEffect(() => {
     scrollToBottom()
