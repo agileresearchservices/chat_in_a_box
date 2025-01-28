@@ -3,7 +3,7 @@ import magic
 import PyPDF2
 from docx import Document
 from pathlib import Path
-from typing import List, Dict, Generator
+from typing import List, Dict, Generator, Optional
 from tqdm import tqdm
 import psycopg2
 import hashlib
@@ -84,71 +84,103 @@ class TextExtractor:
         for file_path in tqdm(files, desc="Processing files"):
             yield self.extract_text(str(file_path))
 
+    def embed_text(self, text: str) -> Optional[List[float]]:
+        """Generate embeddings using Ollama HTTP endpoint."""
+        try:
+            response = requests.post('http://localhost:11434/api/embeddings', json={
+                'model': 'nomic-embed-text',
+                'prompt': text
+            })
+            response.raise_for_status()
+            return response.json().get('embedding')
+        except Exception as e:
+            print(f'Error generating embedding with Ollama: {e}')
+            return None
+
+    def batch_embed_texts(self, texts: List[str], batch_size: int = 100) -> List[Optional[List[float]]]:
+        """Batch generate embeddings using Ollama HTTP endpoint with manual batching."""
+        all_embeddings = []
+        
+        # Process texts in batches
+        for i in range(0, len(texts), batch_size):
+            batch = texts[i:i+batch_size]
+            batch_embeddings = []
+            
+            for text in batch:
+                try:
+                    response = requests.post('http://localhost:11434/api/embeddings', json={
+                        'model': 'nomic-embed-text',
+                        'prompt': text
+                    })
+                    response.raise_for_status()
+                    batch_embeddings.append(response.json().get('embedding'))
+                except Exception as e:
+                    print(f'Error generating embedding for text: {e}')
+                    batch_embeddings.append(None)
+            
+            all_embeddings.extend(batch_embeddings)
+        
+        return all_embeddings
+
     def process_text_content(self, text: str, file_path: str, file_type: str) -> List[Dict]:
-        """Process text content into chunks and embed."""
-        # Chunker Configuration
+        """Process text content into chunks and embed using batching."""
         chunk_size = int(os.getenv('CHUNK_SIZE', '1800'))
         chunk_overlap = int(os.getenv('CHUNK_OVERLAP', '200'))
         chunks = self.chunk_text(text, chunk_size, chunk_overlap)
-        #print(f"Processing {len(chunks)} chunks...")
         
-        results = []
-        for chunk_index, chunk in enumerate(chunks):
+        # Batch embeddings
+        batch_embeddings = self.batch_embed_texts(chunks)
+        
+        # Prepare batch insert data
+        batch_insert_data = []
+        for chunk_index, (chunk, embedding) in enumerate(zip(chunks, batch_embeddings)):
+            if embedding is None:
+                continue
+            
+            # Convert embedding array to a Postgres array literal
+            embedding_str = '[' + ','.join(map(str, embedding)) + ']'
+            
+            # Generate MD5 hash with chunk index
+            parent_id = hashlib.md5(file_path.encode()).hexdigest()
+            chunk_id = f"{parent_id}-{chunk_index}"
+            
+            batch_insert_data.append((chunk_id, file_path, file_type, chunk, embedding_str, parent_id))
+        
+        # Batch insert with executemany
+        if batch_insert_data:
             try:
-                #print('Attempting to embed text:', chunk)
-                embedding = self.embed_text(chunk)
-                if embedding is None:
-                    continue
-                #print('Embedding received, length:', len(embedding))
-                
-                # Convert embedding array to a Postgres array literal
-                embedding_str = '[' + ','.join(map(str, embedding)) + ']'
-                
-                # Insert or update in database
-                try:
-                    # Generate MD5 hash with chunk index
-                    parent_id = hashlib.md5(file_path.encode()).hexdigest()
-                    chunk_id = f"{parent_id}-{chunk_index}"
+                query = """
+                INSERT INTO docs (id, source, type, chunk, embedding, parent_id)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                ON CONFLICT (id) DO UPDATE SET
+                    source = EXCLUDED.source,
+                    type = EXCLUDED.type,
+                    chunk = EXCLUDED.chunk,
+                    embedding = EXCLUDED.embedding,
+                    parent_id = EXCLUDED.parent_id
+                """
+                with self.db_connection.cursor() as cursor:
+                    cursor.executemany(query, batch_insert_data)
+                    self.db_connection.commit()
                     
-                    query = """
-                    INSERT INTO docs (id, source, type, chunk, embedding, parent_id)
-                    VALUES (%s, %s, %s, %s, %s, %s)
-                    ON CONFLICT (id) DO UPDATE SET
-                        source = EXCLUDED.source,
-                        type = EXCLUDED.type,
-                        chunk = EXCLUDED.chunk,
-                        embedding = EXCLUDED.embedding,
-                        parent_id = EXCLUDED.parent_id
-                    RETURNING *;
-                    """
-                    values = (chunk_id, file_path, file_type, chunk, embedding_str, parent_id)
-                    with self.db_connection.cursor() as cursor:
-                        cursor.execute(query, values)
-                        result = cursor.fetchone()
-                        #print('Document created/updated with ID:', result[0])
-                        results.append(result)
-                        self.db_connection.commit()
-                except Exception as db_error:
-                    print('Error inserting/updating document into database:', db_error)
-                    # Rollback the transaction to prevent blocking future insertions
-                    self.db_connection.rollback()
-            except Exception as e:
-                print('Error embedding text:', e)
-        return results
-
-    def embed_text(self, text: str) -> List[float]:
-        """Integrate with the existing embed API to generate embeddings."""
-        try:
-            response = requests.post('http://localhost:3000/api/embed', json={'text': text})
-            response.raise_for_status()
-            embeddings = response.json().get('embedding', [])  # Extract embedding list
-            if not embeddings:
-                print('No embedding found in API response')
-                return None
-            return embeddings
-        except requests.exceptions.RequestException as e:
-            print('Error calling embed API:', e)
-            return []
+                    # Return the original insert data as a pseudo-result
+                    return [
+                        {
+                            'id': data[0], 
+                            'source': data[1], 
+                            'type': data[2], 
+                            'chunk': data[3], 
+                            'embedding': data[4], 
+                            'parent_id': data[5]
+                        } 
+                        for data in batch_insert_data
+                    ]
+            except Exception as db_error:
+                print('Error inserting/updating documents into database:', db_error)
+                # Rollback the transaction to prevent blocking future insertions
+                self.db_connection.rollback()
+        
+        return []
 
     def chunk_text(self, text: str, max_length: int, overlap: int) -> List[str]:
         """Chunk text into smaller parts."""
