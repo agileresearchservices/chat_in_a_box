@@ -6,7 +6,8 @@ const prisma = new PrismaClient();
 interface SearchResult {
   chunk: string;
   similarity: number;
-  doc_id?: string;
+  id?: string;
+  parent_id?: string;
 }
 
 interface SearchConfig {
@@ -44,26 +45,19 @@ export async function searchSimilarDocs(
     const results = await prisma.$queryRaw`
       SELECT 
         chunk,
-        doc_id,
+        id,
+        parent_id,
         1 - (embedding <=> ${embeddingStr}::vector) as similarity
       FROM docs
       WHERE embedding IS NOT NULL
       AND 1 - (embedding <=> ${embeddingStr}::vector) >= ${searchMinSimilarity}
       ORDER BY similarity DESC
-      LIMIT ${maxResults};
-    `;
-
-    // Deduplicate results based on content
-    const seen = new Set();
-    const filteredResults = (results as SearchResult[]).filter(result => {
-      const isDuplicate = seen.has(result.chunk);
-      seen.add(result.chunk);
-      return !isDuplicate;
-    });
-
-    return filteredResults.slice(0, searchLimit);
+      LIMIT ${searchLimit}
+    ` as SearchResult[];
+    
+    return results;
   } catch (error) {
-    console.error('Error performing similarity search:', error);
-    throw error;
+    console.error('Error in searchSimilarDocs:', error);
+    return [];
   }
 }

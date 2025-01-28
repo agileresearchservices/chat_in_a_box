@@ -27,7 +27,7 @@ interface OllamaResponse {
  */
 async function ollamaEmbedService(text: string): Promise<EmbeddingResponse> {
   try {
-    console.log('Attempting to embed text:', text);
+    // console.log('Attempting to embed text:', text);
     
     // Base configuration
     const OLLAMA_HOST = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:11434';
@@ -72,7 +72,7 @@ async function ollamaEmbedService(text: string): Promise<EmbeddingResponse> {
       throw new Error(`Embedding request failed with status ${response.status}`);
     }
 
-    console.log('Embedding response received');
+    // console.log('Embedding response received');
     
     const data: OllamaResponse = await response.json();
     

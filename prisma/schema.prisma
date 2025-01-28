@@ -10,11 +10,11 @@ datasource db {
 }
 
 model docs {
-  id        Int      @id @default(autoincrement())
-  doc_id    String
+  id        String   @id @unique @default(cuid())
+  parent_id String?
   source    String
   type      String
-  chunk     String
-  embedding Unsupported("vector")?
   createdAt DateTime @default(now())
+  chunk     String
+  embedding Unsupported("vector(768)")
 }

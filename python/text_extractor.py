@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import List, Dict, Generator
 from tqdm import tqdm
 import psycopg2
-from uuid import uuid4
+import hashlib
 from dotenv import load_dotenv
 import requests
 
@@ -86,39 +86,52 @@ class TextExtractor:
 
     def process_text_content(self, text: str, file_path: str, file_type: str) -> List[Dict]:
         """Process text content into chunks and embed."""
-        chunks = self.chunk_text(text, 256, 20)
-        print(f"Processing {len(chunks)} chunks...")
+        # Chunker Configuration
+        chunk_size = int(os.getenv('CHUNK_SIZE', '1800'))
+        chunk_overlap = int(os.getenv('CHUNK_OVERLAP', '200'))
+        chunks = self.chunk_text(text, chunk_size, chunk_overlap)
+        #print(f"Processing {len(chunks)} chunks...")
         
         results = []
-        for chunk in chunks:
+        for chunk_index, chunk in enumerate(chunks):
             try:
-                print('Attempting to embed text:', chunk)
+                #print('Attempting to embed text:', chunk)
                 embedding = self.embed_text(chunk)
                 if embedding is None:
                     continue
-                print('Embedding received, length:', len(embedding))
+                #print('Embedding received, length:', len(embedding))
                 
                 # Convert embedding array to a Postgres array literal
                 embedding_str = '[' + ','.join(map(str, embedding)) + ']'
                 
-                # Insert into database
+                # Insert or update in database
                 try:
-                    doc_id = str(uuid4())  # Generate a unique doc_id
+                    # Generate MD5 hash with chunk index
+                    parent_id = hashlib.md5(file_path.encode()).hexdigest()
+                    chunk_id = f"{parent_id}-{chunk_index}"
+                    
                     query = """
-                    INSERT INTO docs (doc_id, source, type, chunk, embedding)
-                    VALUES (%s, %s, %s, %s, %s)
+                    INSERT INTO docs (id, source, type, chunk, embedding, parent_id)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (id) DO UPDATE SET
+                        source = EXCLUDED.source,
+                        type = EXCLUDED.type,
+                        chunk = EXCLUDED.chunk,
+                        embedding = EXCLUDED.embedding,
+                        parent_id = EXCLUDED.parent_id
                     RETURNING *;
                     """
-                    values = (doc_id, file_path, file_type, chunk, embedding)
+                    values = (chunk_id, file_path, file_type, chunk, embedding_str, parent_id)
                     with self.db_connection.cursor() as cursor:
                         cursor.execute(query, values)
                         result = cursor.fetchone()
-                        print('Document created with ID:', result[0])
+                        #print('Document created/updated with ID:', result[0])
                         results.append(result)
                         self.db_connection.commit()
                 except Exception as db_error:
+                    print('Error inserting/updating document into database:', db_error)
+                    # Rollback the transaction to prevent blocking future insertions
                     self.db_connection.rollback()
-                    print('Error inserting document into database:', db_error)
             except Exception as e:
                 print('Error embedding text:', e)
         return results
