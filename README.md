@@ -196,6 +196,40 @@ npx prisma studio
 
 This setup ensures efficient storage and retrieval of data, making it a cornerstone of the RAG application's search and retrieval capabilities.
 
+## TextExtractor
+
+The `TextExtractor` is a component designed for extracting text from various file types within a directory. It supports `.txt`, `.pdf`, and `.docx` file formats.
+
+### Key Features:
+- **File Type Detection:** Uses `python-magic` to determine the MIME type of files.
+- **Text Extraction:** Provides methods to extract text from plain text files, PDFs, and Word documents.
+- **Chunking and Embedding:** Processes text content into chunks and integrates with an embedding API to generate embeddings.
+- **Database Integration:** Connects to a PostgreSQL database to store extracted and processed data.
+
+### Usage:
+1. **Initialization:**
+   ```python
+   extractor = TextExtractor()
+   ```
+2. **Process a Directory:**
+   ```python
+   for result in extractor.process_directory('/path/to/directory'):
+       print(result)
+   ```
+3. **Database Connection:**
+   Ensure the `.env` file contains the correct `DATABASE_URL` for connecting to the PostgreSQL database.
+
+### Methods:
+- `get_file_type(file_path)`: Determines the file type.
+- `extract_from_txt(file_path)`: Extracts text from a text file.
+- `extract_from_pdf(file_path)`: Extracts text from a PDF.
+- `extract_from_docx(file_path)`: Extracts text from a Word document.
+- `process_directory(directory_path)`: Processes all supported files in a directory.
+- `process_text_content(text, file_path, file_type)`: Processes text content into chunks and embeds them.
+- `embed_text(text)`: Integrates with the embedding API.
+- `chunk_text(text, max_length, overlap)`: Chunks text into smaller parts.
+- `connect_to_db()`: Connects to the PostgreSQL database.
+
 ## Text Chunking and Embedding Features
 
 The application now includes advanced text processing capabilities using LlamaIndex and Ollama text embeddings:

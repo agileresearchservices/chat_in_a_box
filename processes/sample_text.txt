@@ -1,4 +1,0 @@
-This is a sample text file for testing the embedding process.
-It contains multiple lines to demonstrate chunking and embedding.
-Each line will be processed separately to create vector embeddings.
-The goal is to show how the main process works with Ollama's embedding service.
