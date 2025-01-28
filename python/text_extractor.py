@@ -85,59 +85,46 @@ class TextExtractor:
             yield self.extract_text(str(file_path))
 
     def embed_text(self, text: str) -> Optional[List[float]]:
-        """Generate embeddings using Ollama HTTP endpoint."""
+        """Single-chunk embedding call to Ollama (or any other) endpoint."""
         try:
-            response = requests.post('http://localhost:11434/api/embeddings', json={
-                'model': 'nomic-embed-text',
-                'prompt': text
-            })
+            # Adjust the endpoint, model, and JSON payload to match your environment
+            response = requests.post(
+                "http://localhost:11434/api/embeddings",
+                json={
+                    "model": "nomic-embed-text",  # Example model
+                    "prompt": text
+                },
+                timeout=30
+            )
             response.raise_for_status()
-            return response.json().get('embedding')
+            return response.json().get("embedding")
         except Exception as e:
-            print(f'Error generating embedding with Ollama: {e}')
+            print(f"Error generating embedding: {e}")
             return None
 
-    def batch_embed_texts(self, texts: List[str], batch_size: int = 100) -> List[Optional[List[float]]]:
-        """Batch generate embeddings using Ollama HTTP endpoint with manual batching."""
-        all_embeddings = []
-        
-        # Process texts in batches
-        for i in range(0, len(texts), batch_size):
-            batch = texts[i:i+batch_size]
-            batch_embeddings = []
-            
-            for text in batch:
-                try:
-                    response = requests.post('http://localhost:11434/api/embeddings', json={
-                        'model': 'nomic-embed-text',
-                        'prompt': text
-                    })
-                    response.raise_for_status()
-                    batch_embeddings.append(response.json().get('embedding'))
-                except Exception as e:
-                    print(f'Error generating embedding for text: {e}')
-                    batch_embeddings.append(None)
-            
-            all_embeddings.extend(batch_embeddings)
-        
-        return all_embeddings
-
     def process_text_content(self, text: str, file_path: str, file_type: str) -> List[Dict]:
-        """Process text content into chunks and embed using batching."""
+        """
+        Process text content by chunking it, embedding each chunk with a progress bar,
+        and inserting the results into the database.
+        """
         chunk_size = int(os.getenv('CHUNK_SIZE', '1800'))
         chunk_overlap = int(os.getenv('CHUNK_OVERLAP', '200'))
         chunks = self.chunk_text(text, chunk_size, chunk_overlap)
         
-        # Batch embeddings
-        batch_embeddings = self.batch_embed_texts(chunks)
+        embedded_chunks = []
+        
+        # Show a progress bar for each chunk so you know it's embedding
+        for chunk in tqdm(chunks, desc=f"Embedding {file_path}"):
+            embedding = self.embed_text(chunk)
+            embedded_chunks.append(embedding)
         
         # Prepare batch insert data
         batch_insert_data = []
-        for chunk_index, (chunk, embedding) in enumerate(zip(chunks, batch_embeddings)):
+        for chunk_index, (chunk, embedding) in enumerate(zip(chunks, embedded_chunks)):
             if embedding is None:
                 continue
             
-            # Convert embedding array to a Postgres array literal
+            # Convert embedding array to a Postgres array literal, e.g. [0.123,0.456,...]
             embedding_str = '[' + ','.join(map(str, embedding)) + ']'
             
             # Generate MD5 hash with chunk index
@@ -146,7 +133,7 @@ class TextExtractor:
             
             batch_insert_data.append((chunk_id, file_path, file_type, chunk, embedding_str, parent_id))
         
-        # Batch insert with executemany
+        # Batch insert into DB
         if batch_insert_data:
             try:
                 query = """
@@ -163,29 +150,36 @@ class TextExtractor:
                     cursor.executemany(query, batch_insert_data)
                     self.db_connection.commit()
                     
-                    # Return the original insert data as a pseudo-result
-                    return [
-                        {
-                            'id': data[0], 
-                            'source': data[1], 
-                            'type': data[2], 
-                            'chunk': data[3], 
-                            'embedding': data[4], 
-                            'parent_id': data[5]
-                        } 
-                        for data in batch_insert_data
-                    ]
+                # Return the inserted data as a pseudo-result
+                return [
+                    {
+                        'id': data[0], 
+                        'source': data[1], 
+                        'type': data[2], 
+                        'chunk': data[3], 
+                        'embedding': data[4], 
+                        'parent_id': data[5]
+                    } 
+                    for data in batch_insert_data
+                ]
             except Exception as db_error:
                 print('Error inserting/updating documents into database:', db_error)
-                # Rollback the transaction to prevent blocking future insertions
                 self.db_connection.rollback()
         
         return []
 
     def chunk_text(self, text: str, max_length: int, overlap: int) -> List[str]:
-        """Chunk text into smaller parts."""
-        # Simple chunking logic
-        return [text[i:i+max_length] for i in range(0, len(text), max_length - overlap)]
+        """Chunk text into smaller parts with overlap."""
+        if max_length <= overlap:
+            raise ValueError("CHUNK_SIZE must be larger than CHUNK_OVERLAP.")
+
+        chunks = []
+        start = 0
+        while start < len(text):
+            end = start + max_length
+            chunks.append(text[start:end])
+            start += (max_length - overlap)
+        return chunks
 
     def connect_to_db(self):
         """Connect to the PostgreSQL database using credentials from .env."""
@@ -194,7 +188,6 @@ class TextExtractor:
 
 if __name__ == '__main__':
     import argparse
-    import json
     
     parser = argparse.ArgumentParser(description='Process some files.')
     parser.add_argument('--directory', type=str, default='data',
@@ -203,9 +196,18 @@ if __name__ == '__main__':
     
     extractor = TextExtractor()
     extractor.connect_to_db()
+    
+    # Step 1: Extract text from files (progress bar on # of files)
     results = list(extractor.process_directory(args.directory))
+
+    # Step 2: For each file's text, chunk and embed (progress bar on chunks)
     for result in results:
         if 'error' not in result:
-            extractor.process_text_content(result['content'], result['file_path'], result['file_type'])
+            extractor.process_text_content(
+                text=result['content'], 
+                file_path=result['file_path'], 
+                file_type=result['file_type']
+            )
+
     extractor.db_connection.close()
     print('Database connection closed.')
