@@ -72,13 +72,13 @@ export async function POST(request: NextRequest) {
     const similarDocs = await searchSimilarDocs(prompt, 3)
     const context = similarDocs.map(doc => doc.chunk).join('\n')
     
-    // Log retrieved context and similarity scores
-    console.log('\n=== Query Context ===')
-    console.log('User Question:', prompt)
-    console.log('\nRetrieved Documents:')
-    similarDocs.forEach((doc, i) => {
-      console.log(`\nDocument ${i + 1} (similarity: ${doc.similarity.toFixed(4)}):\n${doc.chunk}`)
-    })
+    // // Log retrieved context and similarity scores
+    // console.log('\n=== Query Context ===')
+    // console.log('User Question:', prompt)
+    // console.log('\nRetrieved Documents:')
+    // similarDocs.forEach((doc, i) => {
+    //   console.log(`\nDocument ${i + 1} (similarity: ${doc.similarity.toFixed(4)}):\n${doc.chunk}`)
+    // })
 
     const config = createConfig()
     
@@ -93,11 +93,11 @@ export async function POST(request: NextRequest) {
     ]
 
     // Log final prompt sent to LLM
-    console.log('\n=== Final LLM Prompt ===')
-    messagesWithContext.forEach((msg, i) => {
-      console.log(`\n[${msg.role}]:\n${msg.content}`)
-    })
-    console.log('\n===================\n')
+    // console.log('\n=== Final LLM Prompt ===')
+    // messagesWithContext.forEach((msg, i) => {
+    //   console.log(`\n[${msg.role}]:\n${msg.content}`)
+    // })
+    // console.log('\n===================\n')
 
     const response = await fetch(config.ollamaUrl, {
       method: 'POST',
