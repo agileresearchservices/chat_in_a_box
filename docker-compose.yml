@@ -8,3 +8,9 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "5432:5432"
+  tika:
+    image: apache/tika:latest
+    platform: linux/amd64
+    ports:
+      - "9998:9998"
+    restart: always

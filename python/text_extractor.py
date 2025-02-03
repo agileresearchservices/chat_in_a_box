@@ -1,6 +1,5 @@
 import os
 import magic
-import PyPDF2
 from docx import Document
 from pathlib import Path
 from typing import List, Dict, Generator, Optional
@@ -9,6 +8,8 @@ import psycopg2
 import hashlib
 from dotenv import load_dotenv
 import requests
+from requests.adapters import HTTPAdapter
+import concurrent.futures
 
 load_dotenv()
 
@@ -19,56 +20,29 @@ class TextExtractor:
         self.supported_extensions = supported_extensions or ['.txt', '.pdf', '.docx']
         self.mime = magic.Magic(mime=True)
         self.db_connection = None
+        self.session = requests.Session()
+        self.session.mount("http://", HTTPAdapter(pool_connections=100, pool_maxsize=100))
     
-    def get_file_type(self, file_path: str) -> str:
-        """Determine file type using python-magic."""
-        return self.mime.from_file(file_path)
-    
-    def extract_from_txt(self, file_path: str) -> str:
-        """Extract text from a plain text file."""
-        with open(file_path, 'r', encoding='utf-8') as f:
-            return f.read()
-    
-    def extract_from_pdf(self, file_path: str) -> str:
-        """Extract text from a PDF file."""
-        text = []
+    def extract_with_tika(self, file_path: str) -> str:
+        """Extract text using Apache Tika."""
         with open(file_path, 'rb') as f:
-            pdf_reader = PyPDF2.PdfReader(f)
-            for page in pdf_reader.pages:
-                text.append(page.extract_text())
-        return '\n'.join(text)
-    
-    def extract_from_docx(self, file_path: str) -> str:
-        """Extract text from a Word document."""
-        doc = Document(file_path)
-        return '\n'.join([paragraph.text for paragraph in doc.paragraphs])
+            response = self.session.put(
+                "http://localhost:9998/tika",
+                headers={"Accept": "text/plain"},
+                data=f,
+                timeout=60
+            )
+            response.raise_for_status()
+            return response.text
     
     def extract_text(self, file_path: str) -> Dict[str, str]:
-        """Extract text from a single file."""
+        """Extract text from a single file using Apache Tika."""
         file_path = str(file_path)
-        file_type = self.get_file_type(file_path)
-        extension = Path(file_path).suffix.lower()
-        
-        if extension not in self.supported_extensions:
-            return {"error": f"Unsupported file type: {extension}"}
-        
         try:
-            if file_type.startswith('text/'):
-                content = self.extract_from_txt(file_path)
-            elif file_type == 'application/pdf':
-                content = self.extract_from_pdf(file_path)
-            elif file_type.startswith('application/vnd.openxmlformats-officedocument.wordprocessingml'):
-                content = self.extract_from_docx(file_path)
-            else:
-                return {"error": f"Unsupported MIME type: {file_type}"}
-            
-            return {
-                "content": content,
-                "file_path": file_path,
-                "file_type": file_type
-            }
+            content = self.extract_with_tika(file_path)
         except Exception as e:
             return {"error": f"Error processing {file_path}: {str(e)}"}
+        return {"content": content, "file_path": file_path, "file_type": "tika"}
     
     def process_directory(self, directory_path: str) -> Generator[Dict[str, str], None, None]:
         """Process all supported files in a directory."""
@@ -78,20 +52,21 @@ class TextExtractor:
         
         files = [
             f for f in directory.rglob("*")
-            if f.is_file() and f.suffix.lower() in self.supported_extensions
+            if f.is_file() and f.stat().st_size > 0 and not any(part.startswith('.') for part in f.parts)
         ]
         
-        for file_path in tqdm(files, desc="Processing files"):
-            yield self.extract_text(str(file_path))
+        with concurrent.futures.ThreadPoolExecutor(max_workers=32) as executor:
+            futures = {executor.submit(self.extract_text, str(f)): f for f in files}
+            for future in tqdm(concurrent.futures.as_completed(futures), total=len(futures), desc="Extracting files"):
+                yield future.result()
 
     def embed_text(self, text: str) -> Optional[List[float]]:
         """Single-chunk embedding call to Ollama (or any other) endpoint."""
         try:
-            # Adjust the endpoint, model, and JSON payload to match your environment
             response = requests.post(
                 "http://localhost:11434/api/embeddings",
                 json={
-                    "model": "nomic-embed-text",  # Example model
+                    "model": "nomic-embed-text",
                     "prompt": text
                 },
                 timeout=30
@@ -111,29 +86,26 @@ class TextExtractor:
         chunk_overlap = int(os.getenv('CHUNK_OVERLAP', '200'))
         chunks = self.chunk_text(text, chunk_size, chunk_overlap)
         
-        embedded_chunks = []
-        
-        # Show a progress bar for each chunk so you know it's embedding
-        for chunk in tqdm(chunks, desc=f"Embedding {file_path}"):
-            embedding = self.embed_text(chunk)
-            embedded_chunks.append(embedding)
-        
+        embedded_chunks = [None] * len(chunks)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=32) as executor:
+            futures = {executor.submit(self.embed_text, chunk): idx for idx, chunk in enumerate(chunks)}
+            for future in tqdm(concurrent.futures.as_completed(futures), total=len(chunks), desc=f"Embedding {file_path}"):
+                idx = futures[future]
+                embedded_chunks[idx] = future.result()
+
         # Prepare batch insert data
         batch_insert_data = []
         for chunk_index, (chunk, embedding) in enumerate(zip(chunks, embedded_chunks)):
             if embedding is None:
                 continue
             
-            # Convert embedding array to a Postgres array literal, e.g. [0.123,0.456,...]
             embedding_str = '[' + ','.join(map(str, embedding)) + ']'
             
-            # Generate MD5 hash with chunk index
             parent_id = hashlib.md5(file_path.encode()).hexdigest()
             chunk_id = f"{parent_id}-{chunk_index}"
             
             batch_insert_data.append((chunk_id, file_path, file_type, chunk, embedding_str, parent_id))
-        
-        # Batch insert into DB
+
         if batch_insert_data:
             try:
                 query = """
@@ -149,7 +121,7 @@ class TextExtractor:
                 with self.db_connection.cursor() as cursor:
                     cursor.executemany(query, batch_insert_data)
                     self.db_connection.commit()
-                    
+
                 # Return the inserted data as a pseudo-result
                 return [
                     {
