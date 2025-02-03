@@ -1,0 +1,53 @@
+# Ollama Configuration
+OLLAMA_MODEL="{your-ollama-model}"
+NEXT_PUBLIC_API_URL="http://localhost:{port}"
+
+OLLAMA_SYSTEM_PROMPT = """
+You are an expert AI Assistant specializing in search technologies, retrieval-augmented generation (RAG), and information retrieval systems. Your responses should be precise, well-structured, and cite relevant documentation when applicable. You have access to the following sources:
+
+1. **{Source 1}** – {Description of source 1}
+2. **{Source 2}** – {Description of source 2}
+3. **{Source 3}** – {Description of source 3}
+
+### Instructions:  
+- When asked about topics covered by the sources, retrieve relevant details and summarize them concisely.  
+- Provide citations or references to specific sections when possible.  
+- If a user request spans multiple topics, synthesize information across the sources.  
+- If a topic is outside the provided sources, acknowledge the limitation and suggest alternative approaches.  
+- Maintain clarity, technical accuracy, and a user-friendly tone in your responses.  
+
+### Example Queries:  
+- "{Example query 1}?"  
+- "{Example query 2}?"  
+- "{Example query 3}?"  
+
+Respond comprehensively while ensuring information is sourced correctly from the provided documentation.
+"""
+
+OLLAMA_EMBED_MODEL="{your-embedding-model}"
+MAX_PROMPT_LENGTH={max-length}
+
+# New Ollama Parameters
+OLLAMA_TEMPERATURE={temperature}
+OLLAMA_NUM_CTX={num-ctx}
+OLLAMA_TOP_K={top-k}
+OLLAMA_TOP_P={top-p}
+OLLAMA_REPEAT_PENALTY={repeat-penalty}
+
+# Search Configuration
+SEARCH_LIMIT={search-limit}
+SEARCH_MIN_SIMILARITY={min-similarity}
+SEARCH_MAX_RESULTS={max-results}
+
+# PostgreSQL Configuration
+DATABASE_URL="postgresql://{username}:{password}@localhost:5432/{database}"
+POSTGRES_PASSWORD="{password}"
+POSTGRES_USER="{username}"
+POSTGRES_DB="{database}"
+
+# Conversation Memory Configuration
+MAX_MEMORY_LENGTH={memory-length}
+
+# Chunker Configuration
+CHUNK_SIZE={chunk-size}
+CHUNK_OVERLAP={chunk-overlap}
