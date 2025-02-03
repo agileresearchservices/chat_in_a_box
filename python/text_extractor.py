@@ -52,7 +52,7 @@ class TextExtractor:
         
         files = [
             f for f in directory.rglob("*")
-            if f.is_file() and f.stat().st_size > 0 and not any(part.startswith('.') for part in f.parts)
+            if f.is_file() and f.stat().st_size > 0 and not any(part.startswith('.') for part in f.parts) and not f.name.endswith('.log')
         ]
         
         with concurrent.futures.ThreadPoolExecutor(max_workers=32) as executor:
