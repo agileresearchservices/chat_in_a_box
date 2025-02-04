@@ -40,6 +40,7 @@ interface ChatState {
   messages: TimestampedMessage[]
   isLoading: boolean
   isStreaming: boolean
+  thinkingProcess?: string
 }
 
 /**
@@ -83,15 +84,7 @@ const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
       return { ...state, messages: updatedMessages }
       
     case 'UPDATE_THINKING_PROCESS':
-      if (state.messages.length === 0) return state
-      const updatedMessagesThinking = [...state.messages]
-      const lastMessageThinking = updatedMessagesThinking[updatedMessagesThinking.length - 1]
-      if (lastMessageThinking.role === 'assistant') {
-        lastMessageThinking.thinkingProcess = action.thinkingProcess
-        // Save to local storage
-        localStorage.setItem('chatMessages', JSON.stringify(updatedMessagesThinking))
-      }
-      return { ...state, messages: updatedMessagesThinking }
+      return { ...state, thinkingProcess: action.thinkingProcess }
       
     case 'SET_MESSAGES':
       return { ...state, messages: action.messages }
@@ -427,9 +420,14 @@ export default function Home() {
     e.preventDefault()
     if (!input.trim() || state.isLoading) return
 
+    // Set loading state and thinking process immediately
+    dispatch({ type: 'SET_LOADING', isLoading: true })
+    dispatch({ 
+      type: 'UPDATE_THINKING_PROCESS', 
+      thinkingProcess: 'Thinking...' 
+    })
+
     try {
-      dispatch({ type: 'SET_LOADING', isLoading: true })
-      
       const userMessage: TimestampedMessage = {
         role: 'user' as const,
         content: input,
