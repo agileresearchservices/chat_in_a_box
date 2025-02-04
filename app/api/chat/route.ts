@@ -26,12 +26,13 @@ const createStreamTransformer = () => new TransformStream({
           const data = JSON.parse(line)
           let content = data.message?.content || ''
           
-          // Extract only the final answer, removing the internal reasoning
-          if (content.includes('**Answer:**')) {
-            content = content.split('**Answer:**')[1].trim()
-          } else if (content.includes('<think>')) {
+          // Extract only the first comprehensive answer after thinking process
+          if (content.includes('<think>')) {
             const parts = content.split('</think>')
             content = parts[parts.length - 1].trim()
+            
+            // Remove any subsequent Answer or Final Answer sections
+            content = content.split(/\n(?:Answer:|Final Answer)/).shift()?.trim() || content
           }
           
           controller.enqueue(
