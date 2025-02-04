@@ -595,7 +595,7 @@ export default function Home() {
                   <button
                     type="button"
                     onClick={stopStreaming}
-                    className="p-2 text-red-600 hover:bg-red-50 rounded-full focus:outline-none focus:ring-2 focus:ring-red-500"
+                    className="p-2 text-gray-600 hover:bg-gray-50 rounded-full focus:outline-none focus:ring-2 focus:ring-gray-500"
                     aria-label="Stop streaming"
                   >
                     <StopIcon className="h-5 w-5" />
@@ -610,7 +610,7 @@ export default function Home() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Type your message..."
-                  className="w-full p-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full p-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-0"
                   disabled={state.isLoading}
                   aria-label="Message input"
                 />
