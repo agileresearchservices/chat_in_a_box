@@ -12,15 +12,13 @@
 // cn is a utility function for class names
 'use client'
 
-import React, { Fragment, useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import { Message as AiMessage } from 'ai'
 import ReactMarkdown from 'react-markdown'
-import Image from 'next/image'
 import remarkGfm from 'remark-gfm'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { oneDark } from 'react-syntax-highlighter/dist/cjs/styles/prism'
-import { format } from 'date-fns'
-import { Dialog, Transition } from '@headlessui/react'
+
 import { 
   ClipboardDocumentIcon, 
   ClipboardDocumentCheckIcon, 
@@ -35,7 +33,6 @@ import {
 import { sendMessage, getEmbedding, clearMemory } from './services/api'
 import { toast } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
-import { v4 as uuidv4 } from 'uuid'
 import { parseMessage } from '@/utils/message-parser'
 
 /**
@@ -131,42 +128,6 @@ interface CopyButtonProps {
   className?: string
 }
 
-/**
- * Component for copying text to the clipboard.
- * @param text - The text to be copied.
- * @param className - Optional class name for styling.
- */
-const CopyButton = ({ text, className }: CopyButtonProps) => {
-  const [copied, setCopied] = useState(false)
-
-  const handleCopy = useCallback(async () => {
-    try {
-      await navigator.clipboard.writeText(text)
-      setCopied(true)
-      toast.success('Copied to clipboard')
-      setTimeout(() => setCopied(false), 2000)
-    } catch (error) {
-      toast.error('Failed to copy to clipboard')
-    }
-  }, [text])
-
-  return (
-    <button
-      onClick={handleCopy}
-      className={cn(
-        "p-1 hover:bg-gray-100 rounded absolute top-2 right-2 focus:outline-none focus:ring-2 focus:ring-blue-500",
-        className
-      )}
-      aria-label={copied ? 'Copied to clipboard' : 'Copy to clipboard'}
-    >
-      {copied ? (
-        <ClipboardDocumentCheckIcon className="h-5 w-5 text-green-500" />
-      ) : (
-        <ClipboardDocumentIcon className="h-5 w-5 text-gray-400" />
-      )}
-    </button>
-  )
-}
 
 /**
  * Interface for the ChatMessage component.
