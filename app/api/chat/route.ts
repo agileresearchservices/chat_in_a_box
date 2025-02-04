@@ -15,43 +15,92 @@ const ChatRequestSchema = z.object({
 })
 
 // Streaming Transformer: Transforms the response stream into a structured format
-const createStreamTransformer = () => new TransformStream({
-  transform(chunk, controller) {
-    try {
-      const text = new TextDecoder().decode(chunk)
-      const lines = text.split('\n').filter(Boolean)
-      
-      lines.forEach(line => {
-        try {
-          const data = JSON.parse(line)
-          let content = data.message?.content || ''
-          
-          // Extract only the first comprehensive answer after thinking process
-          if (content.includes('<think>')) {
-            const parts = content.split('</think>')
-            content = parts[parts.length - 1].trim()
+const createStreamTransformer = () => {
+  let lastContent = '';
+  return new TransformStream({
+    transform(chunk, controller) {
+      try {
+        const text = new TextDecoder().decode(chunk)
+        const lines = text.split('\n').filter(Boolean)
+        
+        lines.forEach(line => {
+          try {
+            const data = JSON.parse(line)
+            let content = data.message?.content || ''
             
-            // Remove any subsequent Answer or Final Answer sections
-            content = content.split(/\n(?:Answer:|Final Answer)/).shift()?.trim() || content
-          }
-          
-          controller.enqueue(
-            new TextEncoder().encode(
-              JSON.stringify({
-                done: data.done,
-                message: { content }
-              }) + '\n'
+            // Extract only the first comprehensive answer after thinking process
+            if (content.includes('<think>')) {
+              const parts = content.split('</think>')
+              content = parts[parts.length - 1].trim()
+              
+              // Remove any subsequent Answer or Final Answer sections
+              content = content.split(/\n(?:Answer:|Final Answer)/).shift()?.trim() || content
+            }
+            
+            // Reduce redundancy
+            content = reduceRedundancy(lastContent, content)
+            lastContent = content
+
+            controller.enqueue(
+              new TextEncoder().encode(
+                JSON.stringify({
+                  done: data.done,
+                  message: { content }
+                }) + '\n'
+              )
             )
-          )
-        } catch (error) {
-          // Silently skip invalid chunks
-        }
-      })
-    } catch (error) {
-      // Silently handle stream errors
+          } catch (error) {
+            // Silently skip invalid chunks
+          }
+        })
+      } catch (error) {
+        // Silently handle stream errors
+      }
     }
+  })
+}
+
+// New function to reduce redundancy
+const reduceRedundancy = (originalText: string, newText: string, threshold: number = 0.8): string => {
+  // Calculate text similarity using Levenshtein distance
+  const levenshteinDistance = (str1: string, str2: string): number => {
+    const m = str1.length, n = str2.length;
+    const dp: number[][] = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+
+    for (let i = 0; i <= m; i++) dp[i][0] = i;
+    for (let j = 0; j <= n; j++) dp[0][j] = j;
+
+    for (let i = 1; i <= m; i++) {
+      for (let j = 1; j <= n; j++) {
+        if (str1[i - 1] === str2[j - 1]) {
+          dp[i][j] = dp[i - 1][j - 1];
+        } else {
+          dp[i][j] = 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+        }
+      }
+    }
+
+    return dp[m][n];
+  };
+
+  const maxLength = Math.max(originalText.length, newText.length);
+  const distance = levenshteinDistance(originalText, newText);
+  const similarity = 1 - (distance / maxLength);
+
+  // If similarity is high, return a more concise version
+  if (similarity > threshold) {
+    // Strategy: Extract unique or most important information
+    const originalWords = new Set(originalText.toLowerCase().split(/\s+/));
+    const newWords = newText.toLowerCase().split(/\s+/);
+    const uniqueWords = newWords.filter(word => !originalWords.has(word));
+
+    return uniqueWords.length > 0 
+      ? uniqueWords.join(' ') 
+      : 'The information provided is similar to a previous response.';
   }
-})
+
+  return newText;
+}
 
 export const dynamic = 'force-dynamic'
 
