@@ -183,9 +183,9 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
               )}
             >
               <div className={cn(
-                "prose max-w-none",
+                "prose max-w-none [&>*]:text-inherit [&_h1]:text-inherit [&_h2]:text-inherit [&_h3]:text-inherit [&_h4]:text-inherit [&_h5]:text-inherit [&_h6]:text-inherit [&_ul]:text-inherit [&_ol]:text-inherit [&_li]:text-inherit [&_p]:text-inherit",
                 !isUser && "pr-20",
-                isUser ? "text-white" : "text-gray-900"
+                isUser ? "text-white prose-headings:text-white prose-ul:text-white prose-ol:text-white" : "text-gray-900"
               )}>
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
@@ -328,7 +328,7 @@ const ThinkingModal = ({ isOpen, onClose, content }: ThinkingModalProps) => {
         <div className="p-4 overflow-y-auto">
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
-            className="prose max-w-none"
+            className="prose max-w-none [&>*]:text-inherit [&_h1]:text-inherit [&_h2]:text-inherit [&_h3]:text-inherit [&_h4]:text-inherit [&_h5]:text-inherit [&_h6]:text-inherit [&_ul]:text-inherit [&_ol]:text-inherit [&_li]:text-inherit [&_p]:text-inherit"
           >
             {content}
           </ReactMarkdown>
