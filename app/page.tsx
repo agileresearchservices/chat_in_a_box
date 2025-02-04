@@ -358,7 +358,7 @@ export default function Home() {
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const readerRef = useRef<ReadableStreamDefaultReader<Uint8Array> | null>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
 
   // Load messages from local storage on mount
   useEffect(() => {
@@ -592,15 +592,31 @@ export default function Home() {
               </div>
 
               <div className="relative flex-grow">
-                <input
+                <textarea
                   ref={inputRef}
-                  type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Type your message..."
-                  className="w-full p-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-0"
+                  className="w-full p-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-0 resize-none overflow-y-auto"
                   disabled={state.isLoading}
                   aria-label="Message input"
+                  rows={1}
+                  style={{ 
+                    minHeight: '50px', 
+                    maxHeight: '200px', 
+                    height: 'auto' 
+                  }}
+                  onInput={(e) => {
+                    const target = e.target as HTMLTextAreaElement;
+                    target.style.height = 'auto';
+                    target.style.height = `${Math.min(target.scrollHeight, 200)}px`;
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSubmit(e as unknown as React.FormEvent);
+                    }
+                  }}
                 />
               </div>
 
