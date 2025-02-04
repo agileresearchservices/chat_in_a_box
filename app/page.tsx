@@ -443,15 +443,15 @@ export default function Home() {
       try {
         const embeddingResponse = await getEmbedding(input)
         if (!embeddingResponse.ok) {
-          console.warn('Failed to generate embedding:', await embeddingResponse.text())
+          const errorText = await embeddingResponse.text()
+          console.error('Failed to generate embedding:', errorText)
         }
       } catch (error) {
-        console.warn('Error generating embedding:', error)
+        console.error('Unexpected error generating embedding:', error)
       }
 
       // Send message with full conversation history
       const response = await sendMessage(input, state.messages)
-      if (!response.ok) throw new Error('Failed to send message')
 
       const reader = response.body?.getReader() ?? null
       readerRef.current = reader
@@ -521,7 +521,7 @@ export default function Home() {
       }
     } catch (error) {
       console.error('Error sending message:', error)
-      toast.error('Failed to send message')
+      toast.error('Failed to send message. Is the LLM and embedding model running?')
     } finally {
       dispatch({ type: 'SET_LOADING', isLoading: false })
       dispatch({ type: 'SET_STREAMING', isStreaming: false })
