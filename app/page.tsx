@@ -1,15 +1,3 @@
-// Import necessary hooks and components from React and other libraries
-// useMemo, useReducer, useState, useRef, useCallback are React hooks for state and lifecycle management
-// AiMessage is an interface for a message with a timestamp
-// ReactMarkdown is used for rendering markdown content
-// Image is used for optimized image rendering
-// remarkGfm is a plugin for GitHub Flavored Markdown
-// SyntaxHighlighter is used for syntax highlighting code blocks
-// format is used for date formatting
-// Icons are imported from heroicons for UI elements
-// sendMessage is a service function for sending messages
-// toast is used for displaying notifications
-// cn is a utility function for class names
 'use client'
 
 import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react'
