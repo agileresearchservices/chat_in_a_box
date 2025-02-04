@@ -377,6 +377,13 @@ export default function Home() {
     localStorage.setItem('chatMessages', JSON.stringify(state.messages))
   }, [state.messages])
 
+  useEffect(() => {
+    if (state.messages.length === 0 && inputRef.current) {
+      inputRef.current.style.height = 'auto';
+      inputRef.current.style.height = '50px';
+    }
+  }, [state.messages]);
+
   /**
    * Scrolls to the bottom of the chat log.
    * @param behavior - The scroll behavior (smooth or auto).
@@ -418,6 +425,13 @@ export default function Home() {
    */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Explicitly reset textarea height
+    setInput('');
+    if (inputRef.current) {
+      inputRef.current.style.height = '50px';
+    }
+
     if (!input.trim() || state.isLoading) return
 
     // Set loading state and thinking process immediately
@@ -607,7 +621,7 @@ export default function Home() {
                   onInput={(e) => {
                     const target = e.target as HTMLTextAreaElement;
                     target.style.height = 'auto';
-                    target.style.height = `${Math.min(target.scrollHeight, 200)}px`;
+                    target.style.height = `${Math.max(Math.min(target.scrollHeight, 200), 50)}px`;
                   }}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
