@@ -250,7 +250,7 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
                   {message.content}
                 </ReactMarkdown>
                 {message.isThinking && (
-                  <div className="inline-flex items-center gap-1 bg-blue-50 text-blue-600 px-2 py-1 rounded-md my-1">
+                  <div className="inline-flex items-center gap-1 bg-grey-50 text-grey-600 px-2 py-1 rounded-md my-1">
                     <BeakerIcon className="w-4 h-4 animate-bounce" />
                     <span>Thinking...</span>
                   </div>
