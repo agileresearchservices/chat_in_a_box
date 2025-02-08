@@ -107,3 +107,45 @@ body {
   white-space: pre-wrap !important;
   word-wrap: break-word !important;
 }
+
+/* Code block and pre styling */
+pre {
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  white-space: pre-wrap !important;
+  word-wrap: break-word !important;
+  padding: 1rem !important;
+  border-radius: 0.5rem !important;
+  margin: 1rem 0 !important;
+}
+
+code {
+  max-width: 100% !important;
+  white-space: pre-wrap !important;
+  word-wrap: break-word !important;
+}
+
+/* Ensure markdown content fits */
+.markdown-content {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-wrap: break-word !important;
+}
+
+.markdown-content > * {
+  max-width: 100% !important;
+}
+
+/* Adjust table styles for better responsiveness */
+table {
+  display: block !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  white-space: nowrap !important;
+}
+
+/* Ensure images don't overflow */
+img {
+  max-width: 100% !important;
+  height: auto !important;
+}

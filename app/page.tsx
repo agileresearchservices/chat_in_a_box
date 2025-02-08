@@ -261,7 +261,7 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
               )}
             >
               <div className={cn(
-                "prose max-w-none [&>*]:text-inherit [&_h1]:text-inherit [&_h2]:text-inherit [&_h3]:text-inherit [&_h4]:text-inherit [&_h5]:text-inherit [&_h6]:text-inherit [&_ul]:text-inherit [&_ol]:text-inherit [&_li]:text-inherit [&_p]:text-inherit",
+                "prose max-w-none markdown-content [&>*]:text-inherit [&_h1]:text-inherit [&_h2]:text-inherit [&_h3]:text-inherit [&_h4]:text-inherit [&_h5]:text-inherit [&_h6]:text-inherit [&_ul]:text-inherit [&_ol]:text-inherit [&_li]:text-inherit [&_p]:text-inherit",
                 !isUser && "pr-20",
                 isUser ? "text-white prose-headings:text-white prose-ul:text-white prose-ol:text-white" : "text-gray-900"
               )}>
@@ -276,7 +276,7 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
                       if (isInline) {
                         return (
                           <code 
-                            className={cn("px-1 py-0.5 rounded bg-gray-200", className)} 
+                            className={cn("px-1 py-0.5 rounded bg-gray-200 max-w-full overflow-x-auto whitespace-pre-wrap break-words", className)} 
                             {...props}
                           >
                             {children}
@@ -285,7 +285,7 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
                       }
 
                       return (
-                        <div className="relative mt-2">
+                        <div className="relative mt-2 max-w-full">
                           <button
                             onClick={() => navigator.clipboard.writeText(codeString)}
                             className="absolute top-2 right-2 p-1 text-gray-400 hover:text-white rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -297,7 +297,12 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
                             style={oneDark}
                             language={match?.[1] || 'text'}
                             PreTag="div"
-                            className="rounded-md !mt-0"
+                            className="rounded-md !mt-0 max-w-full overflow-x-auto whitespace-pre-wrap break-words"
+                            wrapLongLines={true}
+                            customStyle={{
+                              maxWidth: '100%',
+                              padding: '1rem',
+                            }}
                           >
                             {codeString}
                           </SyntaxHighlighter>
