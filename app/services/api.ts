@@ -121,7 +121,7 @@ export const getEmbedding = async (text: string): Promise<Response> => {
  * @throws {Error} If memory clearing fails
  */
 export const _clearMemory = async (): Promise<Response> => {
-  const response = await fetch('/api/chat/memory', {
+  const response = await fetch('/api/chat', {
     method: 'DELETE'
   })
 

@@ -66,8 +66,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-
-  /api/chat/memory:
     delete:
       summary: Clear conversation memory
       description: Clears the entire conversation history and context
