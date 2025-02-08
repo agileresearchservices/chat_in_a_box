@@ -1,6 +1,6 @@
 import { OpenAPIObject } from 'openapi3-ts/oas30';
 
-const swaggerConfig: OpenAPIObject = {
+const redocConfig: OpenAPIObject = {
   openapi: '3.0.0',
   info: {
     title: 'Chat in a Box API',
@@ -8,7 +8,7 @@ const swaggerConfig: OpenAPIObject = {
     description: 'AI-powered document chat and retrieval system',
     contact: {
       name: 'Agile Research Services',
-      email: 'support@agileresearchservices.com'
+      email: 'kbutler1@gmail.com'
     },
     license: {
       name: 'MIT License'
@@ -202,4 +202,4 @@ const swaggerConfig: OpenAPIObject = {
   ]
 };
 
-export default swaggerConfig;
+export default redocConfig;

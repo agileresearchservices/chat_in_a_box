@@ -16,17 +16,17 @@ export default function ApiDocsPage() {
   const [spec, setSpec] = useState(null);
 
   useEffect(() => {
-    async function fetchSwaggerSpec() {
+    async function fetchApiSpec() {
       try {
-        const response = await fetch('/api/swagger');
-        const swaggerSpec = await response.json();
-        setSpec(swaggerSpec);
+        const response = await fetch('/api/redoc');
+        const apiSpec = await response.json();
+        setSpec(apiSpec);
       } catch (error) {
-        console.error('Failed to fetch API specification:', error);
+        console.error('Failed to fetch API specification', error);
       }
     }
     
-    fetchSwaggerSpec();
+    fetchApiSpec();
   }, []);
 
   return (
