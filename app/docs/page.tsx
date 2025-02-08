@@ -8,7 +8,6 @@ import dynamicImport from 'next/dynamic'
 export const dynamic = 'force-dynamic'
 
 // Import necessary React hooks and Swagger UI styling
-import { useEffect } from 'react'
 import 'swagger-ui-react/swagger-ui.css'
 
 /**

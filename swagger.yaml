@@ -1,7 +1,15 @@
 openapi: 3.0.0
 info:
   title: Chat in a Box API
-  description: API documentation for Chat in a Box, a streaming chat application using Ollama
+  description: |
+    API documentation for Chat in a Box, a sophisticated RAG-based chat application using Ollama.
+    
+    Key Features:
+    - Streaming chat responses
+    - Vector embeddings for semantic search
+    - Document similarity search
+    - Conversation memory management
+    - OpenAPI documentation
   version: 1.0.0
   contact:
     name: Chat in a Box Support
@@ -14,7 +22,9 @@ paths:
   /api/chat:
     post:
       summary: Send a chat message
-      description: Sends a message to the chat API and receives a streaming response
+      description: |
+        Sends a message to the chat API and receives a streaming response.
+        The response includes both the AI's reply and its thinking process.
       operationId: sendChatMessage
       tags:
         - Chat
@@ -29,6 +39,11 @@ paths:
                   type: string
                   description: The user's message to process
                   example: "What is the capital of France?"
+                context:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Message'
+                  description: Previous conversation context (optional)
               required:
                 - prompt
       responses:
@@ -42,22 +57,47 @@ paths:
                   response:
                     type: string
                     description: The generated response text
-                    example: "Paris is the capital of France."
+                  thinkingProcess:
+                    type: string
+                    description: The AI's reasoning process (optional)
         '500':
           description: Internal Server Error
           content:
             application/json:
               schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/chat/memory:
+    delete:
+      summary: Clear conversation memory
+      description: Clears the entire conversation history and context
+      operationId: clearChatMemory
+      tags:
+        - Chat
+      responses:
+        '200':
+          description: Memory successfully cleared
+          content:
+            application/json:
+              schema:
                 type: object
                 properties:
-                  error:
+                  message:
                     type: string
-                    description: Error message
-                    example: "Internal Server Error"
+                    example: "Memory cleared successfully"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /api/embed:
     post:
       summary: Generate text embeddings
-      description: Generate vector embeddings for the provided text using Ollama's embedding model
+      description: |
+        Generate vector embeddings for the provided text using Ollama's embedding model.
+        These embeddings can be used for semantic search and document similarity.
       operationId: generateEmbedding
       tags:
         - Embeddings
@@ -92,23 +132,85 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    description: Error message
-                    example: "Text is required and must be a string"
+                $ref: '#/components/schemas/Error'
         '500':
           description: Internal Server Error
           content:
             application/json:
               schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/search:
+    post:
+      summary: Hybrid document search
+      description: |
+        Perform hybrid search across the document corpus using vector embeddings.
+        Returns documents ranked by semantic and lexical similarity to the query.
+      operationId: searchDocuments
+      tags:
+        - Search
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                query:
+                  type: string
+                  description: The search query text
+                  example: "How to implement authentication?"
+                limit:
+                  type: integer
+                  description: Maximum number of results to return (optional)
+                  default: 5
+              required:
+                - query
+      responses:
+        '200':
+          description: Successful search results
+          content:
+            application/json:
+              schema:
                 type: object
                 properties:
-                  error:
-                    type: string
-                    description: Error message
-                    example: "Failed to generate embedding"
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SearchResult'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/docs:
+    get:
+      summary: Get API documentation
+      description: Retrieve the OpenAPI/Swagger documentation for the API
+      operationId: getApiDocs
+      tags:
+        - Documentation
+      responses:
+        '200':
+          description: Successful response with API documentation
+          content:
+            application/json:
+              schema:
+                type: object
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
 components:
   schemas:
@@ -129,13 +231,52 @@ components:
           type: string
           format: date-time
           description: Timestamp when the message was sent
+        thinkingProcess:
+          type: string
+          description: The AI's reasoning process (only for assistant messages)
       required:
         - id
         - role
         - content
+        - timestamp
+
+    SearchResult:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the document
+        content:
+          type: string
+          description: The document content or relevant excerpt
+        similarity:
+          type: number
+          format: float
+          description: Similarity score between 0 and 1
+        metadata:
+          type: object
+          description: Additional document metadata
+      required:
+        - id
+        - content
+        - similarity
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: "An error occurred while processing your request"
+      required:
+        - error
 
 tags:
   - name: Chat
-    description: Chat operations
+    description: Chat operations including message sending and memory management
   - name: Embeddings
-    description: Embeddings operations
+    description: Vector embedding generation for text
+  - name: Search
+    description: Semantic document search operations
+  - name: Documentation
+    description: API documentation retrieval
