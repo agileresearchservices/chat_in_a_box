@@ -196,16 +196,6 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
   // Memoize the markdown content to prevent unnecessary re-renders
   const markdownContent = useMemo(() => message.content, [message.content])
 
-  // Simple smooth scroll when content changes
-  useEffect(() => {
-    if (messageContentRef.current) {
-      messageContentRef.current.scrollIntoView({ 
-        behavior: 'smooth',
-        block: 'end',
-      })
-    }
-  }, [markdownContent])
-
   const copyToClipboard = async () => {
     if (!messageContentRef.current) return
 
@@ -265,7 +255,6 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
                 "[&>*]:text-inherit [&_h1]:text-inherit [&_h2]:text-inherit [&_h3]:text-inherit [&_h4]:text-inherit [&_h5]:text-inherit [&_h6]:text-inherit [&_ul]:text-inherit [&_ol]:text-inherit [&_li]:text-inherit [&_p]:text-inherit",
                 !isUser && "pr-20",
                 isUser ? "text-white prose-headings:text-white prose-ul:text-white prose-ol:text-white" : "text-gray-900",
-                "scroll-mt-4"
               )}>
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
@@ -468,16 +457,16 @@ const ThinkingModal = ({ isOpen, onClose, content }: ThinkingModalProps) => {
  */
 export default function Home() {
   const [input, setInput] = useState('')
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const readerRef = useRef<ReadableStreamDefaultReader<Uint8Array> | null>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   const [state, dispatch] = useReducer(chatReducer, {
     messages: [],
     isLoading: false,
     isStreaming: false
   })
   
-  const messagesEndRef = useRef<HTMLDivElement>(null)
-  const readerRef = useRef<ReadableStreamDefaultReader<Uint8Array> | null>(null)
-  const inputRef = useRef<HTMLTextAreaElement>(null)
-
   // Load messages from local storage on mount
   useEffect(() => {
     const savedMessages = localStorage.getItem('chatMessages')
@@ -509,13 +498,23 @@ export default function Home() {
     }
   }, [state.messages]);
 
-  /**
-   * Scrolls to the bottom of the chat log.
-   * @param behavior - The scroll behavior (smooth or auto).
-   */
-  const scrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
-    messagesEndRef.current?.scrollIntoView({ behavior })
-  }, [])
+  // Scroll management
+  useEffect(() => {
+    const scrollToBottom = () => {
+      if (containerRef.current) {
+        containerRef.current.scrollTop = containerRef.current.scrollHeight
+      }
+    }
+
+    // Initial scroll on mount and when messages change
+    scrollToBottom()
+
+    // During streaming, ensure we stay at bottom
+    if (state.isStreaming) {
+      const interval = setInterval(scrollToBottom, 100)
+      return () => clearInterval(interval)
+    }
+  }, [state.messages, state.isStreaming])
 
   /**
    * Stops the streaming of the response.
@@ -695,11 +694,6 @@ export default function Home() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [state.isStreaming, stopStreaming])
 
-  // Scroll to bottom when messages update or during streaming
-  useEffect(() => {
-    scrollToBottom()
-  }, [state.messages, scrollToBottom])
-
   /**
    * Memoized component for rendering the chat messages.
    */
@@ -714,84 +708,90 @@ export default function Home() {
   return (
     <main className="flex flex-col min-h-screen bg-gradient-to-b from-gray-50 to-white">
       <div className="flex-1 w-full mx-auto px-2 sm:px-4 py-4 sm:py-6 max-w-5xl">
-        <div className="flex flex-col h-full">
-          <div className="flex-1 overflow-y-auto scroll-smooth" ref={messagesEndRef}>
+        <div className="flex flex-col h-[calc(100vh-2rem)]">
+          <div 
+            ref={containerRef}
+            className="flex-1 overflow-y-auto scroll-smooth" 
+            style={{ paddingBottom: '100px' }} // Add padding to prevent input from covering last message
+          >
             <div className="container max-w-4xl mx-auto py-6 space-y-6">
               {messageComponents}
             </div>
           </div>
 
-          <div className="border-t">
-            <form onSubmit={handleSubmit} className="mt-2 sm:mt-4 px-2 sm:px-0">
-              <div className="flex items-center space-x-2">
+          <div className="border-t bg-white fixed bottom-0 left-0 right-0 z-10">
+            <div className="max-w-5xl mx-auto">
+              <form onSubmit={handleSubmit} className="mt-2 sm:mt-4 px-4">
                 <div className="flex items-center space-x-2">
-                  <button
-                    type="button"
-                    onClick={handleClearMemory}
-                    className="p-2 text-gray-600 hover:bg-gray-100 rounded-full focus:outline-none focus:ring-2 focus:ring-gray-500"
-                    aria-label="Clear conversation memory"
-                  >
-                    <TrashIcon className="h-5 w-5" />
-                  </button>
-                  {state.isStreaming && (
+                  <div className="flex items-center space-x-2">
                     <button
                       type="button"
-                      onClick={stopStreaming}
-                      className="p-2 text-gray-600 hover:bg-gray-50 rounded-full focus:outline-none focus:ring-2 focus:ring-gray-500"
-                      aria-label="Stop streaming"
+                      onClick={handleClearMemory}
+                      className="p-2 text-gray-600 hover:bg-gray-100 rounded-full focus:outline-none focus:ring-2 focus:ring-gray-500"
+                      aria-label="Clear conversation memory"
                     >
-                      <StopIcon className="h-5 w-5" />
+                      <TrashIcon className="h-5 w-5" />
                     </button>
-                  )}
-                </div>
+                    {state.isStreaming && (
+                      <button
+                        type="button"
+                        onClick={stopStreaming}
+                        className="p-2 text-gray-600 hover:bg-gray-50 rounded-full focus:outline-none focus:ring-2 focus:ring-gray-500"
+                        aria-label="Stop streaming"
+                      >
+                        <StopIcon className="h-5 w-5" />
+                      </button>
+                    )}
+                  </div>
 
-                <div className="relative flex-grow">
-                  <textarea
-                    ref={inputRef}
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    placeholder="Type your message..."
-                    className="w-full p-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-0 resize-none overflow-y-auto"
-                    disabled={state.isLoading}
-                    aria-label="Message input"
-                    rows={1}
-                    style={{ 
-                      minHeight: '50px', 
-                      maxHeight: '200px', 
-                      height: 'auto' 
-                    }}
-                    onInput={(e) => {
-                      const target = e.target as HTMLTextAreaElement;
-                      target.style.height = 'auto';
-                      target.style.height = `${Math.max(Math.min(target.scrollHeight, 200), 50)}px`;
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSubmit(e as unknown as React.FormEvent);
-                      }
-                    }}
-                  />
-                </div>
+                  <div className="relative flex-grow">
+                    <textarea
+                      ref={inputRef}
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      placeholder="Type your message..."
+                      className="w-full p-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-0 resize-none overflow-y-auto"
+                      disabled={state.isLoading}
+                      aria-label="Message input"
+                      rows={1}
+                      style={{ 
+                        minHeight: '50px', 
+                        maxHeight: '200px', 
+                        height: 'auto' 
+                      }}
+                      onInput={(e) => {
+                        const target = e.target as HTMLTextAreaElement;
+                        target.style.height = 'auto';
+                        target.style.height = `${Math.max(Math.min(target.scrollHeight, 200), 50)}px`;
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSubmit(e as unknown as React.FormEvent);
+                        }
+                      }}
+                    />
+                  </div>
 
-                <button
-                  type="submit"
-                  disabled={!input.trim() || state.isLoading}
-                  className={cn(
-                    "inline-flex items-center space-x-2 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500",
-                    !input.trim() || state.isLoading
-                      ? "bg-gray-300 cursor-not-allowed"
-                      : "bg-blue-500 hover:bg-blue-600 text-white"
-                  )}
-                  aria-label="Send message"
-                >
-                  <span className="flex items-center space-x-2">
-                    <PaperAirplaneIcon className="w-5 h-5" />
-                    <span>Send</span>
-                  </span>
-                </button>
-              </div>
-            </form>
+                  <button
+                    type="submit"
+                    disabled={!input.trim() || state.isLoading}
+                    className={cn(
+                      "inline-flex items-center space-x-2 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500",
+                      !input.trim() || state.isLoading
+                        ? "bg-gray-300 cursor-not-allowed"
+                        : "bg-blue-500 hover:bg-blue-600 text-white"
+                    )}
+                    aria-label="Send message"
+                  >
+                    <span className="flex items-center space-x-2">
+                      <PaperAirplaneIcon className="w-5 h-5" />
+                      <span>Send</span>
+                    </span>
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       </div>
