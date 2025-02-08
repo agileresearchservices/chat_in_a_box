@@ -17,7 +17,7 @@ import ollamaEmbedService from '@/services/embed.service';
  * - Choose a chunk size that captures meaningful semantic units
  * - Adjust based on specific embedding model capabilities
  */
-const chunkSize = 256;
+const chunkSize = 1800;
 
 /**
  * Text Chunk Processing and Embedding Generation
