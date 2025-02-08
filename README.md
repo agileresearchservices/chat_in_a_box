@@ -284,21 +284,42 @@ The `ConversationMemory` class is a crucial component of the application's conve
 
 This mechanism ensures that the AI maintains context across multiple interactions while preventing excessive memory usage.
 
-## Recent Changes
+## Recent Improvements
 
-### Virtual Environment Setup
-- The `setup.sh` script now includes steps to create and activate a Python 3.11 virtual environment and install dependencies from `requirements.txt`.
+### Chat API Enhancements
+- Streamlined chat API route implementation
+- Improved code structure and readability
+- Enhanced error handling mechanisms
 
-### Data Processing Enhancements
-- Introduced `services/text_extractor.py` for extracting text from `.txt`, `.pdf`, and `.docx` files.
-- Updated `main-process.js` to process text content in chunks using the new text extraction functionality.
+### UI and UX Updates
+- Refined text area sizing for better user interaction
+- Improved color formatting for enhanced visual consistency
+- Reduced answer redundancy in chat responses
 
-### Database Schema Update
-- Updated the Prisma schema to include new fields (`source`, `type`, `chunk`) in the `docs` model.
-- Purged old migrations and created a new initial migration reflecting the current schema.
+### Error Handling
+- Implemented more robust error handling strategies
+- Added improved error tracking and reporting mechanisms
 
-### Requirements
-- Added a `requirements.txt` file to manage Python dependencies, including `python-magic`, `PyPDF2`, `python-docx`, `tqdm`, and `pathlib`.
+## Performance Optimizations
+- Cleaned up unnecessary code in chat API routes
+- Improved response generation efficiency
+- Enhanced overall application responsiveness
+
+## Recommended Development Practices
+- Continuously monitor and refactor code for clarity
+- Maintain a focus on reducing redundancy
+- Prioritize error handling and user experience
+
+### Troubleshooting
+If you encounter any issues with the recent updates:
+- Check the console for detailed error messages
+- Verify your Ollama and PostgreSQL configurations
+- Ensure all dependencies are up to date
+
+### Future Roadmap
+- Continue improving code modularity
+- Enhance AI response generation
+- Implement more advanced error recovery mechanisms
 
 ## Getting Started
 

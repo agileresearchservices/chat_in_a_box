@@ -1,5 +1,6 @@
 'use client'
 
+// Import essential React hooks and external libraries
 import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import { Message as AiMessage } from 'ai'
 import ReactMarkdown from 'react-markdown'
@@ -7,6 +8,7 @@ import remarkGfm from 'remark-gfm'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { oneDark } from 'react-syntax-highlighter/dist/cjs/styles/prism'
 
+// Import heroicons for UI elements
 import { 
   ClipboardDocumentIcon, 
   ClipboardDocumentCheckIcon, 
@@ -18,13 +20,27 @@ import {
   UserIcon,
   SparklesIcon
 } from '@heroicons/react/24/outline'
+
+// Import application-specific services and utilities
 import { sendMessage, getEmbedding, clearMemory } from './services/api'
 import { toast } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
 import { parseMessage } from '@/utils/message-parser'
 
 /**
- * Extended Message type that includes a timestamp
+ * Extended Message Type with Enhanced Metadata
+ * 
+ * Augments the base AI message type with additional contextual information
+ * 
+ * Key Enhancements:
+ * - Adds timestamp for message tracking
+ * - Includes thinking process metadata
+ * - Supports streaming and thinking state flags
+ * 
+ * Use Cases:
+ * - Detailed message history tracking
+ * - Capturing AI reasoning process
+ * - Managing message rendering states
  */
 interface TimestampedMessage extends AiMessage {
   timestamp: Date
@@ -33,8 +49,20 @@ interface TimestampedMessage extends AiMessage {
 }
 
 /**
- * Interface for the chat state.
- * Includes messages, loading, and streaming states.
+ * Chat State Management Interface
+ * 
+ * Defines the comprehensive state structure for the chat interface
+ * 
+ * Key State Components:
+ * - Messages array with extended metadata
+ * - Loading state indicators
+ * - Streaming state management
+ * - Optional thinking process tracking
+ * 
+ * Responsibilities:
+ * - Tracks conversation history
+ * - Manages UI interaction states
+ * - Supports dynamic message rendering
  */
 interface ChatState {
   messages: TimestampedMessage[]
@@ -44,8 +72,18 @@ interface ChatState {
 }
 
 /**
- * Type for chat actions.
- * Includes actions to add messages, update the last message, and set loading/streaming states.
+ * Chat State Reducer Action Types
+ * 
+ * Defines a type-safe set of actions for managing chat state
+ * 
+ * Action Categories:
+ * - Message manipulation
+ * - State update actions
+ * - Loading and streaming control
+ * 
+ * Design Pattern:
+ * - Implements Redux-like reducer pattern
+ * - Ensures predictable state transitions
  */
 type ChatAction =
   | { type: 'ADD_MESSAGE'; message: TimestampedMessage }
@@ -56,21 +94,34 @@ type ChatAction =
   | { type: 'UPDATE_THINKING_PROCESS'; thinkingProcess: string }
 
 /**
- * Reducer function to manage chat state.
- * Handles actions to add messages, update the last message, and set loading/streaming states.
- * @param state - The current state of the chat.
- * @param action - The action to be processed.
- * @returns The updated state.
+ * Chat State Reducer
+ * 
+ * Manages state transitions for the chat interface
+ * 
+ * Key Responsibilities:
+ * - Handles complex state updates
+ * - Manages message list modifications
+ * - Persists chat history to local storage
+ * 
+ * State Management Strategies:
+ * - Immutable state updates
+ * - Local storage synchronization
+ * - Supports streaming and thinking process tracking
+ * 
+ * @param {ChatState} state - Current chat state
+ * @param {ChatAction} action - State modification action
+ * @returns {ChatState} Updated chat state
  */
 const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
   switch (action.type) {
     case 'ADD_MESSAGE':
+      // Add new message and persist to local storage
       const newMessages = [...state.messages, action.message]
-      // Save to local storage
       localStorage.setItem('chatMessages', JSON.stringify(newMessages))
       return { ...state, messages: newMessages }
       
     case 'UPDATE_LAST_MESSAGE':
+      // Update the most recent assistant message
       if (state.messages.length === 0) return state
       const updatedMessages = [...state.messages]
       const lastMessage = updatedMessages[updatedMessages.length - 1]
@@ -78,21 +129,24 @@ const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
         lastMessage.content = action.content
         lastMessage.thinkingProcess = action.thinkingProcess
         lastMessage.isThinking = action.isThinking
-        // Save to local storage
         localStorage.setItem('chatMessages', JSON.stringify(updatedMessages))
       }
       return { ...state, messages: updatedMessages }
       
     case 'UPDATE_THINKING_PROCESS':
+      // Update the current thinking process
       return { ...state, thinkingProcess: action.thinkingProcess }
       
     case 'SET_MESSAGES':
+      // Replace entire message list
       return { ...state, messages: action.messages }
       
     case 'SET_LOADING':
+      // Toggle loading state
       return { ...state, isLoading: action.isLoading }
       
     case 'SET_STREAMING':
+      // Toggle streaming state
       return { ...state, isStreaming: action.isStreaming }
       
     default:
@@ -101,26 +155,50 @@ const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
 }
 
 /**
- * Interface for the CopyButton component.
- * Includes text and optional className props.
+ * Copy Button Component Props
+ * 
+ * Defines the props for the CopyButton component
+ * 
+ * Key Props:
+ * - Text to be copied
+ * - Optional className for styling
+ * 
+ * Use Cases:
+ * - Copying text to clipboard
+ * - Customizable styling
  */
 interface CopyButtonProps {
   text: string
   className?: string
 }
 
-
 /**
- * Interface for the ChatMessage component.
- * Includes a message prop.
+ * Chat Message Component Props
+ * 
+ * Defines the props for the ChatMessage component
+ * 
+ * Key Props:
+ * - Message object with extended metadata
+ * 
+ * Use Cases:
+ * - Rendering individual chat messages
+ * - Displaying message content and metadata
  */
 interface ChatMessageProps {
   message: TimestampedMessage
 }
 
 /**
- * Component for rendering a chat message.
- * @param message - The message to be rendered.
+ * Chat Message Component
+ * 
+ * Renders a single chat message with extended metadata
+ * 
+ * Key Features:
+ * - Displays message content and timestamp
+ * - Supports thinking process and streaming states
+ * - Includes copy button for message text
+ * 
+ * @param {ChatMessageProps} props - Message object with extended metadata
  */
 const ChatMessage = ({ message }: ChatMessageProps) => {
   const isUser = message.role === 'user'
@@ -276,12 +354,38 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
   )
 }
 
+/**
+ * Thinking Modal Component Props
+ * 
+ * Defines the props for the ThinkingModal component
+ * 
+ * Key Props:
+ * - Modal open state
+ * - Close callback function
+ * - Thinking process content
+ * 
+ * Use Cases:
+ * - Displaying thinking process details
+ * - Customizable modal behavior
+ */
 interface ThinkingModalProps {
   isOpen: boolean
   onClose: () => void
   content: string
 }
 
+/**
+ * Thinking Modal Component
+ * 
+ * Displays the thinking process details in a modal window
+ * 
+ * Key Features:
+ * - Displays thinking process content
+ * - Supports copy button for content
+ * - Customizable modal behavior
+ * 
+ * @param {ThinkingModalProps} props - Modal props
+ */
 const ThinkingModal = ({ isOpen, onClose, content }: ThinkingModalProps) => {
   const [isCopied, setIsCopied] = useState(false)
 
@@ -339,7 +443,17 @@ const ThinkingModal = ({ isOpen, onClose, content }: ThinkingModalProps) => {
 }
 
 /**
- * Main component for the chat interface.
+ * Main Chat Interface Component
+ * 
+ * Manages the entire chat conversation and UI
+ * 
+ * Key Features:
+ * - Manages chat state and message history
+ * - Handles user input and message submission
+ * - Supports streaming and thinking process tracking
+ * - Includes copy button for message text
+ * 
+ * @returns {JSX.Element} Chat interface component
  */
 export default function Home() {
   const [input, setInput] = useState('')
