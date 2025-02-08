@@ -254,9 +254,18 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
   const [isCopied, setIsCopied] = useState(false)
   const [showThinkingModal, setShowThinkingModal] = useState(false)
   const messageContentRef = useRef<HTMLDivElement>(null)
+  const [renderedContent, setRenderedContent] = useState(message.content)
+
+  // Debounce content updates for smoother rendering
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setRenderedContent(message.content)
+    }, 100) // Small delay to batch content updates
+    return () => clearTimeout(timeoutId)
+  }, [message.content])
 
   // Memoize the markdown content to prevent unnecessary re-renders
-  const markdownContent = useMemo(() => message.content, [message.content])
+  const markdownContent = useMemo(() => renderedContent, [renderedContent])
 
   const copyToClipboard = async () => {
     if (!messageContentRef.current) return
@@ -331,6 +340,7 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
 
                       return (
                         <CodeBlock 
+                          key={`${codeString.slice(0, 40)}-${match?.[1] || 'text'}`} 
                           codeString={codeString} 
                           language={match?.[1] || 'text'} 
                         />

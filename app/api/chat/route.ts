@@ -65,43 +65,72 @@ const ChatRequestSchema = z.object({
  * @returns {TransformStream} A stream transformer for AI responses
  */
 const createStreamTransformer = () => {
+  let buffer = ''
+  let lastUpdate = Date.now()
+  const UPDATE_INTERVAL = 200 // Slower updates for smoother rendering
+
+  const processLine = (line: string, controller: TransformStreamDefaultController) => {
+    try {
+      if (!line.trim()) return
+
+      const data = JSON.parse(line)
+      let content = data.message?.content || ''
+      
+      if (content.includes('<think>')) {
+        const parts = content.split('</think>')
+        content = parts[parts.length - 1].trim()
+        content = content.split(/\n(?:Answer:|Final Answer)/).shift()?.trim() || content
+      }
+
+      controller.enqueue(
+        new TextEncoder().encode(
+          JSON.stringify({
+            done: data.done,
+            message: { content }
+          }) + '\n'
+        )
+      )
+    } catch (error) {
+      console.error('Error processing line:', error)
+    }
+  }
+
   return new TransformStream({
     transform(chunk, controller) {
       try {
-        // Decode the incoming chunk of data
+        // Decode and buffer the incoming chunk
         const text = new TextDecoder().decode(chunk)
-        const lines = text.split('\n').filter(Boolean)
-        
-        lines.forEach(line => {
-          try {
-            // Parse each line of the response
-            const data = JSON.parse(line)
-            let content = data.message?.content || ''
-            
-            // Extract only the first comprehensive answer after thinking process
-            if (content.includes('<think>')) {
-              const parts = content.split('</think>')
-              content = parts[parts.length - 1].trim()
-              
-              // Remove any subsequent Answer or Final Answer sections
-              content = content.split(/\n(?:Answer:|Final Answer)/).shift()?.trim() || content
-            }
+        buffer += text
 
-            // Enqueue a structured response
-            controller.enqueue(
-              new TextEncoder().encode(
-                JSON.stringify({
-                  done: data.done,
-                  message: { content }
-                }) + '\n'
-              )
-            )
-          } catch (error) {
-            console.error('Error processing chunk:', error)
-          }
-        })
+        // Only process buffer at intervals
+        const now = Date.now()
+        if (now - lastUpdate < UPDATE_INTERVAL) {
+          return
+        }
+
+        // Find complete JSON objects in buffer
+        let startIdx = 0
+        let endIdx = buffer.indexOf('\n', startIdx)
+        
+        while (endIdx !== -1) {
+          const line = buffer.slice(startIdx, endIdx)
+          processLine(line, controller)
+          startIdx = endIdx + 1
+          endIdx = buffer.indexOf('\n', startIdx)
+        }
+
+        // Keep remaining partial content in buffer
+        buffer = buffer.slice(startIdx)
+        lastUpdate = now
       } catch (error) {
         console.error('Stream processing error:', error)
+      }
+    },
+    flush(controller) {
+      // Process any remaining content in buffer
+      if (buffer.trim()) {
+        const lines = buffer.split('\n')
+        lines.forEach(line => processLine(line, controller))
       }
     }
   })
