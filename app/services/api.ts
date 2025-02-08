@@ -47,7 +47,13 @@ export const sendMessage = async (prompt: string, messages: Message[] = []): Pro
 
   if (!response.ok) {
     const error = await response.json()
-    throw new Error(error.details || error.error || 'Failed to send message')
+    // Provide more specific error messages for different error types
+    if (error.error === 'Invalid input' && error.details) {
+      // Handle validation errors specifically
+      const validationErrors = error.details.map((e: any) => e.message).join(', ')
+      throw new Error(`Validation failed: ${validationErrors}`)
+    }
+    throw new Error(error.message || error.details || error.error || 'Failed to send message')
   }
 
   return response

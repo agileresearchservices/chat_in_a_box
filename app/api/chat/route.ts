@@ -131,7 +131,17 @@ export async function POST(request: NextRequest) {
     
     // Return validation errors if input is invalid
     if (!validation.success) {
-      return new Response(JSON.stringify({ error: validation.error }), { status: 400 })
+      const errorDetails = validation.error.errors.map(err => ({
+        field: err.path.join('.'),
+        message: err.message
+      }))
+      return new Response(JSON.stringify({ 
+        error: 'Invalid input',
+        details: errorDetails
+      }), { 
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      })
     }
 
     // Retrieve contextually similar documents for the prompt
