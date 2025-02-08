@@ -267,7 +267,7 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
                       if (isInline) {
                         return (
                           <code 
-                            className={cn("px-1 py-0.5 rounded bg-gray-200 max-w-full overflow-x-auto whitespace-pre-wrap break-words", className)} 
+                            className={cn("px-1 py-0.5 rounded bg-gray-200 text-gray-900 max-w-full overflow-x-auto whitespace-pre-wrap break-words", className)} 
                             {...props}
                           >
                             {children}
@@ -293,6 +293,8 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
                             customStyle={{
                               maxWidth: '100%',
                               padding: '1rem',
+                              color: '#e4e4e7', // Light gray text for better visibility
+                              backgroundColor: '#1f2937', // Darker background for contrast
                             }}
                           >
                             {codeString}
