@@ -1,7 +1,7 @@
 'use client'
 
 // Import essential React hooks and external libraries
-import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState, memo } from 'react'
 import { Message as AiMessage } from 'ai'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -176,6 +176,68 @@ interface ChatMessageProps {
 }
 
 /**
+ * MemoizedSyntaxHighlighter component
+ * 
+ * Memoized version of the SyntaxHighlighter component
+ * 
+ * @param {string} language - Language of the code
+ * @param {string} children - Code content
+ * @param {object} style - Custom styles for the component
+ */
+const MemoizedSyntaxHighlighter = memo(({ language, children, style }: { language: string, children: string, style: any }) => (
+  <SyntaxHighlighter
+    style={oneDark}
+    language={language}
+    PreTag="div"
+    className="rounded-md !mt-0 max-w-full overflow-x-auto whitespace-pre-wrap break-words"
+    wrapLongLines={true}
+    customStyle={{
+      maxWidth: '100%',
+      padding: '1rem',
+      color: '#e4e4e7',
+      backgroundColor: '#1f2937',
+      ...style
+    }}
+  >
+    {children}
+  </SyntaxHighlighter>
+));
+
+/**
+ * CodeBlock component
+ * 
+ * Renders a code block with a copy button
+ * 
+ * @param {string} codeString - Code content
+ * @param {string} language - Language of the code
+ */
+const CodeBlock = memo(({ codeString, language }: { codeString: string, language: string }) => {
+  // Calculate approximate height based on content
+  const lines = codeString.split('\n').length
+  const approximateHeight = Math.min(lines * 24 + 32, 500) // 24px per line + padding
+
+  return (
+    <div 
+      className="relative mt-2 max-w-full"
+      style={{ minHeight: approximateHeight }}
+    >
+      <button
+        onClick={() => navigator.clipboard.writeText(codeString)}
+        className="absolute top-2 right-2 p-1 text-gray-400 hover:text-white rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+        aria-label="Copy code"
+      >
+        <ClipboardDocumentIcon className="w-5 h-5" />
+      </button>
+      <MemoizedSyntaxHighlighter
+        language={language}
+        children={codeString}
+        style={{}}
+      />
+    </div>
+  );
+});
+
+/**
  * Chat Message Component
  * 
  * Renders a single chat message with extended metadata
@@ -198,15 +260,12 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
 
   const copyToClipboard = async () => {
     if (!messageContentRef.current) return
-
     try {
       await navigator.clipboard.writeText(message.content)
       setIsCopied(true)
       setTimeout(() => setIsCopied(false), 2000)
-      toast.success('Copied to clipboard')
-    } catch (error) {
-      console.error('Failed to copy:', error)
-      toast.error('Failed to copy')
+    } catch (err) {
+      console.error('Failed to copy message:', err)
     }
   }
 
@@ -214,12 +273,7 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
 
   return (
     <>
-      <div
-        className={cn(
-          "flex px-2 sm:px-0",
-          isUser ? "justify-end" : "justify-start"
-        )}
-      >
+      <div className={cn("flex px-2 sm:px-0", isUser ? "justify-end" : "justify-start")}>
         <div
           className={cn(
             "flex items-start space-x-2 sm:space-x-4 w-full max-w-[85%] sm:max-w-[75%]",
@@ -254,7 +308,7 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
                 "prose max-w-none markdown-content",
                 "[&>*]:text-inherit [&_h1]:text-inherit [&_h2]:text-inherit [&_h3]:text-inherit [&_h4]:text-inherit [&_h5]:text-inherit [&_h6]:text-inherit [&_ul]:text-inherit [&_ol]:text-inherit [&_li]:text-inherit [&_p]:text-inherit",
                 !isUser && "pr-20",
-                isUser ? "text-white prose-headings:text-white prose-ul:text-white prose-ol:text-white" : "text-gray-900",
+                isUser ? "text-white prose-headings:text-white prose-ul:text-white prose-ol:text-white" : "text-gray-900"
               )}>
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
@@ -276,30 +330,10 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
                       }
 
                       return (
-                        <div className="relative mt-2 max-w-full">
-                          <button
-                            onClick={() => navigator.clipboard.writeText(codeString)}
-                            className="absolute top-2 right-2 p-1 text-gray-400 hover:text-white rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            aria-label="Copy code"
-                          >
-                            <ClipboardDocumentIcon className="w-5 h-5" />
-                          </button>
-                          <SyntaxHighlighter
-                            style={oneDark}
-                            language={match?.[1] || 'text'}
-                            PreTag="div"
-                            className="rounded-md !mt-0 max-w-full overflow-x-auto whitespace-pre-wrap break-words"
-                            wrapLongLines={true}
-                            customStyle={{
-                              maxWidth: '100%',
-                              padding: '1rem',
-                              color: '#e4e4e7', // Light gray text for better visibility
-                              backgroundColor: '#1f2937', // Darker background for contrast
-                            }}
-                          >
-                            {codeString}
-                          </SyntaxHighlighter>
-                        </div>
+                        <CodeBlock 
+                          codeString={codeString} 
+                          language={match?.[1] || 'text'} 
+                        />
                       )
                     }
                   }}
