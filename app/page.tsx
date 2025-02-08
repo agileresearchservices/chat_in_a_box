@@ -138,7 +138,12 @@ const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
       return { ...state, thinkingProcess: action.thinkingProcess }
       
     case 'SET_MESSAGES':
-      // Replace entire message list
+      // Replace entire message list and update localStorage
+      if (action.messages.length === 0) {
+        localStorage.removeItem('chatMessages')
+      } else {
+        localStorage.setItem('chatMessages', JSON.stringify(action.messages))
+      }
       return { ...state, messages: action.messages }
       
     case 'SET_LOADING':
@@ -510,14 +515,30 @@ export default function Home() {
    */
   const handleClearMemory = useCallback(async () => {
     try {
+      // Clear server-side memory first
       await _clearMemory();
+
+      // Comprehensive local storage clearing
+      localStorage.removeItem('chatMessages');
+      
+      // Reset local state to empty array
+      dispatch({ 
+        type: 'SET_MESSAGES', 
+        messages: [] 
+      });
+
+      // Additional verification and logging
+      console.log('Memory cleared:', {
+        localStorage: localStorage.getItem('chatMessages'),
+        currentState: state.messages
+      });
+
       toast.success('Conversation memory cleared');
     } catch (error) {
-      // Log the error for debugging purposes
       console.error('Failed to clear memory:', error);
       toast.error('Failed to clear memory');
     }
-  }, []);
+  }, [state.messages]);
 
   /**
    * Handles the submission of a message.
