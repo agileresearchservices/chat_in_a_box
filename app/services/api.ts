@@ -1,5 +1,3 @@
-import { conversationMemory } from '@/app/utils/memory'
-
 /**
  * Send Message API Service
  * 
@@ -21,12 +19,17 @@ import { conversationMemory } from '@/app/utils/memory'
  * - Streaming AI-generated responses
  * 
  * @param {string} prompt - The user's input message
- * @param {Array<any>} [messages=[]] - Previous conversation messages for context
+ * @param {Array<Message>} [messages=[]] - Previous conversation messages for context
  * @returns {Promise<Response>} The API response stream
  * @throws {Error} If the API call fails or returns an error
  */
-export const sendMessage = async (prompt: string, messages: any[] = []): Promise<Response> => {
-  // Prepare the request payload with sanitized message context
+type Message = {
+  role: string;
+  content: string;
+  id?: string;
+}
+
+export const sendMessage = async (prompt: string, messages: Message[] = []): Promise<Response> => {
   const response = await fetch('/api/chat', {
     method: 'POST',
     headers: {
@@ -42,9 +45,7 @@ export const sendMessage = async (prompt: string, messages: any[] = []): Promise
     })
   })
 
-  // Validate API response and handle potential errors
   if (!response.ok) {
-    // Extract and throw a meaningful error message
     const error = await response.json()
     throw new Error(error.details || error.error || 'Failed to send message')
   }
@@ -119,15 +120,12 @@ export const getEmbedding = async (text: string): Promise<Response> => {
  * @returns {Promise<Response>} The API response confirming memory clearing
  * @throws {Error} If memory clearing fails
  */
-export const clearMemory = async (): Promise<Response> => {
-  // Send DELETE request to memory management endpoint
+export const _clearMemory = async (): Promise<Response> => {
   const response = await fetch('/api/chat/memory', {
-    method: 'DELETE',
+    method: 'DELETE'
   })
 
-  // Validate API response and handle potential errors
   if (!response.ok) {
-    // Extract and throw a meaningful error message
     const error = await response.json()
     throw new Error(error.details || error.error || 'Failed to clear memory')
   }

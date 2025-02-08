@@ -65,11 +65,11 @@ const createStreamTransformer = () => {
               )
             )
           } catch (error) {
-            // Silently skip invalid chunks to prevent stream interruption
+            console.error('Error processing chunk:', error)
           }
         })
       } catch (error) {
-        // Silently handle stream errors to ensure robustness
+        console.error('Stream processing error:', error)
       }
     }
   })

@@ -22,7 +22,7 @@ import {
 } from '@heroicons/react/24/outline'
 
 // Import application-specific services and utilities
-import { sendMessage, getEmbedding, clearMemory } from './services/api'
+import { sendMessage, getEmbedding, _clearMemory } from './services/api'
 import { toast } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
 import { parseMessage } from '@/utils/message-parser'
@@ -155,24 +155,6 @@ const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
 }
 
 /**
- * Copy Button Component Props
- * 
- * Defines the props for the CopyButton component
- * 
- * Key Props:
- * - Text to be copied
- * - Optional className for styling
- * 
- * Use Cases:
- * - Copying text to clipboard
- * - Customizable styling
- */
-interface CopyButtonProps {
-  text: string
-  className?: string
-}
-
-/**
  * Chat Message Component Props
  * 
  * Defines the props for the ChatMessage component
@@ -268,7 +250,7 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
                   components={{
-                    code({ node, className, children, ...props }) {
+                    code({ className, children, ...props }) {
                       const match = /language-(\w+)/.exec(className || '')
                       const codeString = String(children).replace(/\n$/, '')
                       const isInline = !match
@@ -526,17 +508,16 @@ export default function Home() {
   /**
    * Handles clearing the conversation memory
    */
-  const handleClearMemory = async () => {
+  const handleClearMemory = useCallback(async () => {
     try {
-      // Clear local storage and state
-      localStorage.removeItem('chatMessages')
-      dispatch({ type: 'SET_MESSAGES', messages: [] })
-      toast.success('Conversation cleared')
+      await _clearMemory();
+      toast.success('Conversation memory cleared');
     } catch (error) {
-      console.error('Error clearing conversation:', error)
-      toast.error('Failed to clear conversation')
+      // Log the error for debugging purposes
+      console.error('Failed to clear memory:', error);
+      toast.error('Failed to clear memory');
     }
-  }
+  }, []);
 
   /**
    * Handles the submission of a message.
