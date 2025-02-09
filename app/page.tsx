@@ -202,6 +202,7 @@ const MemoizedSyntaxHighlighter = memo(({ language, children, style }: { languag
     {children}
   </SyntaxHighlighter>
 ));
+MemoizedSyntaxHighlighter.displayName = 'MemoizedSyntaxHighlighter';
 
 /**
  * CodeBlock component
@@ -230,12 +231,14 @@ const CodeBlock = memo(({ codeString, language }: { codeString: string, language
       </button>
       <MemoizedSyntaxHighlighter
         language={language}
-        children={codeString}
         style={{}}
-      />
+      >
+        {codeString}
+      </MemoizedSyntaxHighlighter>
     </div>
   );
 });
+CodeBlock.displayName = 'CodeBlock';
 
 /**
  * Chat Message Component
