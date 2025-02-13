@@ -1,6 +1,7 @@
 // Core dependencies for vector search and database interaction
 import { PrismaClient } from '@prisma/client';
 import ollamaEmbedService from '@/services/embed.service';
+import logger from '@/utils/logger';
 
 // Initialize Prisma client for database operations
 const prisma = new PrismaClient();
@@ -74,11 +75,27 @@ interface SearchConfig {
  * @throws {Error} If environment variables are missing or invalid
  */
 function getSearchConfig(): SearchConfig {
-  return {
+  // Log search configuration retrieval
+  logger.debug('Retrieving search configuration', {
+    searchLimit: process.env.SEARCH_LIMIT,
+    searchMinSimilarity: process.env.SEARCH_MIN_SIMILARITY,
+    searchMaxResults: process.env.SEARCH_MAX_RESULTS
+  });
+
+  const config = {
     limit: parseInt(process.env.SEARCH_LIMIT!, 10),
     minSimilarity: parseFloat(process.env.SEARCH_MIN_SIMILARITY!),
     maxResults: parseInt(process.env.SEARCH_MAX_RESULTS!, 10)
   };
+
+  // Log parsed configuration
+  logger.debug('Search configuration parsed', {
+    limit: config.limit,
+    minSimilarity: config.minSimilarity,
+    maxResults: config.maxResults
+  });
+
+  return config;
 }
 
 /**
@@ -120,6 +137,13 @@ export async function searchSimilarDocs(
   limit?: number, 
   minSimilarity?: number
 ): Promise<SearchResult[]> {
+  // Log the start of document search
+  logger.info('Starting semantic document search', {
+    queryLength: query.length,
+    customLimit: !!limit,
+    customMinSimilarity: !!minSimilarity
+  });
+
   try {
     // Retrieve default search configuration
     const config = getSearchConfig();
@@ -128,14 +152,27 @@ export async function searchSimilarDocs(
     const searchLimit = limit || config.limit;
     const searchMinSimilarity = minSimilarity || config.minSimilarity;
 
+    // Log search parameters
+    logger.debug('Search parameters', {
+      limit: searchLimit,
+      minSimilarity: searchMinSimilarity
+    });
+
     // Generate embedding for the query using Ollama
+    logger.debug('Generating query embedding');
     const embedResult = await ollamaEmbedService(query);
     const queryEmbedding = embedResult.embedding;
+
+    // Log embedding details
+    logger.debug('Query embedding generated', {
+      embeddingLength: queryEmbedding.length
+    });
 
     // Convert embedding to PostgreSQL array literal for vector operations
     const embeddingStr = `[${queryEmbedding.join(',')}]`;
 
     // Validate embedding dimensions against existing document embeddings
+    logger.debug('Validating embedding dimensions');
     const [embeddingStats] = await prisma.$queryRaw`
       SELECT MIN(vector_dims(embedding)) as min_length
       FROM docs
@@ -146,11 +183,16 @@ export async function searchSimilarDocs(
     // Ensure embedding dimensions are consistent
     if (embeddingStats?.min_length !== undefined && 
         queryEmbedding.length !== embeddingStats.min_length) {
+      logger.error('Embedding dimension mismatch', {
+        expectedDimension: embeddingStats.min_length,
+        actualDimension: queryEmbedding.length
+      });
       throw new Error(`Embedding dimension mismatch. Expected ${embeddingStats.min_length}, got ${queryEmbedding.length}`);
     }
 
     // Perform vector similarity search with PostgreSQL
-    return await prisma.$queryRaw`
+    logger.debug('Executing vector similarity search');
+    const results = await prisma.$queryRaw`
       SELECT 
         chunk,           -- Matched text chunk
         id,              -- Chunk identifier
@@ -162,8 +204,23 @@ export async function searchSimilarDocs(
       ORDER BY similarity DESC
       LIMIT ${searchLimit}
     ` as SearchResult[];
+
+    // Log search results
+    logger.info('Semantic document search completed', {
+      totalResults: results.length,
+      maxSimilarity: results.length > 0 ? results[0].similarity : 0
+    });
+
+    return results;
   } catch (error) {
     // Centralized error handling with context preservation
+    logger.error('Vector search failed', {
+      errorMessage: error instanceof Error ? error.message : String(error),
+      queryLength: query.length,
+      customLimit: !!limit,
+      customMinSimilarity: !!minSimilarity
+    });
+
     if (error instanceof Error) {
       throw new Error(`Vector search failed: ${error.message}`);
     }

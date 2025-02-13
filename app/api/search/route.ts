@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { searchSimilarDocs } from '@/utils/vector-search';
+import logger from '@/utils/logger';
+import { createSuccessResponse, createErrorResponse } from '@/utils/api-response';
 
 /**
  * Semantic Document Search Route
@@ -42,30 +44,36 @@ export async function POST(req: Request) {
     
     // Validate that a query is provided
     // Prevents processing of empty or undefined search inputs
-    if (!query) {
-      return NextResponse.json(
-        { error: 'Query is required' }, 
-        { status: 400 }
-      );
+    if (!query || typeof query !== 'string') {
+      logger.warn('Search request received with no query');
+      return createErrorResponse('Invalid input: query is required', 400);
     }
+
+    logger.info('Performing semantic search for query:', { 
+      searchQuery: query 
+    });
 
     // Perform semantic similarity search using vector search utility
     // Delegates the complex search logic to a specialized utility function
     const results = await searchSimilarDocs(query);
 
+    logger.debug('Search results details:', {
+      queryLength: query.length,
+      resultsCount: results.length
+    });
+
     // Return the search results as a JSON response
     // Wraps results in an object to allow for future extensibility
-    return NextResponse.json({ results });
+    return createSuccessResponse({ results });
   } catch (error) {
     // Log the detailed error for server-side debugging
     // Helps in tracking and diagnosing search-related issues
-    console.error('Search error:', error);
+    logger.error('Search error:', { 
+      errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+      errorMessage: error instanceof Error ? error.message : String(error)
+    });
 
     // Return a generic error response
-    // Prevents exposure of sensitive system details
-    return NextResponse.json(
-      { error: 'Search failed' }, 
-      { status: 500 }
-    );
+    return createErrorResponse('Search failed');
   }
 }

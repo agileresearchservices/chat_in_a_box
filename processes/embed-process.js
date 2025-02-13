@@ -2,6 +2,7 @@
 import pkg from 'chunker';
 const { chunk } = pkg;
 import ollamaEmbedService from '@/services/embed.service';
+import logger from '@/utils/logger.js';
 
 /**
  * Text Chunking Configuration
@@ -43,26 +44,68 @@ const chunkSize = 1800;
  * @throws {Error} If embedding generation fails
  */
 const processChunk = async (text) => {
+  // Log the start of chunk processing
+  logger.info('Starting text chunk processing', {
+    inputType: typeof text,
+    inputLength: text.length || (text.content ? text.content.length : 0),
+    chunkSize: chunkSize
+  });
+
   try {
+    // Log the text chunking process
+    logger.debug('Segmenting input text into chunks', {
+      chunkingStarted: true
+    });
+
     // Segment input text into fixed-size chunks
     const chunks = chunk(text, chunkSize);
     
+    // Log chunk generation details
+    logger.debug('Text segmentation completed', {
+      totalChunks: chunks.length
+    });
+
     // Initialize array to store chunk embeddings
     const embeddings = [];
     
     // Generate embeddings for each text chunk
-    for (const chunkText of chunks) {
+    for (const [index, chunkText] of chunks.entries()) {
+      // Log start of embedding generation for current chunk
+      logger.debug('Generating embedding for chunk', {
+        chunkIndex: index,
+        chunkLength: chunkText.length
+      });
+
       // Use Ollama embedding service to convert text to vector
       const embedding = await ollamaEmbedService(chunkText);
       
+      // Log successful embedding generation
+      logger.debug('Embedding generated successfully', {
+        chunkIndex: index,
+        embeddingLength: embedding.length
+      });
+
       // Store chunk text and its corresponding embedding
       embeddings.push({ text: chunkText, embedding });
     }
     
+    // Log successful completion of embedding process
+    logger.info('Text chunk processing completed', {
+      totalChunks: chunks.length,
+      totalEmbeddings: embeddings.length
+    });
+
     return embeddings;
   } catch (error) {
-    // Log and rethrow any errors during chunk processing
-    console.error('Error processing chunk:', error);
+    // Log detailed error information
+    logger.error('Error processing text chunks', { 
+      errorMessage: error.message,
+      errorStack: error.stack,
+      inputType: typeof text,
+      inputLength: text.length || (text.content ? text.content.length : 0)
+    });
+
+    // Rethrow the error for upstream error handling
     throw error;
   }
 };

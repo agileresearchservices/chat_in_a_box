@@ -23,6 +23,8 @@
  * @returns {Promise<Response>} The API response stream
  * @throws {Error} If the API call fails or returns an error
  */
+import logger from '@/utils/logger';
+
 type Message = {
   role: string;
   content: string;
@@ -30,6 +32,8 @@ type Message = {
 }
 
 export const sendMessage = async (prompt: string, messages: Message[] = []): Promise<Response> => {
+  logger.debug('Sending message', { prompt, messageCount: messages.length });
+
   const response = await fetch('/api/chat', {
     method: 'POST',
     headers: {
@@ -51,11 +55,19 @@ export const sendMessage = async (prompt: string, messages: Message[] = []): Pro
     if (error.error === 'Invalid input' && error.details) {
       // Handle validation errors specifically
       const validationErrors = error.details.map((e: any) => e.message).join(', ')
+      logger.error('Message sending validation failed', { 
+        validationErrors, 
+        errorType: error.error 
+      });
       throw new Error(`Validation failed: ${validationErrors}`)
     }
+    logger.error('Failed to send message', { 
+      error: error.message || error.details || error.error 
+    });
     throw new Error(error.message || error.details || error.error || 'Failed to send message')
   }
 
+  logger.debug('Message sent successfully');
   return response
 }
 
@@ -84,6 +96,8 @@ export const sendMessage = async (prompt: string, messages: Message[] = []): Pro
  * @throws {Error} If embedding generation fails or no response is received
  */
 export const getEmbedding = async (text: string): Promise<Response> => {
+  logger.debug('Generating embedding', { textLength: text.length });
+
   // Send text to embedding API endpoint
   const response = await fetch('/api/embed', {
     method: 'POST',
@@ -97,9 +111,14 @@ export const getEmbedding = async (text: string): Promise<Response> => {
   if (!response.ok) {
     // Extract and throw a meaningful error message
     const error = await response.json()
+    logger.error('Failed to get embedding', { 
+      details: error.details, 
+      error: error.error 
+    });
     throw new Error(error.details || error.error || 'Failed to get embedding')
   }
 
+  logger.debug('Embedding generated successfully');
   return response
 }
 
@@ -127,14 +146,21 @@ export const getEmbedding = async (text: string): Promise<Response> => {
  * @throws {Error} If memory clearing fails
  */
 export const _clearMemory = async (): Promise<Response> => {
+  logger.debug('Attempting to clear conversation memory');
+
   const response = await fetch('/api/chat', {
     method: 'DELETE'
   })
 
   if (!response.ok) {
     const error = await response.json()
+    logger.error('Failed to clear memory', { 
+      details: error.details, 
+      error: error.error 
+    });
     throw new Error(error.details || error.error || 'Failed to clear memory')
   }
 
+  logger.debug('Conversation memory cleared successfully');
   return response
 }

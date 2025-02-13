@@ -1,3 +1,5 @@
+import logger from '@/utils/logger';
+
 /**
  * Parsed Message Structure
  * 
@@ -60,22 +62,42 @@ interface ParsedMessage {
  * // }
  */
 export function parseMessage(message: string): ParsedMessage {
+  // Log the start of message parsing
+  logger.debug('Starting message parsing', {
+    inputMessageLength: message.length
+  });
+
   // Regular expression to match thinking process within XML-like tags
   const thinkRegex = /<think>([\s\S]*?)<\/think>/;
   
   // Attempt to match thinking process in the message
   const match = message.match(thinkRegex);
 
-  // If no thinking process is found, return the entire message as content
+  // If no thinking process is found, log and return the entire message as content
   if (!match) {
+    logger.debug('No thinking process found in message', {
+      messageLength: message.length
+    });
+
     return { content: message };
   }
 
   // Extract thinking process, removing leading/trailing whitespace
   const thinkingProcess = match[1].trim();
   
+  // Log thinking process details
+  logger.debug('Thinking process extracted', {
+    thinkingProcessLength: thinkingProcess.length
+  });
+
   // Remove thinking process tags from the original message
   const content = message.replace(match[0], '').trim();
+
+  // Log parsed message details
+  logger.info('Message parsed successfully', {
+    contentLength: content.length,
+    hasThinkingProcess: true
+  });
 
   // Return parsed message with separated content and thinking process
   return {

@@ -1,4 +1,5 @@
 import { Message } from 'ai'
+import logger from '@/utils/logger'
 
 /**
  * Conversation Memory Management Utility
@@ -35,7 +36,11 @@ class ConversationMemory {
   private maxMemoryLength = parseInt(process.env.MAX_MEMORY_LENGTH || '10', 10)
 
   // Private constructor prevents direct instantiation
-  private constructor() {}
+  private constructor() {
+    logger.debug('ConversationMemory singleton initialized', { 
+      maxMemoryLength: this.maxMemoryLength 
+    })
+  }
 
   /**
    * Retrieves the singleton instance of ConversationMemory
@@ -65,10 +70,22 @@ class ConversationMemory {
     // Add the new message to the end of the messages array
     this.messages.push(message)
     
+    logger.debug('Message added to conversation memory', { 
+      role: message.role, 
+      messageLength: message.content.length,
+      totalMessages: this.messages.length
+    })
+    
     // Implement sliding window memory management
     // Keeps only the most recent messages to prevent excessive memory usage
     if (this.messages.length > this.maxMemoryLength) {
+      const removedMessages = this.messages.length - this.maxMemoryLength
       this.messages = this.messages.slice(-this.maxMemoryLength)
+      
+      logger.debug('Conversation memory trimmed', { 
+        removedMessageCount: removedMessages,
+        remainingMessages: this.messages.length 
+      })
     }
   }
 
@@ -78,6 +95,9 @@ class ConversationMemory {
    * @returns {Message[]} An array of all stored messages
    */
   getMessages(): Message[] {
+    logger.debug('Retrieved conversation messages', { 
+      messageCount: this.messages.length 
+    })
     return this.messages
   }
 
@@ -90,8 +110,15 @@ class ConversationMemory {
    * - Clearing sensitive information
    */
   clear() {
+    // Log before clearing to capture the number of messages being removed
+    const messageCount = this.messages.length
+    
     // Reset messages array to empty state
     this.messages = []
+    
+    logger.debug('Conversation memory cleared', { 
+      removedMessageCount: messageCount 
+    })
   }
 
   /**
@@ -104,13 +131,23 @@ class ConversationMemory {
    */
   getContextPrompt(): string {
     // Return empty string if no messages exist
-    if (this.messages.length === 0) return ''
+    if (this.messages.length === 0) {
+      logger.debug('No messages available for context prompt')
+      return ''
+    }
     
     // Transform messages into a formatted context string
     // Format: "role: message content" for each message
-    return this.messages
+    const contextPrompt = this.messages
       .map(msg => `${msg.role}: ${msg.content}`)
       .join('\n')
+    
+    logger.debug('Generated context prompt', { 
+      messageCount: this.messages.length,
+      promptLength: contextPrompt.length 
+    })
+    
+    return contextPrompt
   }
 }
 

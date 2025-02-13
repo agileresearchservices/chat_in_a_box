@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import ollamaEmbedService from '@/services/embed.service';
+import logger from '@/utils/logger';
+import { createSuccessResponse, createErrorResponse } from '@/utils/api-response';
 
 /**
  * Text Embedding Generation Route
@@ -33,30 +35,36 @@ export async function POST(req: NextRequest) {
     
     // Validate that text is provided
     // Prevents processing of empty or undefined text inputs
-    if (!text) {
-      return NextResponse.json(
-        { error: 'Text is required' }, 
-        { status: 400 }
-      );
+    if (!text || typeof text !== 'string') {
+      logger.warn('Embedding request received with no text');
+      return createErrorResponse('Invalid input: text is required', 400);
     }
+
+    logger.info('Generating embeddings for text of length:', { 
+      textLength: text.length 
+    });
 
     // Generate embeddings using the Ollama embedding service
     // Delegates the actual embedding generation to a specialized service
     const embeddings = await ollamaEmbedService(text);
 
+    logger.debug('Successfully generated embeddings:', {
+      dimensions: embeddings.embedding.length,
+      textLength: text.length
+    });
+
     // Return the generated embeddings as a JSON response
     // Allows client applications to use the embeddings for various ML tasks
-    return NextResponse.json(embeddings);
+    return createSuccessResponse(embeddings);
   } catch (error) {
-    // Log the detailed error for server-side debugging
-    // Helps in tracking and diagnosing embedding generation issues
-    console.error('Error generating embeddings:', error);
+    // Safely log the error by converting it to a string
+    logger.error('Error generating embeddings:', { 
+      errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+      errorMessage: error instanceof Error ? error.message : String(error)
+    });
 
     // Return a generic error response
     // Prevents exposure of sensitive system details
-    return NextResponse.json(
-      { error: 'Failed to generate embeddings' }, 
-      { status: 500 }
-    );
+    return createErrorResponse('Failed to generate embeddings', 500);
   }
 }

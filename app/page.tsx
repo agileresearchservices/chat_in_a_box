@@ -26,6 +26,7 @@ import { sendMessage, getEmbedding, _clearMemory } from './services/api'
 import { toast } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
 import { parseMessage } from '@/utils/message-parser'
+import logger from '@/utils/logger'
 
 /**
  * Extended Message Type with Enhanced Metadata
@@ -112,48 +113,48 @@ type ChatAction =
  * @param {ChatAction} action - State modification action
  * @returns {ChatState} Updated chat state
  */
-const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
+function chatReducer(state: ChatState, action: ChatAction): ChatState {
   switch (action.type) {
     case 'ADD_MESSAGE':
-      // Add new message and persist to local storage
-      const newMessages = [...state.messages, action.message]
-      localStorage.setItem('chatMessages', JSON.stringify(newMessages))
-      return { ...state, messages: newMessages }
-      
+      return {
+        ...state,
+        messages: [...state.messages, action.message]
+      }
     case 'UPDATE_LAST_MESSAGE':
-      // Update the most recent assistant message
-      if (state.messages.length === 0) return state
       const updatedMessages = [...state.messages]
-      const lastMessage = updatedMessages[updatedMessages.length - 1]
-      if (lastMessage.role === 'assistant') {
-        lastMessage.content = action.content
-        lastMessage.thinkingProcess = action.thinkingProcess
-        lastMessage.isThinking = action.isThinking
-        localStorage.setItem('chatMessages', JSON.stringify(updatedMessages))
+      if (updatedMessages.length > 0) {
+        const lastMessage = updatedMessages[updatedMessages.length - 1]
+        updatedMessages[updatedMessages.length - 1] = {
+          ...lastMessage,
+          content: action.content,
+          thinkingProcess: action.thinkingProcess,
+          isThinking: action.isThinking ?? false
+        }
       }
-      return { ...state, messages: updatedMessages }
-      
-    case 'UPDATE_THINKING_PROCESS':
-      // Update the current thinking process
-      return { ...state, thinkingProcess: action.thinkingProcess }
-      
+      return {
+        ...state,
+        messages: updatedMessages
+      }
     case 'SET_MESSAGES':
-      // Replace entire message list and update localStorage
-      if (action.messages.length === 0) {
-        localStorage.removeItem('chatMessages')
-      } else {
-        localStorage.setItem('chatMessages', JSON.stringify(action.messages))
+      return {
+        ...state,
+        messages: action.messages
       }
-      return { ...state, messages: action.messages }
-      
     case 'SET_LOADING':
-      // Toggle loading state
-      return { ...state, isLoading: action.isLoading }
-      
+      return {
+        ...state,
+        isLoading: action.isLoading
+      }
     case 'SET_STREAMING':
-      // Toggle streaming state
-      return { ...state, isStreaming: action.isStreaming }
-      
+      return {
+        ...state,
+        isStreaming: action.isStreaming
+      }
+    case 'UPDATE_THINKING_PROCESS':
+      return {
+        ...state,
+        thinkingProcess: action.thinkingProcess
+      }
     default:
       return state
   }
@@ -443,7 +444,6 @@ const ThinkingModal = ({ isOpen, onClose, content }: ThinkingModalProps) => {
       await navigator.clipboard.writeText(content)
       setIsCopied(true)
       setTimeout(() => setIsCopied(false), 2000)
-      toast.success('Copied to clipboard')
     } catch (error) {
       console.error('Failed to copy:', error)
       toast.error('Failed to copy')
@@ -516,6 +516,13 @@ export default function Home() {
     isStreaming: false
   })
   
+  // Log component initialization
+  useEffect(() => {
+    logger.info('Chat interface initialized', {
+      initialMessageCount: state.messages.length
+    })
+  }, [state.messages.length])
+  
   // Load messages from local storage on mount
   useEffect(() => {
     const savedMessages = localStorage.getItem('chatMessages')
@@ -527,9 +534,16 @@ export default function Home() {
           ...msg,
           timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date()
         }))
+        
+        logger.debug('Loaded messages from local storage', {
+          messageCount: messagesWithDates.length
+        })
+        
         dispatch({ type: 'SET_MESSAGES', messages: messagesWithDates })
       } catch (error) {
-        console.error('Error loading saved messages:', error)
+        logger.error('Error loading saved messages', { 
+          error: String(error) 
+        })
         localStorage.removeItem('chatMessages')
       }
     }
@@ -538,6 +552,10 @@ export default function Home() {
   // Save messages to local storage whenever they change
   useEffect(() => {
     localStorage.setItem('chatMessages', JSON.stringify(state.messages))
+    
+    logger.debug('Messages updated in local storage', {
+      messageCount: state.messages.length
+    })
   }, [state.messages])
 
   useEffect(() => {
@@ -570,18 +588,26 @@ export default function Home() {
    */
   const stopStreaming = useCallback(() => {
     if (readerRef.current) {
+      logger.info('Stopping response streaming', {
+        currentMessageCount: state.messages.length
+      })
+      
       readerRef.current.cancel()
       readerRef.current = null
       dispatch({ type: 'SET_STREAMING', isStreaming: false })
       toast.success('Stopped streaming response')
     }
-  }, [])
+  }, [state.messages.length])
 
   /**
    * Handles clearing the conversation memory
    */
   const handleClearMemory = useCallback(async () => {
     try {
+      logger.info('Clearing conversation memory', {
+        currentMessageCount: state.messages.length
+      })
+      
       // Clear server-side memory first
       await _clearMemory();
 
@@ -594,15 +620,13 @@ export default function Home() {
         messages: [] 
       });
 
-      // Additional verification and logging
-      console.log('Memory cleared:', {
-        localStorage: localStorage.getItem('chatMessages'),
-        currentState: state.messages
-      });
-
       toast.success('Conversation memory cleared');
+      
+      logger.debug('Conversation memory cleared successfully')
     } catch (error) {
-      console.error('Failed to clear memory:', error);
+      logger.error('Failed to clear memory', { 
+        error: String(error) 
+      });
       toast.error('Failed to clear memory');
     }
   }, [state.messages]);
@@ -620,7 +644,18 @@ export default function Home() {
       inputRef.current.style.height = '50px';
     }
 
-    if (!input.trim() || state.isLoading) return
+    if (!input.trim() || state.isLoading) {
+      logger.debug('Message submission skipped', {
+        inputTrimmed: input.trim(),
+        isLoading: state.isLoading
+      })
+      return
+    }
+
+    logger.info('Submitting new message', {
+      messageLength: input.length,
+      currentMessageCount: state.messages.length
+    })
 
     // Set loading state and thinking process immediately
     dispatch({ type: 'SET_LOADING', isLoading: true })
@@ -646,10 +681,19 @@ export default function Home() {
         const embeddingResponse = await getEmbedding(input)
         if (!embeddingResponse.ok) {
           const errorText = await embeddingResponse.text()
-          console.error('Failed to generate embedding:', errorText)
+          logger.error('Failed to generate embedding', { 
+            errorText,
+            inputLength: input.length 
+          })
+        } else {
+          logger.debug('Embedding generated successfully', {
+            inputLength: input.length
+          })
         }
       } catch (error) {
-        console.error('Unexpected error generating embedding:', error)
+        logger.error('Unexpected error generating embedding', { 
+          error: String(error) 
+        })
       }
 
       // Send message with full conversation history
@@ -658,7 +702,10 @@ export default function Home() {
       const reader = response.body?.getReader() ?? null
       readerRef.current = reader
       
-      if (!reader) throw new Error('No response reader')
+      if (!reader) {
+        logger.error('No response reader available')
+        throw new Error('No response reader')
+      }
 
       dispatch({ type: 'SET_STREAMING', isStreaming: true })
       let currentMessage = ''
@@ -674,6 +721,10 @@ export default function Home() {
         timestamp: new Date()
       }
       dispatch({ type: 'ADD_MESSAGE', message: assistantMessage })
+
+      logger.debug('Starting response streaming', {
+        conversationLength: state.messages.length
+      })
 
       while (true) {
         const { done, value } = await reader.read()
@@ -691,6 +742,10 @@ export default function Home() {
           if (chunk.includes('<think>')) {
             insideThinkTag = true
             showThinking = true
+            
+            logger.debug('Entered thinking process', {
+              currentMessageLength: currentMessage.length
+            })
           }
           
           // Only accumulate display content when not inside think tags
@@ -701,33 +756,46 @@ export default function Home() {
           if (chunk.includes('</think>')) {
             insideThinkTag = false
             showThinking = false
-          }
-          
-          if (data.done) {
-            // Parse the complete message to extract thinking process
-            const parsedMessage = parseMessage(currentMessage)
-            dispatch({ 
-              type: 'UPDATE_LAST_MESSAGE', 
-              content: parsedMessage.content,
-              thinkingProcess: parsedMessage.thinkingProcess
-            })
-            break
-          } else {
-            dispatch({ 
-              type: 'UPDATE_LAST_MESSAGE', 
-              content: showThinking ? displayMessage + ' ' : displayMessage,
-              isThinking: showThinking
+            
+            logger.debug('Exited thinking process', {
+              thinkingProcessLength: currentMessage.length
             })
           }
+
+          // Update the last message with the current content
+          const cleanThinkingProcess = insideThinkTag 
+            ? currentMessage.replace(/<\/?think>/g, '').trim() 
+            : undefined
+
+          dispatch({ 
+            type: 'UPDATE_LAST_MESSAGE', 
+            content: displayMessage,
+            thinkingProcess: cleanThinkingProcess,
+            isThinking: insideThinkTag
+          })
         }
       }
+
+      // Final update to ensure complete message is captured
+      const cleanThinkingProcess = currentMessage.includes('<think>') 
+        ? currentMessage.replace(/<\/?think>/g, '').trim() 
+        : undefined
+
+      dispatch({ 
+        type: 'UPDATE_LAST_MESSAGE', 
+        content: displayMessage,
+        thinkingProcess: cleanThinkingProcess,
+        isThinking: false
+      })
     } catch (error) {
-      console.error('Error sending message:', error)
-      toast.error('Failed to send message. Is the LLM and embedding model running?')
+      logger.error('Message submission failed', { 
+        error: String(error),
+        inputLength: input.length 
+      })
+      toast.error('Failed to send message')
     } finally {
       dispatch({ type: 'SET_LOADING', isLoading: false })
       dispatch({ type: 'SET_STREAMING', isStreaming: false })
-      readerRef.current = null
     }
   }
 

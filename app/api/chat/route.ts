@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { searchSimilarDocs } from '@/utils/vector-search'
 import { NextResponse } from 'next/server'
 import { conversationMemory } from '@/app/utils/memory'
+import logger from '@/utils/logger'
 
 /**
  * API Route Handler for Clearing Conversation Memory
@@ -22,8 +23,10 @@ export async function DELETE() {
     // Return a success response with a 200 OK status
     return NextResponse.json({ message: 'Memory cleared successfully' })
   } catch (error) {
-    // Log any errors that occur during the memory clearing process
-    console.error('Error clearing memory:', error)
+    // Safely log the error by converting it to a string
+    logger.error('Error clearing memory:', { 
+      errorMessage: error instanceof Error ? error.message : String(error) 
+    })
 
     // Return an error response with a 500 Internal Server Error status
     return NextResponse.json(
@@ -90,8 +93,12 @@ const createStreamTransformer = () => {
           }) + '\n'
         )
       )
+      logger.debug('Processed stream line successfully')
     } catch (error) {
-      console.error('Error processing line:', error)
+      // Safely log the error by converting it to a string
+      logger.error('Error processing line:', { 
+        errorMessage: error instanceof Error ? error.message : String(error) 
+      })
     }
   }
 
@@ -123,7 +130,10 @@ const createStreamTransformer = () => {
         buffer = buffer.slice(startIdx)
         lastUpdate = now
       } catch (error) {
-        console.error('Stream processing error:', error)
+        // Safely log the error by converting it to a string
+        logger.error('Stream processing error:', { 
+          errorMessage: error instanceof Error ? error.message : String(error) 
+        })
       }
     },
     flush(controller) {
@@ -164,6 +174,7 @@ export async function POST(request: NextRequest) {
         field: err.path.join('.'),
         message: err.message
       }))
+      logger.warn('Invalid chat request input:', errorDetails)
       return new Response(JSON.stringify({ 
         error: 'Invalid input',
         details: errorDetails
@@ -173,8 +184,13 @@ export async function POST(request: NextRequest) {
       })
     }
 
+    logger.info('Processing chat request with prompt:', prompt)
+
     // Retrieve contextually similar documents for the prompt
     const similarDocs = await searchSimilarDocs(prompt, parseInt(process.env.SEARCH_MAX_RESULTS!))
+    logger.debug('Found similar documents:', { 
+      documentCount: similarDocs.length 
+    })
     
     // Format context from similar documents
     const formattedContext = similarDocs.map((doc, i) => 
@@ -211,14 +227,23 @@ export async function POST(request: NextRequest) {
 
     // Validate Ollama API response
     if (!response.ok) {
+      logger.error('Ollama API error:', { 
+        statusText: response.statusText,
+        status: response.status 
+      })
       throw new Error(`Ollama API error: ${response.statusText}`)
     }
 
     // Ensure response stream is available
     const stream = response.body
     if (!stream) {
+      logger.error('No response stream available', { 
+        details: 'Response body is null or undefined' 
+      })
       throw new Error('No response stream available')
     }
+
+    logger.info('Successfully initiated chat response stream')
 
     // Return streaming response with transformed AI output
     return new Response(stream.pipeThrough(createStreamTransformer()), {
@@ -233,6 +258,13 @@ export async function POST(request: NextRequest) {
     const errorResponse = error instanceof z.ZodError
       ? { error: 'Invalid input', details: error.errors }
       : { error: 'Chat request failed', message: error instanceof Error ? error.message : 'Unknown error' }
+
+    // Safely log the error with additional context
+    logger.error('Chat request failed:', { 
+      errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+      errorMessage: error instanceof Error ? error.message : String(error),
+      ...(error instanceof z.ZodError ? { validationErrors: error.errors } : {})
+    })
 
     return new Response(JSON.stringify(errorResponse), { 
       status: error instanceof z.ZodError ? 400 : 500,

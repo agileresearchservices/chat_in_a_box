@@ -1,3 +1,5 @@
+import logger from '@/utils/logger';
+
 /**
  * Embedding Response Interface
  * 
@@ -88,12 +90,24 @@ interface OllamaResponse {
  * @throws {Error} If embedding generation fails
  */
 async function ollamaEmbedService(text: string): Promise<EmbeddingResponse> {
+  // Log the start of embedding generation
+  logger.info('Starting embedding generation', {
+    inputTextLength: text.length
+  });
+
   try {
     // Retrieve configuration from environment variables with sensible defaults
     const OLLAMA_HOST = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:11434';
     const EMBED_MODEL = process.env.OLLAMA_EMBED_MODEL || 'nomic-embed-text';
     const SYSTEM_PROMPT = process.env.OLLAMA_SYSTEM_PROMPT;
     
+    // Log embedding configuration details
+    logger.debug('Embedding configuration', {
+      host: OLLAMA_HOST,
+      model: EMBED_MODEL,
+      systemPromptConfigured: !!SYSTEM_PROMPT
+    });
+
     // Configure maximum text length to prevent model overload
     const MAX_PROMPT_LENGTH = parseInt(process.env.MAX_PROMPT_LENGTH || '10000', 10);
     
@@ -104,8 +118,23 @@ async function ollamaEmbedService(text: string): Promise<EmbeddingResponse> {
     const top_p = parseFloat(process.env.OLLAMA_TOP_P || '0.9');
     const repeat_penalty = parseFloat(process.env.OLLAMA_REPEAT_PENALTY || '1.1');
     
+    // Log model inference parameters
+    logger.debug('Model inference parameters', {
+      temperature,
+      contextWindow: num_ctx,
+      topK: top_k,
+      topP: top_p,
+      repeatPenalty: repeat_penalty
+    });
+
     // Truncate text to prevent exceeding model's context window
     const truncatedText = text.slice(0, MAX_PROMPT_LENGTH);
+
+    // Log text truncation details
+    logger.debug('Text truncation', {
+      originalLength: text.length,
+      truncatedLength: truncatedText.length
+    });
 
     // Construct Ollama embedding request with comprehensive configuration
     const requestBody: OllamaRequest = {
@@ -125,6 +154,12 @@ async function ollamaEmbedService(text: string): Promise<EmbeddingResponse> {
       requestBody.system = SYSTEM_PROMPT;
     }
 
+    // Log embedding request details
+    logger.debug('Embedding request prepared', {
+      requestModel: requestBody.model,
+      requestPromptLength: requestBody.prompt.length
+    });
+
     // Execute embedding generation via Ollama's API
     const response = await fetch(`${OLLAMA_HOST}/api/embeddings`, {
       method: 'POST',
@@ -134,6 +169,10 @@ async function ollamaEmbedService(text: string): Promise<EmbeddingResponse> {
 
     // Validate API response
     if (!response.ok) {
+      logger.error('Embedding request failed', {
+        status: response.status,
+        statusText: response.statusText
+      });
       throw new Error(`Embedding request failed with status ${response.status}`);
     }
     
@@ -142,14 +181,26 @@ async function ollamaEmbedService(text: string): Promise<EmbeddingResponse> {
     
     // Validate embedding structure
     if (!data.embedding || !Array.isArray(data.embedding)) {
+      logger.error('Invalid embedding response structure', {
+        responseKeys: Object.keys(data)
+      });
       throw new Error('Invalid embedding response structure');
     }
+
+    // Log successful embedding generation
+    logger.info('Embedding generated successfully', {
+      embeddingLength: data.embedding.length
+    });
 
     // Return standardized embedding response
     return { embedding: data.embedding };
   } catch (error) {
     // Centralized error handling with detailed logging
-    console.error('Error generating embedding:', error);
+    logger.error('Error generating embedding', { 
+      errorMessage: error instanceof Error ? error.message : String(error),
+      errorStack: error instanceof Error ? error.stack : undefined,
+      inputTextLength: text.length
+    });
     throw error;
   }
 }

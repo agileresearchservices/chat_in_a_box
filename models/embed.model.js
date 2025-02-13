@@ -2,6 +2,7 @@
 import { PrismaClient } from '@prisma/client';
 import processChunk from '../processes/embed-process.js';
 import { v4 as uuidv4 } from 'uuid';
+import logger from '../utils/logger.js';
 
 /**
  * Prisma Database Client Initialization
@@ -43,14 +44,31 @@ const prisma = new PrismaClient();
  * @throws {Error} If embedding generation or database creation fails
  */
 export const createEmbed = async (text) => {
+  // Log the start of embedding creation
+  logger.info('Starting embedding creation', {
+    textSource: text.source || 'unknown',
+    textType: text.type || 'text',
+    textLength: text.content ? text.content.length : 0
+  });
+
   try {
+    // Log the start of text chunk processing
+    logger.debug('Processing text chunks', {
+      chunkProcessingStarted: true
+    });
+
     // Process text into semantic chunks and generate embeddings
     const embeddings = await processChunk(text);
     
+    // Log successful chunk processing
+    logger.debug('Text chunks processed successfully', {
+      embeddingCount: embeddings.length
+    });
+
     // Bulk create embeddings using Prisma with unique identifiers
     const createdEmbeddings = await Promise.all(
       embeddings.map(async (item) => {
-        return prisma.docs.create({
+        const embeddingRecord = await prisma.docs.create({
           data: {
             // Generate unique document identifier
             doc_id: uuidv4(),
@@ -68,13 +86,34 @@ export const createEmbed = async (text) => {
             embedding: item.embedding
           }
         });
+
+        // Log individual embedding creation
+        logger.debug('Embedding record created', {
+          docId: embeddingRecord.doc_id,
+          source: embeddingRecord.source,
+          chunkLength: item.text.length
+        });
+
+        return embeddingRecord;
       })
     );
     
+    // Log successful embedding creation
+    logger.info('Embeddings created successfully', {
+      totalEmbeddings: createdEmbeddings.length
+    });
+
     return createdEmbeddings;
   } catch (error) {
-    // Log and rethrow any errors during embedding creation
-    console.error('Error creating embeddings:', error);
+    // Log detailed error information
+    logger.error('Error creating embeddings', { 
+      errorMessage: error.message,
+      errorStack: error.stack,
+      textSource: text.source || 'unknown',
+      textType: text.type || 'text'
+    });
+
+    // Rethrow the error for upstream error handling
     throw error;
   }
 };
