@@ -4,7 +4,14 @@ class UniversalLogger {
   private logLevel: LogLevel;
 
   constructor(level: LogLevel = 'info') {
-    this.logLevel = level;
+    // Validate and set log level, defaulting to 'error' if invalid
+    const envLevel = (process.env.LOG_LEVEL || '').toLowerCase();
+    this.logLevel = this.validateLogLevel(envLevel) ? envLevel as LogLevel : 'error';
+  }
+
+  private validateLogLevel(level: string): boolean {
+    const validLevels: LogLevel[] = ['error', 'warn', 'info', 'debug'];
+    return validLevels.includes(level as LogLevel);
   }
 
   private shouldLog(level: LogLevel): boolean {
@@ -61,9 +68,7 @@ class UniversalLogger {
 }
 
 // Create a logger instance with configurable log level from environment
-const logger = new UniversalLogger(
-  (process.env.LOG_LEVEL as LogLevel) || 'info'
-);
+const logger = new UniversalLogger();
 
 // Create a stream object for Morgan HTTP logging
 export const stream = {
@@ -72,4 +77,5 @@ export const stream = {
   },
 };
 
+export { logger };
 export default logger;
