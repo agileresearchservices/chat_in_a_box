@@ -57,10 +57,10 @@ class TextExtractor:
         """
         self.supported_extensions = supported_extensions or [
             '.txt', '.pdf', '.docx', '.doc', '.rtf', '.odt',
-            '.html', '.htm', '.xml', '.json', '.csv', '.md',
+            '.html', '.htm', '.xml', '.json', '.md',
             '.ppt', '.pptx', '.xls', '.xlsx', '.epub',
             '.java', '.py', '.csv', '.pptm', '.xlsm', '.docm',
-            '.ods', '.odp', '.odg', '.odf'
+            '.ods', '.odp', '.odg', '.odf', '.ipynb'
         ]
 
         self.mime = magic.Magic(mime=True)  # MIME type detection
@@ -143,6 +143,7 @@ class TextExtractor:
             if f.is_file() and f.stat().st_size > 0 
             and not any(part.startswith('.') for part in f.parts) 
             and not f.name.endswith('.log')
+            and f.suffix.lower() in self.supported_extensions
         ]
         
         # Concurrent file processing with progress tracking
