@@ -1,3 +1,6 @@
+# Log level
+LOG_LEVEL="debug"
+
 # Ollama Configuration
 OLLAMA_MODEL="{your-ollama-model}"
 NEXT_PUBLIC_API_URL="http://localhost:{port}"
@@ -51,3 +54,4 @@ MAX_MEMORY_LENGTH={memory-length}
 # Chunker Configuration
 CHUNK_SIZE={chunk-size}
 CHUNK_OVERLAP={chunk-overlap}
+

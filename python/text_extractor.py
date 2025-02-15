@@ -55,7 +55,14 @@ class TextExtractor:
         - Initializes HTTP session with connection pooling
         - Prepares for database and file processing
         """
-        self.supported_extensions = supported_extensions or ['.txt', '.pdf', '.docx']
+        self.supported_extensions = supported_extensions or [
+            '.txt', '.pdf', '.docx', '.doc', '.rtf', '.odt',
+            '.html', '.htm', '.xml', '.json', '.csv', '.md',
+            '.ppt', '.pptx', '.xls', '.xlsx', '.epub',
+            '.java', '.py', '.csv', '.pptm', '.xlsm', '.docm',
+            '.ods', '.odp', '.odg', '.odf'
+        ]
+
         self.mime = magic.Magic(mime=True)  # MIME type detection
         self.db_connection = None
         
