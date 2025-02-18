@@ -212,17 +212,23 @@ export async function searchSimilarDocs(
       results: initialResults.map(r => ({
         id: r.id,
         similarity: r.similarity,
-        chunk: r.chunk.substring(0, 100) + '...'
+        chunk: r.chunk.substring(0, 500) + '...'
       }))
     });
 
     let finalResults = initialResults;
 
-    // Only proceed with reranking if we have multiple results
-    if (initialResults.length > 1) {
+    // Only proceed with reranking if enabled and we have multiple results
+    const shouldRerank = process.env.RERANK_DOCUMENTS === 'true' && initialResults.length > 1;
+    
+    if (shouldRerank) {
       try {
         const rerankerUrl = process.env.NEXT_PUBLIC_RERANKER_URL || 'http://localhost:8005';
-        logger.debug('Calling reranker service', { rerankerUrl });
+        logger.debug('Calling reranker service', { 
+          rerankerUrl,
+          reranking_enabled: true,
+          document_count: initialResults.length
+        });
         const rerankerResponse = await fetch(`${rerankerUrl}/rerank`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -262,7 +268,7 @@ export async function searchSimilarDocs(
             newPosition: newIndex,
             originalSimilarity: result.similarity,
             rerankerScore: result.rerankerScore,
-            chunk: result.chunk.substring(0, 100) + '...'
+            chunk: result.chunk.substring(0, 500) + '...'
           }))
         });
       } catch (rerankError) {
@@ -272,6 +278,12 @@ export async function searchSimilarDocs(
         });
         finalResults = initialResults;
       }
+    } else {
+      logger.debug('Skipping reranking', {
+        reason: process.env.RERANK_DOCUMENTS !== 'true' ? 'disabled' : 'insufficient_results',
+        reranking_enabled: process.env.RERANK_DOCUMENTS === 'true',
+        document_count: initialResults.length
+      });
     }
 
     // Log completion
