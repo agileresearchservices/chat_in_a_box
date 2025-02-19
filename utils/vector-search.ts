@@ -84,9 +84,9 @@ function getSearchConfig(): SearchConfig {
   });
 
   const config = {
-    limit: parseInt(process.env.SEARCH_LIMIT!, 10),
-    minSimilarity: parseFloat(process.env.SEARCH_MIN_SIMILARITY!),
-    maxResults: parseInt(process.env.SEARCH_MAX_RESULTS!, 10)
+    limit: parseInt(process.env.SEARCH_LIMIT!, 50),
+    minSimilarity: parseFloat(process.env.SEARCH_MIN_SIMILARITY!, "0.3"),
+    maxResults: parseInt(process.env.SEARCH_MAX_RESULTS!, 50)
   };
 
   // Log parsed configuration
