@@ -104,4 +104,4 @@ async def rerank_documents(request: RerankRequest) -> List[RerankResult]:
     )
     
     # Convert to RerankResult objects for structured response
-    return [RerankResult(passage=passage, score=float(score)) for passage, score in sorted_results]
+    return [RerankResult(passage=passage, score=float(score)) for passage, score in sorted_results[:25]]
