@@ -1,4 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Chat in a Box: Advanced Local AI Retrieval System
+
+## Overview
+
+Chat in a Box is a cutting-edge Retrieval-Augmented Generation (RAG) application designed to provide powerful, local AI-driven document interaction and search capabilities. Built with a focus on privacy, performance, and flexibility, this application leverages state-of-the-art technologies to create an intelligent document retrieval and generation platform.
+
+## Key Features
+
+- **Local AI Inference**: Utilizes Ollama to run AI models (phi4, deepseek-r1) directly on your machine, ensuring data privacy and reducing external dependencies.
+- **Advanced Vector Search**: Implements PostgreSQL with pgvector for efficient semantic document retrieval and similarity search.
+- **Multi-format Document Support**: Extract and process text from various file formats including .txt, .pdf, and .docx.
+- **Flexible AI Interactions**: Perform advanced document querying, generation, and reranking with local AI models.
+
+## Technology Stack
+
+- **Frontend**: Next.js (React framework)
+- **Backend**: FastAPI Microservices
+- **AI Inference**: Ollama with local models
+- **Database**: PostgreSQL with pgvector
+- **ORM**: Prisma
+- **Containerization**: Docker
+
+## Core Capabilities
+
+1. Semantic Document Search
+2. Local AI-powered Text Generation
+3. Intelligent Passage Reranking
+4. Flexible Embedding Generation
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18+
+- Docker
+- PostgreSQL
+
+*Detailed installation and setup instructions coming soon.*
+
+## Performance Optimizations
+
+- Multi-stage Docker builds
+- FP16 acceleration
+- Efficient passage reranking
+- Configurable AI model parameters
+
+## Privacy and Local Processing
+
+All AI inference and document processing happen locally, ensuring maximum data privacy and minimal external dependencies.
 
 ## Prerequisites
 
