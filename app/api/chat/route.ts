@@ -93,7 +93,6 @@ const createStreamTransformer = () => {
           }) + '\n'
         )
       )
-      logger.debug('Processed stream line successfully')
     } catch (error) {
       // Safely log the error by converting it to a string
       logger.error('Error processing line:', { 
