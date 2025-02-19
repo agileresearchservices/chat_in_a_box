@@ -11,7 +11,6 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 Before running the development server, you'll need to install Ollama and pull the phi4 model:
 
 ### macOS
-
 1. Install Ollama:
 ```bash
 curl -fsSL https://ollama.com/install.sh | sh
@@ -23,7 +22,6 @@ ollama serve
 ```
 
 ### Windows
-
 1. Download and install [Windows Subsystem for Linux (WSL)](https://learn.microsoft.com/en-us/windows/wsl/install)
 2. Install Ollama in WSL:
 ```bash
@@ -196,6 +194,43 @@ npx prisma studio
 
 This setup ensures efficient storage and retrieval of data, making it a cornerstone of the RAG application's search and retrieval capabilities.
 
+## Reranker Service
+
+### Overview
+The Reranker microservice is a critical component of the Retrieval-Augmented Generation (RAG) application, designed to improve the relevance of retrieved documents.
+
+### Key Features
+- Implemented using FastAPI
+- Utilizes FlagEmbedding for advanced reranking
+- Docker containerized for easy deployment
+- Supports efficient passage reranking
+
+### Technologies
+- Python
+- FastAPI
+- FlagEmbedding
+- Docker
+- Docker Compose
+
+### Endpoint
+- `/rerank`: Accepts a list of passages and reranks them based on relevance
+- Uses 'BAAI/bge-reranker-large' model
+- Supports FP16 acceleration
+- Provides normalized scoring
+
+### Docker Integration
+The reranker service is integrated into the `docker-compose.yml`:
+- Mapped to host port 8005
+- Built from `./reranker` directory
+
+### Usage Example
+```python
+# Rerank passages based on a query
+passages = [...]
+query = "Your search query"
+reranked_passages = reranker.rerank(query, passages)
+```
+
 ## TextExtractor
 
 The `TextExtractor` is a component designed for extracting text from various file types within a directory. It supports `.txt`, `.pdf`, and `.docx` file formats.
@@ -356,3 +391,7 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 - **Mac Users**: If you get a security warning, you may need to approve Ollama in System Settings > Security & Privacy
 - If the model isn't responding, ensure Ollama is running with `ollama serve` in a separate terminal
 - Check that the NEXT_PUBLIC_API_URL environment variable matches your Ollama server address
+
+### Future Roadmap
+
+Continue improving code modularity, enhance AI response generation, and implement more advanced error recovery mechanisms.
