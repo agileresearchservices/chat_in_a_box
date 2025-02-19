@@ -10,7 +10,7 @@ Key Features:
 - Normalizes scores for consistent ranking
 """
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from pydantic import BaseModel
 from typing import List
 from FlagEmbedding import FlagReranker
@@ -64,7 +64,11 @@ reranker = FlagReranker('BAAI/bge-reranker-large', use_fp16=True, normalize=True
 @app.post('/rerank', response_model=List[RerankResult], 
           summary="Rerank passages by query relevance",
           description="Reranks a list of passages based on their relevance to the given query")
-async def rerank_documents(request: RerankRequest) -> List[RerankResult]:
+async def rerank_documents(
+    request: RerankRequest, 
+    top_k: int = Query(default=25, ge=1, le=100, 
+                       description="Number of top passages to return (1-100)")
+) -> List[RerankResult]:
     """
     Rerank passages based on their relevance to the query.
     
@@ -73,6 +77,7 @@ async def rerank_documents(request: RerankRequest) -> List[RerankResult]:
     
     Args:
         request (RerankRequest): Contains the query and list of passages to rerank
+        top_k (int, optional): Number of top passages to return. Defaults to 25.
     
     Returns:
         List[RerankResult]: Sorted list of passages with their relevance scores
@@ -104,4 +109,4 @@ async def rerank_documents(request: RerankRequest) -> List[RerankResult]:
     )
     
     # Convert to RerankResult objects for structured response
-    return [RerankResult(passage=passage, score=float(score)) for passage, score in sorted_results[:25]]
+    return [RerankResult(passage=passage, score=float(score)) for passage, score in sorted_results[:top_k]]

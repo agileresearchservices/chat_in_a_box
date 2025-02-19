@@ -224,12 +224,16 @@ export async function searchSimilarDocs(
     if (shouldRerank) {
       try {
         const rerankerUrl = process.env.NEXT_PUBLIC_RERANKER_URL || 'http://localhost:8005';
+        const rerankerTopK = parseInt(process.env.RERANK_TOP_K || '25', 10);
+        
         logger.debug('Calling reranker service', { 
           rerankerUrl,
           reranking_enabled: true,
-          document_count: initialResults.length
+          document_count: initialResults.length,
+          topK: rerankerTopK
         });
-        const rerankerResponse = await fetch(`${rerankerUrl}/rerank`, {
+        
+        const rerankerResponse = await fetch(`${rerankerUrl}/rerank?top_k=${rerankerTopK}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
