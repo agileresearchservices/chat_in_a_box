@@ -94,9 +94,10 @@ paths:
     post:
       summary: Generate text embeddings
       description: |
-        Generate vector embeddings for the provided text using Ollama's embedding model.
-        These embeddings can be used for semantic search and document similarity.
-      operationId: generateEmbedding
+        Generates vector embeddings for input text using Ollama's embedding service.
+        Embeddings are numerical representations that capture semantic meaning,
+        useful for semantic search, document similarity, and machine learning tasks.
+      operationId: generateEmbeddings
       tags:
         - Embeddings
       requestBody:
@@ -108,35 +109,27 @@ paths:
               properties:
                 text:
                   type: string
-                  description: The text to generate embeddings for
-                  example: "This is a sample text for embedding"
+                  description: Input text to generate embeddings for
+                  example: "Hello, world!"
               required:
                 - text
       responses:
         '200':
-          description: Successful response with embedding vector
+          description: Successfully generated embeddings
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  embedding:
+                  embeddings:
                     type: array
                     items:
                       type: number
-                    description: The embedding vector
+                    description: Vector representation of the input text
         '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          description: Invalid input (e.g., empty text)
         '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          description: Server error during embedding generation
 
   /api/search:
     post:
@@ -189,6 +182,48 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /api/summarize:
+    post:
+      summary: Summarize multiple messages
+      description: |
+        Generates a concise summary of one or more input messages using the Ollama AI.
+        Useful for condensing multiple text inputs into a single, coherent summary.
+      operationId: summarizeMessages
+      tags:
+        - Utilities
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                messages:
+                  type: array
+                  items:
+                    type: string
+                    description: Individual messages to be summarized
+                    example: "The quick brown fox jumps over the lazy dog."
+                  minItems: 1
+                  description: List of messages to summarize
+              required:
+                - messages
+      responses:
+        '200':
+          description: Successful summary generation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  summary:
+                    type: string
+                    description: The generated summary of the input messages
+        '400':
+          description: Invalid request (e.g., empty messages, messages too long)
+        '500':
+          description: Server error during summary generation
+
   /api/docs:
     get:
       summary: Get API documentation
@@ -209,6 +244,26 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+
+  /api/redoc:
+    get:
+      summary: Retrieve API documentation
+      description: |
+        Serves the OpenAPI specification for the application,
+        enabling interactive API documentation via Redoc.
+      operationId: getApiDocumentation
+      tags:
+        - Documentation
+      responses:
+        '200':
+          description: Successfully retrieved API documentation
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Full OpenAPI specification
+        '500':
+          description: Server error retrieving documentation
 
 components:
   schemas:
@@ -271,10 +326,12 @@ components:
 
 tags:
   - name: Chat
-    description: Chat operations including message sending and memory management
-  - name: Embeddings
-    description: Vector embedding generation for text
+    description: Conversational AI interactions
   - name: Search
     description: Semantic document search operations
   - name: Documentation
     description: API documentation retrieval
+  - name: Utilities
+    description: Utility functions for text processing
+  - name: Embeddings
+    description: Text embedding generation for semantic analysis
