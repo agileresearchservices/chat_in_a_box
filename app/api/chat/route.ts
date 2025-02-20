@@ -206,6 +206,21 @@ export async function POST(request: NextRequest) {
       { role: 'user', content: prompt }
     ]
 
+    // Log Ollama API call details
+    logger.debug('Ollama API Call Details', {
+      model: process.env.OLLAMA_MODEL!,
+      messages: messagesWithContext,
+      contextLength: formattedContext.length,
+      streamEnabled: true,
+      modelParameters: {
+        temperature: parseFloat(process.env.OLLAMA_TEMPERATURE!),
+        context_size: parseInt(process.env.OLLAMA_NUM_CTX!),
+        top_k: parseInt(process.env.OLLAMA_TOP_K!),
+        top_p: parseFloat(process.env.OLLAMA_TOP_P!),
+        repeat_penalty: parseFloat(process.env.OLLAMA_REPEAT_PENALTY!)
+      }
+    });
+
     // Send request to Ollama AI with configured parameters
     const response = await fetch(new URL('/api/chat', process.env.NEXT_PUBLIC_API_URL).toString(), {
       method: 'POST',
