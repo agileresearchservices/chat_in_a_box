@@ -66,8 +66,7 @@ reranker = FlagReranker('BAAI/bge-reranker-large', use_fp16=True, normalize=True
           description="Reranks a list of passages based on their relevance to the given query")
 async def rerank_documents(
     request: RerankRequest, 
-    top_k: int = Query(default=25, ge=1, le=100, 
-                       description="Number of top passages to return (1-100)")
+    top_k: int = Query(default=50, ge=1, le=100, description="Number of top passages to return (1-100)")
 ) -> List[RerankResult]:
     """
     Rerank passages based on their relevance to the query.

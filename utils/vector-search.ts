@@ -233,7 +233,7 @@ export async function searchSimilarDocs(
           topK: rerankerTopK
         });
         
-        const rerankerResponse = await fetch(`${rerankerUrl}/rerank?top_k=${rerankerTopK}`, {
+        const rerankerResponse = await fetch(`${rerankerUrl}/rerank`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -297,7 +297,7 @@ export async function searchSimilarDocs(
       reranked: finalResults !== initialResults
     });
 
-    return finalResults;
+    return finalResults.slice(0, parseInt(process.env.RERANK_TOP_K || '50', 10));
   } catch (error) {
     // Centralized error handling with context preservation
     logger.error('Vector search failed', {
