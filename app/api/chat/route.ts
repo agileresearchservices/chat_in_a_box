@@ -259,14 +259,75 @@ export async function POST(request: NextRequest) {
 
     logger.info('Successfully initiated chat response stream')
 
+    // Create a stream reader to collect the full response
+    const reader = stream.getReader()
+    const decoder = new TextDecoder()
+    let fullResponse = ''
+
     // Return streaming response with transformed AI output
-    return new Response(stream.pipeThrough(createStreamTransformer()), {
-      headers: { 
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
+    return new Response(
+      new ReadableStream({
+        async start(controller) {
+          try {
+            while (true) {
+              const { done, value } = await reader.read()
+              if (done) break
+
+              const chunk = decoder.decode(value)
+              const lines = chunk.split('\n').filter(line => line.trim() !== '')
+              
+              for (const line of lines) {
+                try {
+                  const parsedLine = JSON.parse(line)
+                  if (parsedLine.message?.content) {
+                    fullResponse += parsedLine.message.content
+                    controller.enqueue(new TextEncoder().encode(line + '\n'))
+                  }
+                } catch (parseError) {
+                  logger.warn('Error parsing response line', { 
+                    line, 
+                    error: parseError instanceof Error ? parseError.message : String(parseError) 
+                  })
+                }
+              }
+            }
+
+            // Create a single conversation entry combining user prompt and AI response
+            if (fullResponse.trim()) {
+              const combinedMessage = {
+                id: Date.now().toString(),
+                role: 'assistant',
+                content: `User: ${prompt}\n\nAssistant: ${fullResponse}`
+              }
+
+              // Add combined message to conversation memory
+              conversationMemory.addMessage(combinedMessage)
+
+              // Log the full conversation
+              logger.debug('Conversation Memory Updated', {
+                userPrompt: prompt,
+                aiResponse: fullResponse,
+                totalMessages: conversationMemory.getMessages().length
+              })
+            }
+
+            controller.close()
+          } catch (streamError) {
+            logger.error('Stream processing error', { 
+              errorMessage: streamError instanceof Error ? streamError.message : String(streamError) 
+            })
+            controller.error(streamError)
+          }
+        }
+      }).pipeThrough(createStreamTransformer()), 
+      {
+        headers: { 
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+        }
       }
-    })
+    )
   } catch (error) {
     // Handle different types of errors with appropriate responses
     const errorResponse = error instanceof z.ZodError
