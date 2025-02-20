@@ -202,7 +202,9 @@ class TextExtractor:
         # Configurable chunking parameters from environment
         chunk_size = int(os.getenv('CHUNK_SIZE', '1800'))
         chunk_overlap = int(os.getenv('CHUNK_OVERLAP', '200'))
-        chunks = self.chunk_text(text, chunk_size, chunk_overlap)
+        min_chunk_length = int(os.getenv('MIN_CHUNK_LENGTH', '100'))
+        sentence_split = os.getenv('SENTENCE_SPLIT', 'True').lower() == 'true'
+        chunks = self.chunk_text(text, chunk_size, chunk_overlap, min_chunk_length, sentence_split)
         
         # Concurrent embedding generation
         embedded_chunks = [None] * len(chunks)
@@ -262,33 +264,97 @@ class TextExtractor:
         
         return []
 
-    def chunk_text(self, text: str, max_length: int, overlap: int) -> List[str]:
+    def chunk_text(
+        self, 
+        text: str, 
+        max_length: int = 3600, 
+        overlap: int = 400, 
+        min_chunk_length: int = 100,
+        sentence_split: bool = True
+    ) -> List[str]:
         """
-        Intelligently chunk text with configurable overlap
+        Intelligently chunk text with advanced semantic and sentence-aware strategies.
 
-        Ensures semantic continuity by allowing chunk overlap.
+        Ensures semantic continuity and prevents mid-sentence splits.
 
         Args:
             text (str): Full text to be chunked
-            max_length (int): Maximum chunk size
-            overlap (int): Number of characters to overlap between chunks
+            max_length (int, optional): Maximum chunk size. Defaults to 3600.
+            overlap (int, optional): Number of characters to overlap between chunks. Defaults to 400.
+            min_chunk_length (int, optional): Minimum acceptable chunk length. Defaults to 100.
+            sentence_split (bool, optional): Whether to split at sentence boundaries. Defaults to True.
 
         Returns:
-            List[str]: List of text chunks
+            List[str]: List of text chunks optimized for embedding
 
         Raises:
-            ValueError: If chunk size is smaller than or equal to overlap
+            ValueError: If chunk parameters are invalid
         """
+        import re
+        import logging
+
+        # Validate input parameters
         if max_length <= overlap:
             raise ValueError("CHUNK_SIZE must be larger than CHUNK_OVERLAP.")
+        if overlap < 0:
+            raise ValueError("CHUNK_OVERLAP must be non-negative.")
+        if min_chunk_length <= 0:
+            raise ValueError("MIN_CHUNK_LENGTH must be positive.")
+
+        # Remove extra whitespaces and normalize text
+        text = re.sub(r'\s+', ' ', text.strip())
+
+        # If sentence splitting is enabled, use sentence boundaries
+        if sentence_split:
+            # Split text into sentences, handling various punctuation
+            sentences = re.split(r'(?<=[.!?])\s+', text)
+        else:
+            # Treat the entire text as a single "sentence"
+            sentences = [text]
 
         chunks = []
-        start = 0
-        while start < len(text):
-            end = start + max_length
-            chunks.append(text[start:end])
-            start += (max_length - overlap)
-        return chunks
+        current_chunk = []
+        current_length = 0
+
+        for sentence in sentences:
+            # If adding this sentence would exceed max_length, finalize current chunk
+            if current_length + len(sentence) > max_length:
+                if current_chunk:
+                    chunks.append(' '.join(current_chunk))
+                    current_chunk = []
+                    current_length = 0
+
+            current_chunk.append(sentence)
+            current_length += len(sentence) + 1  # +1 for space
+
+            # If chunk is full or we've processed all sentences, finalize
+            if current_length >= max_length or sentence == sentences[-1]:
+                chunks.append(' '.join(current_chunk))
+                current_chunk = []
+                current_length = 0
+
+        # Apply overlap to chunks
+        overlapped_chunks = []
+        for i in range(len(chunks)):
+            start = max(0, i - 1)
+            end = min(len(chunks), i + 2)
+            overlapped_chunk = ' '.join(chunks[start:end]).strip()
+            
+            # Trim to max_length
+            if len(overlapped_chunk) > max_length:
+                overlapped_chunk = overlapped_chunk[:max_length]
+            
+            # Skip very short chunks
+            if len(overlapped_chunk) >= min_chunk_length:
+                overlapped_chunks.append(overlapped_chunk)
+
+        # Log chunk information
+        logging.info(f"Text Chunking Summary: "
+                     f"Total Chunks={len(overlapped_chunks)}, "
+                     f"Max Length={max_length}, "
+                     f"Overlap={overlap}")
+
+        return overlapped_chunks
 
     def connect_to_db(self):
         """
