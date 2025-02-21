@@ -15,9 +15,9 @@ services:
     ports:
       - "9998:9998"
     restart: unless-stopped
-  reranker:
-    build: ./reranker
-    container_name: reranker
-    ports:
-      - "8005:8000"
-    restart: unless-stopped
+  # reranker:
+  #   build: ./reranker
+  #   container_name: reranker
+  #   ports:
+  #     - "8005:8000"
+  #   restart: unless-stopped
