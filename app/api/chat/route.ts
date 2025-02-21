@@ -196,13 +196,21 @@ export async function POST(request: NextRequest) {
       `[Document ${i + 1} (Relevance: ${doc.similarity.toFixed(4)})]\n${doc.chunk}`
     ).join('\n\n')
 
-    // Get and format conversation history
+    // Retrieve and format conversation history from memory
+    // This provides context about the ongoing conversation to the AI
+    // Limits memory to prevent token overflow and maintain context relevance
     const conversationHistory = conversationMemory.getMessages()
     const formattedHistory = conversationHistory.map((msg, i) => 
       `[Message ${i + 1}]\n${msg.role}: ${msg.content}`
     ).join('\n\n')
 
-    // Prepare messages with system context and user prompt
+    // Prepare messages with comprehensive context
+    // Includes:
+    // 1. System prompt with base instructions
+    // 2. Conversation history to maintain dialogue context
+    // 3. Relevant document context for informed responses
+    // 4. Original conversation messages
+    // 5. Current user prompt
     const messagesWithContext = [
       {
         role: 'system',
