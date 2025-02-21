@@ -48,6 +48,38 @@ Chat in a Box is a cutting-edge Retrieval-Augmented Generation (RAG) application
 
 All AI inference and document processing happen locally, ensuring maximum data privacy and minimal external dependencies.
 
+## Conversation Memory Management
+
+### Intelligent Context Retention
+
+Chat in a Box implements a sophisticated conversation memory system designed to:
+- Maintain conversational context across multiple interactions
+- Prevent token overflow and excessive memory consumption
+- Provide AI models with relevant dialogue history
+
+#### Key Features
+- **Sliding Window Memory**: Automatically manages conversation history
+- **Configurable Memory Length**: Easily adjust maximum number of retained messages
+- **Structured Context Injection**: Intelligently formats conversation history for AI comprehension
+
+#### Memory Management Strategies
+- Limits conversation history to a predefined number of messages
+- Dynamically trims older messages to maintain context relevance
+- Logs memory updates for debugging and tracking
+
+#### Configuration
+- **Default Memory Length**: 5 messages
+- **Configurable via Environment Variables**: `MAX_MEMORY_LENGTH`
+
+#### Context Preparation
+When processing a new query, the system:
+1. Retrieves conversation history
+2. Formats messages with clear role identification
+3. Injects formatted history into the AI model's system prompt
+4. Combines conversation context with document-based context
+
+This approach ensures that the AI maintains awareness of the ongoing conversation while preventing excessive memory usage.
+
 ## Prerequisites
 
 - [Node.js](https://nodejs.org/) (version 18 or higher)
@@ -348,25 +380,6 @@ await prisma.document.create({
 });
 ```
 
-## Conversation Memory Management
-
-### ConversationMemory Class
-
-The `ConversationMemory` class is a crucial component of the application's conversational context management. It provides the following key functionalities:
-
-- **Message Tracking**: Maintains a rolling history of conversation messages
-- **Context Preservation**: Limits memory to the last 10 messages to prevent token overflow
-- **Context Generation**: Generates a context prompt for maintaining conversational context
-
-#### Key Methods
-
-- `addMessage(message)`: Adds a new message to the memory, automatically trimming older messages if the memory exceeds the maximum length
-- `getMemory()`: Retrieves the current conversation memory
-- `getContextPrompt()`: Generates a formatted string representation of the conversation history
-- `clear()`: Resets the conversation memory
-
-This mechanism ensures that the AI maintains context across multiple interactions while preventing excessive memory usage.
-
 ## Recent Improvements
 
 ### Chat API Enhancements
@@ -404,6 +417,62 @@ If you encounter any issues with the recent updates:
 - Enhance AI response generation
 - Implement more advanced error recovery mechanisms
 
+## Future Roadmap
+
+Continue improving code modularity, enhance AI response generation, and implement more advanced error recovery mechanisms.
+
+## Advanced Features and Design Principles
+
+### Logging and Error Handling
+
+The application implements a robust logging and error handling strategy:
+- Comprehensive logging across all components
+- Type-safe error responses
+- Detailed error context preservation
+- Graceful error recovery mechanisms
+
+### Microservice Architecture
+
+The project is designed with a modular microservice approach:
+- Separate services for embedding, search, and chat
+- Independent scalability of components
+- Clear separation of concerns
+- Containerized deployment with Docker
+
+### Security and Privacy Considerations
+
+- Local AI inference to minimize external data exposure
+- Secure environment variable management
+- Configurable privacy controls
+- Minimal external API dependencies
+
+## Development Philosophy
+
+### Code Quality Principles
+- Type-safe implementations
+- Comprehensive documentation
+- Modular and extensible design
+- Performance-focused development
+- Continuous improvement and refactoring
+
+### Continuous Integration and Deployment
+
+While specific CI/CD pipelines are not yet implemented, the project is structured to support:
+- Automated testing
+- Static code analysis
+- Containerized deployment
+- Easy scalability and maintenance
+
+## Contributing
+
+We welcome contributions that align with our project's core principles:
+- Maintain code quality and type safety
+- Enhance performance and efficiency
+- Improve user privacy and local processing capabilities
+- Expand AI interaction capabilities
+
+*Detailed contribution guidelines coming soon.*
+
 ## Getting Started
 
 First, run the development server:
@@ -439,7 +508,3 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 - **Mac Users**: If you get a security warning, you may need to approve Ollama in System Settings > Security & Privacy
 - If the model isn't responding, ensure Ollama is running with `ollama serve` in a separate terminal
 - Check that the NEXT_PUBLIC_API_URL environment variable matches your Ollama server address
-
-### Future Roadmap
-
-Continue improving code modularity, enhance AI response generation, and implement more advanced error recovery mechanisms.
