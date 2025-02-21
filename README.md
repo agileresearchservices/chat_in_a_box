@@ -313,7 +313,25 @@ reranked_passages = reranker.rerank(query, passages)
 
 ## TextExtractor
 
-The `TextExtractor` is a component designed for extracting text from various file types within a directory. It supports `.txt`, `.pdf`, and `.docx` file formats.
+The `TextExtractor` is a component designed for extracting text from various file types within a directory. It supports a wide range of file formats.
+
+### Supported File Types for Text Extraction
+
+The application supports text extraction from the following file types:
+- Text Files: `.txt`, `.text`
+- Document Formats: `.pdf`, `.docx`, `.doc`, `.rtf`, `.odt`, `.ott`
+- Web and Markup Languages: `.html`, `.htm`, `.xml`, `.json`, `.md`, `.markdown`
+- Presentation Files: `.ppt`, `.pptx`, `.pptm`, `.odp`, `.otp`
+- Spreadsheet Files: `.xls`, `.xlsx`, `.xlsm`, `.ods`, `.ots`
+- Programming Source Code: `.java`, `.py`, `.cpp`, `.c`, `.js`
+- Office Macro-Enabled Files: `.pptm`, `.xlsm`, `.docm`
+- Open Document Formats: `.ods`, `.odp`, `.odg`, `.odf`, `.odt`
+- Notebook Files: `.ipynb`, `.nb`
+- Image Files: `.jpg`, `.jpeg`, `.png`, `.gif`, `.bmp`, `.tiff`
+- Audio Files: `.mp3`, `.wav`, `.ogg`, `.flac`
+- Video Files: `.mp4`, `.avi`, `.mov`, `.wmv`, `.flv`
+
+Ensure your documents are in one of these formats for successful text extraction.
 
 ### Key Features:
 - **File Type Detection:** Uses `python-magic` to determine the MIME type of files.
@@ -508,3 +526,17 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 - **Mac Users**: If you get a security warning, you may need to approve Ollama in System Settings > Security & Privacy
 - If the model isn't responding, ensure Ollama is running with `ollama serve` in a separate terminal
 - Check that the NEXT_PUBLIC_API_URL environment variable matches your Ollama server address
+
+## Prerequisites
+
+Before running the application, ensure that the following services are running:
+
+- **Reranker Service**: The FastAPI reranker service with GPU (MPS) support must be active. Start it by running the `start.sh` script inside the `reranker-service` directory.
+- **npm**: Make sure npm (Node Package Manager) is installed and running for managing frontend dependencies.
+- **Docker**: Ensure that Docker is running since some services are containerized (e.g. database, other workers).
+
+Follow these steps before starting the application:
+
+1. Activate the virtual environment and start the reranker service.
+2. Verify that npm is installed and run your frontend build/start commands.
+3. Ensure Docker is running and all necessary containers are up.
