@@ -102,7 +102,7 @@ class ConversationMemory {
   }
 
   /**
-   * Clears all messages from the conversation memory
+   * Clears all messages from the conversation memory and resets the singleton instance
    * 
    * Use Cases:
    * - Resetting conversation context
@@ -116,7 +116,10 @@ class ConversationMemory {
     // Reset messages array to empty state
     this.messages = []
     
-    logger.debug('Conversation memory cleared', { 
+    // Reset the singleton instance to ensure complete cleanup
+    ConversationMemory.instance = new ConversationMemory()
+    
+    logger.debug('Conversation memory cleared and singleton reset', { 
       removedMessageCount: messageCount 
     })
   }
