@@ -60,12 +60,18 @@ paths:
                   thinkingProcess:
                     type: string
                     description: The AI's reasoning process (optional)
+        '400':
+          description: Bad Request - Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
         '500':
           description: Internal Server Error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ServerError'
     delete:
       summary: Clear conversation memory
       description: Clears the entire conversation history and context
@@ -88,7 +94,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ServerError'
 
   /api/embed:
     post:
@@ -128,8 +134,16 @@ paths:
                     description: Vector representation of the input text
         '400':
           description: Invalid input (e.g., empty text)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
         '500':
           description: Server error during embedding generation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerError'
 
   /api/search:
     post:
@@ -174,13 +188,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ValidationError'
         '500':
           description: Internal Server Error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ServerError'
 
   /api/summarize:
     post:
@@ -202,15 +216,15 @@ paths:
                   type: array
                   items:
                     type: string
-                    description: Individual messages to be summarized
-                    example: "The quick brown fox jumps over the lazy dog."
-                  minItems: 1
+                    minLength: 1
+                    maxLength: 2000
                   description: List of messages to summarize
+                  minItems: 1
               required:
                 - messages
       responses:
         '200':
-          description: Successful summary generation
+          description: Successfully generated summary
           content:
             application/json:
               schema:
@@ -218,80 +232,35 @@ paths:
                 properties:
                   summary:
                     type: string
-                    description: The generated summary of the input messages
+                    description: Concise summary of the input messages
         '400':
-          description: Invalid request (e.g., empty messages, messages too long)
-        '500':
-          description: Server error during summary generation
-
-  /api/docs:
-    get:
-      summary: Get API documentation
-      description: Retrieve the OpenAPI/Swagger documentation for the API
-      operationId: getApiDocs
-      tags:
-        - Documentation
-      responses:
-        '200':
-          description: Successful response with API documentation
+          description: Invalid input (e.g., empty messages, messages too long)
           content:
             application/json:
               schema:
-                type: object
+                $ref: '#/components/schemas/ValidationError'
         '500':
-          description: Internal Server Error
+          description: Server error during summarization
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-
-  /api/redoc:
-    get:
-      summary: Retrieve API documentation
-      description: |
-        Serves the OpenAPI specification for the application,
-        enabling interactive API documentation via Redoc.
-      operationId: getApiDocumentation
-      tags:
-        - Documentation
-      responses:
-        '200':
-          description: Successfully retrieved API documentation
-          content:
-            application/json:
-              schema:
-                type: object
-                description: Full OpenAPI specification
-        '500':
-          description: Server error retrieving documentation
+                $ref: '#/components/schemas/ServerError'
 
 components:
   schemas:
     Message:
       type: object
       properties:
-        id:
-          type: string
-          description: Unique identifier for the message
         role:
           type: string
-          enum: [user, assistant]
+          enum: ['user', 'assistant', 'system']
           description: Role of the message sender
         content:
           type: string
-          description: Content of the message
-        timestamp:
-          type: string
-          format: date-time
-          description: Timestamp when the message was sent
-        thinkingProcess:
-          type: string
-          description: The AI's reasoning process (only for assistant messages)
+          description: Text content of the message
       required:
-        - id
         - role
         - content
-        - timestamp
 
     SearchResult:
       type: object
@@ -299,39 +268,52 @@ components:
         id:
           type: string
           description: Unique identifier for the document
+        title:
+          type: string
+          description: Title of the document
         content:
           type: string
-          description: The document content or relevant excerpt
-        similarity:
+          description: Relevant excerpt from the document
+        score:
           type: number
-          format: float
-          description: Similarity score between 0 and 1
-        metadata:
-          type: object
-          description: Additional document metadata
+          description: Relevance score of the search result
+        source:
+          type: string
+          description: Origin or file path of the document
       required:
         - id
+        - title
         - content
-        - similarity
+        - score
 
-    Error:
+    ValidationError:
       type: object
       properties:
-        error:
+        message:
           type: string
-          description: Error message
-          example: "An error occurred while processing your request"
+          description: Detailed error message
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                description: Field causing the validation error
+              reason:
+                type: string
+                description: Reason for the validation error
       required:
-        - error
+        - message
 
-tags:
-  - name: Chat
-    description: Conversational AI interactions
-  - name: Search
-    description: Semantic document search operations
-  - name: Documentation
-    description: API documentation retrieval
-  - name: Utilities
-    description: Utility functions for text processing
-  - name: Embeddings
-    description: Text embedding generation for semantic analysis
+    ServerError:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Detailed error description
+        code:
+          type: string
+          description: Error code for tracking
+      required:
+        - message
