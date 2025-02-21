@@ -307,7 +307,8 @@ export async function POST(request: NextRequest) {
               logger.debug('Conversation Memory Updated', {
                 userPrompt: prompt,
                 aiResponse: fullResponse,
-                totalMessages: conversationMemory.getMessages().length
+                totalMessages: conversationMemory.getMessages().length,
+                allMessages: conversationMemory.getMessages()
               })
             }
 
