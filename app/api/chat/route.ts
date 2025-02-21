@@ -296,7 +296,7 @@ export async function POST(request: NextRequest) {
             if (fullResponse.trim()) {
               const combinedMessage = {
                 id: Date.now().toString(),
-                role: 'assistant',
+                role: 'assistant' as const,
                 content: `User: ${prompt}\n\nAssistant: ${fullResponse}`
               }
 

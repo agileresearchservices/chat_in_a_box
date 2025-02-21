@@ -26,7 +26,7 @@
 import logger from '@/utils/logger';
 
 type Message = {
-  role: string;
+  role: 'system' | 'user' | 'assistant' | 'data';
   content: string;
   id?: string;
 }
