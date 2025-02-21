@@ -196,11 +196,19 @@ export async function POST(request: NextRequest) {
       `[Document ${i + 1} (Relevance: ${doc.similarity.toFixed(4)})]\n${doc.chunk}`
     ).join('\n\n')
 
+    // Get and format conversation history
+    const conversationHistory = conversationMemory.getMessages()
+    const formattedHistory = conversationHistory.map((msg, i) => 
+      `[Message ${i + 1}]\n${msg.role}: ${msg.content}`
+    ).join('\n\n')
+
     // Prepare messages with system context and user prompt
     const messagesWithContext = [
       {
         role: 'system',
-        content: `${process.env.OLLAMA_SYSTEM_PROMPT}\n\nContext for this question:\n${formattedContext}`
+        content: `${process.env.OLLAMA_SYSTEM_PROMPT}\n\n` +
+                `Conversation History:\n${formattedHistory}\n\n` +
+                `Context for this question:\n${formattedContext}`
       },
       ...(messages || []),
       { role: 'user', content: prompt }
