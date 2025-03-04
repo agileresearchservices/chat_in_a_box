@@ -88,7 +88,7 @@ This approach ensures that the AI maintains awareness of the ongoing conversatio
 
 ## Ollama Setup
 
-Before running the development server, you'll need to install Ollama and pull the phi4 model:
+Before running the development server, you'll need to install Ollama and pull the deepseek-r1 model:
 
 ### macOS
 1. Install Ollama:
@@ -115,9 +115,9 @@ ollama serve
 
 ### Pull the Model (Both Platforms)
 
-In a new terminal, pull the phi4 model:
+In a new terminal, pull the deepseek-r1 model:
 ```bash
-ollama pull phi4
+ollama pull deepseek-r1
 ```
 
 ## Project Setup
@@ -133,10 +133,10 @@ cd chat_in_a_box
 npm install
 ```
 
-3. Create a `.env.local` file in the root directory with the following content:
+3. Create a `.env` file in the root directory with the following content:
 ```bash
 NEXT_PUBLIC_API_URL=http://localhost:11434
-OLLAMA_MODEL=phi4
+OLLAMA_MODEL=deepseek-r1
 ```
 
 ## Docker and Database Setup
