@@ -1,5 +1,0 @@
-fastapi>=0.104.0
-uvicorn>=0.23.0
-torch
-FlagEmbedding>=1.2.5
-pydantic

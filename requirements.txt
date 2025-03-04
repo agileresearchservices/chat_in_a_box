@@ -60,7 +60,11 @@ soupsieve==2.6
 sympy==1.13.1
 threadpoolctl==3.5.0
 tokenizers==0.21.0
-torch==2.1.2
+torch==2.6.0
+fastapi>=0.104.0
+uvicorn>=0.23.0
+FlagEmbedding>=1.2.5
+pydantic
 tqdm==4.66.1
 transformers==4.48.3
 trec-car-tools==2.6
