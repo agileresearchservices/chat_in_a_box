@@ -60,7 +60,7 @@ class TextExtractor:
             '.html', '.htm', '.xml', '.json', '.md',
             '.ppt', '.pptx', '.xls', '.xlsx', '.epub',
             '.java', '.py', '.csv', '.pptm', '.xlsm', '.docm',
-            '.ods', '.odp', '.odg', '.odf', '.ipynb'
+            '.ods', '.odp', '.odg', '.odf', '.ipynb', '.adoc'
         ]
 
         self.mime = magic.Magic(mime=True)  # MIME type detection
