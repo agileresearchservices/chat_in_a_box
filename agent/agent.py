@@ -384,11 +384,8 @@ def handle_query(query: str):
 
 if __name__ == '__main__':
     # Test with different types of queries
-    print("\n=== Weather for a US city ===")
-    print(handle_query("What's the weather in New York?"))
-    
-    print("\n=== Weather query with city extraction ===")
-    print(handle_query("Tell me about the weather in Miami"))
-    
+    print("\n=== Weather for Boston ===")
+    print(handle_query("What's the weather in Boston?"))
+
     print("\n=== Non-weather query ===")
-    print(handle_query("What's the capital of France?"))
+    print(handle_query("Write a hello world python script."))
