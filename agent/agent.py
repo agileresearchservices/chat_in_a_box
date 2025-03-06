@@ -236,13 +236,13 @@ tools = [
         "type": "function",
         "function": {
             "name": "get_weather_for_city",
-            "description": "Get current weather data for a specified city in the United States. ONLY use this for weather-related queries.",
+            "description": "Get current weather data for a specified city in the United States. ONLY use this for EXPLICIT questions about current weather conditions. DO NOT use for any other types of queries.",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "city": {
                         "type": "string",
-                        "description": "Name of the city in the United States."
+                        "description": "Name of the city in the United States to get current weather for."
                     }
                 },
                 "required": ["city"]
@@ -270,17 +270,45 @@ def handle_query(query: str) -> str:
     """
     print(f"Processing query: {query}")
     
-    # Make the initial call with tools
+    # Quick pre-check if this might be weather-related (for efficiency)
+    weather_keywords = ["weather", "temperature", "forecast", "rain", "snow", "sunny", "cloudy", "storm", "cold", "hot", "degrees"]
+    is_likely_weather_query = any(keyword in query.lower() for keyword in weather_keywords)
+    
+    # For likely non-weather queries, use a direct approach
+    if not is_likely_weather_query:
+        print("Query appears non-weather related, making direct call to LLM")
+        direct_response = client.chat(
+            model=MODEL_NAME,
+            messages=[
+                {
+                    'role': 'system',
+                    'content': 'You are a helpful AI assistant with broad knowledge. Answer this question thoroughly and accurately based on your general knowledge.'
+                },
+                {'role': 'user', 'content': query}
+            ],
+            options={
+                "temperature": 0.7,
+                "top_p": 0.9
+            }
+        )
+        return direct_response.get('message', {}).get('content', 'I could not generate a response to your question.')
+    
+    # For potential weather queries, try the tool approach first
+    print("Query may be weather-related, trying tool approach")
     response = client.chat(
         model=MODEL_NAME,
         messages=[
             {
                 'role': 'system', 
-                'content': 'You are a helpful assistant that can answer various questions. If a user asks about weather in a specific city, use the get_weather_for_city tool to provide real-time weather data. For non-weather queries, provide a direct answer based on your knowledge without using any tools.'
+                'content': 'You are a helpful AI assistant with access to a weather tool. If the user is asking about CURRENT weather conditions for a specific US city, use the get_weather_for_city tool to retrieve real weather data. DO NOT use the tool for any other type of query.'
             },
             {'role': 'user', 'content': query}
         ],
-        tools=tools
+        tools=tools,
+        options={
+            "temperature": 0.3,
+            "top_p": 0.9
+        }
     )
     message = response.get('message', {})
     print(f"LLM response content: {message.get('content', '')}")
@@ -381,7 +409,10 @@ def handle_query(query: str) -> str:
     else:
         print("No weather tool call detected")
     
-    # If no weather tool call was made, return a direct answer
+    # If we got here with a weather keyword but no tool call, it might be an ambiguous query
+    # Or the model decided this isn't a current weather query despite the keywords
+    # Get a direct answer from the LLM
+    
     # First, check if we got a response in the content field
     content = message.get('content', '')
     if content and '<toolcall>' not in content:
@@ -393,13 +424,21 @@ def handle_query(query: str) -> str:
         if clean_content:
             return clean_content
     
-    # If we couldn't get a good response, make a follow-up call for a direct answer
+    # If we couldn't get a good response, make a final direct call with no tools
+    print("Making final direct call for general answer")
     follow_up = client.chat(
         model=MODEL_NAME,
         messages=[
-            {'role': 'system', 'content': 'Provide a direct, informative answer to the question.'},
+            {
+                'role': 'system', 
+                'content': 'You are a helpful AI assistant with broad knowledge. Answer this question thoroughly and accurately based on your general knowledge.'
+            },
             {'role': 'user', 'content': query}
-        ]
+        ],
+        options={
+            "temperature": 0.7,
+            "top_p": 0.9
+        }
     )
     return follow_up.get('message', {}).get('content', 'I could not find an answer to your question.')
 
@@ -409,4 +448,4 @@ if __name__ == '__main__':
     print(handle_query("What's the weather in Boston?"))
 
     print("\n=== Non-weather query ===")
-    print(handle_query("Write a hello world python script."))
+    print(handle_query("When should I plant tomatoes?"))
