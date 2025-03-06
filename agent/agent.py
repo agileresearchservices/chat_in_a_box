@@ -1,9 +1,30 @@
+"""
+Weather API Integration Module for Chat-in-a-Box Agent.
+
+This module provides functionality to retrieve real-time weather data from the National 
+Weather Service API for US cities. It includes geocoding, grid point retrieval, and 
+forecast data parsing. It is designed to integrate with an AI agent system.
+
+Usage:
+    Call handle_query() with a user query to automatically detect and process
+    weather-related queries for US cities.
+"""
+
 import json
 import ollama
 import requests
-from typing import Dict, Optional, Any
+from typing import Dict, Optional, Any, Tuple, List, Union, cast
+from functools import lru_cache
 
-# Helper function to geocode a city name to coordinates using Nominatim API
+# Constants
+USER_AGENT = "ChatInABox WeatherTool/1.0"
+NOMINATIM_API_URL = "https://nominatim.openstreetmap.org/search"
+NWS_API_BASE_URL = "https://api.weather.gov"
+MODEL_NAME = "nemotron-mini"
+
+# Simple in-memory cache for geocoding results
+_geocode_cache = {}
+
 def geocode_city(city: str) -> Dict[str, Any]:
     """
     Convert a city name to geographic coordinates using Nominatim API.
@@ -12,15 +33,18 @@ def geocode_city(city: str) -> Dict[str, Any]:
         city: Name of the city to geocode
         
     Returns:
-        Dictionary with latitude, longitude, city name, region (state/province), and country
+        Dictionary with latitude, longitude, city name, region (state/province), and country,
+        or an error dictionary with an 'error' key
     """
+    # Check if we have cached results for this city
+    if city in _geocode_cache:
+        print(f"Using cached geocoding data for: {city}")
+        return _geocode_cache[city]
+    
     print(f"Geocoding city: {city}")
     
     # Ensure we're looking for US cities by appending USA
     search_query = f"{city}, USA"
-    
-    # Nominatim API endpoint
-    url = "https://nominatim.openstreetmap.org/search"
     
     # Parameters
     params = {
@@ -32,12 +56,12 @@ def geocode_city(city: str) -> Dict[str, Any]:
     
     # Headers (Nominatim requires a User-Agent)
     headers = {
-        "User-Agent": "ChatInABox WeatherTool/1.0"
+        "User-Agent": USER_AGENT
     }
     
     try:
         # Make the request
-        response = requests.get(url, params=params, headers=headers)
+        response = requests.get(NOMINATIM_API_URL, params=params, headers=headers)
         response.raise_for_status()  # Raise an exception for HTTP errors
         
         # Parse response
@@ -66,14 +90,19 @@ def geocode_city(city: str) -> Dict[str, Any]:
             result["country"] = "United States"
         
         print(f"Location data: {result}")
+        
+        # Cache the result
+        _geocode_cache[city] = result
+        
         return result
         
     except requests.exceptions.RequestException as e:
-        return {"error": f"Error during geocoding: {str(e)}"}
+        error_result = {"error": f"Error during geocoding: {str(e)}"}
+        return error_result
     except (ValueError, KeyError, TypeError) as e:
-        return {"error": f"Error parsing geocoding response: {str(e)}"}
+        error_result = {"error": f"Error parsing geocoding response: {str(e)}"}
+        return error_result
 
-# Helper function to get grid points for coordinates from NWS API
 def get_grid_points(latitude: float, longitude: float) -> Optional[Dict[str, Any]]:
     """
     Get grid points from the National Weather Service API for the given coordinates.
@@ -89,11 +118,11 @@ def get_grid_points(latitude: float, longitude: float) -> Optional[Dict[str, Any
         print(f"Getting grid points for coordinates: {latitude}, {longitude}")
         
         # NWS API endpoint for points
-        url = f"https://api.weather.gov/points/{latitude},{longitude}"
+        url = f"{NWS_API_BASE_URL}/points/{latitude},{longitude}"
         
         # Headers (User-Agent is required by NWS API)
         headers = {
-            "User-Agent": "ChatInABox WeatherTool/1.0",
+            "User-Agent": USER_AGENT,
             "Accept": "application/json"
         }
         
@@ -126,21 +155,6 @@ def get_grid_points(latitude: float, longitude: float) -> Optional[Dict[str, Any
         print(f"Error parsing grid points response: {e}")
         return None
 
-# Helper function to get weather forecast from NWS API
-def get_forecast(forecast_url: str) -> Optional[Dict[str, Any]]:
-    """
-    Get the weather forecast from the provided NWS forecast URL.
-    """
-    try:
-        headers = {"User-Agent": "ChatInABox WeatherTool/1.0"}
-        response = requests.get(forecast_url, headers=headers)
-        response.raise_for_status()
-        return response.json()
-    except requests.exceptions.RequestException as e:
-        print(f"Error getting forecast: {e}")
-        return None
-
-# Main weather function - gets weather for a specified city
 def get_weather_for_city(city: str) -> str:
     """
     Get weather information for a city using the National Weather Service API.
@@ -179,7 +193,8 @@ def get_weather_for_city(city: str) -> str:
     
     # Step 5: Get forecast data
     try:
-        response = requests.get(forecast_url)
+        headers = {"User-Agent": USER_AGENT}
+        response = requests.get(forecast_url, headers=headers)
         response.raise_for_status()
         forecast_data = response.json()
         
@@ -215,7 +230,7 @@ def get_weather_for_city(city: str) -> str:
     except (ValueError, KeyError, TypeError) as e:
         return f"Error parsing forecast data for {city}: {str(e)}"
 
-# Define the tool metadata
+# Define the tool metadata for the LLM
 tools = [
     {
         "type": "function",
@@ -236,11 +251,16 @@ tools = [
     }
 ]
 
+# Initialize Ollama client
 client = ollama.Client()
 
-def handle_query(query: str):
+def handle_query(query: str) -> str:
     """
     Handle a user query by determining if it's weather-related and responding appropriately.
+    
+    This function processes the query through an LLM to determine if it's weather-related.
+    If it's about weather, it will use the weather tool to get real weather data.
+    Otherwise, it will return a direct answer from the LLM.
     
     Args:
         query: The user's query string
@@ -252,7 +272,7 @@ def handle_query(query: str):
     
     # Make the initial call with tools
     response = client.chat(
-        model='nemotron-mini',
+        model=MODEL_NAME,
         messages=[
             {
                 'role': 'system', 
@@ -295,6 +315,7 @@ def handle_query(query: str):
     elif 'content' in message and '<toolcall>' in message['content']:
         content = message['content']
         try:
+            # Extract the tool call JSON from the content
             tool_call_start = content.find('<toolcall>') + len('<toolcall>')
             tool_call_end = content.find('</toolcall>')
             tool_call_json = content[tool_call_start:tool_call_end].strip()
@@ -355,7 +376,7 @@ def handle_query(query: str):
         print(f"Getting weather for city: '{city}'")
         weather_result = get_weather_for_city(city)
         
-        # Format the response nicely with the weather result
+        # Return the weather result
         return weather_result
     else:
         print("No weather tool call detected")
@@ -374,7 +395,7 @@ def handle_query(query: str):
     
     # If we couldn't get a good response, make a follow-up call for a direct answer
     follow_up = client.chat(
-        model='nemotron-mini',
+        model=MODEL_NAME,
         messages=[
             {'role': 'system', 'content': 'Provide a direct, informative answer to the question.'},
             {'role': 'user', 'content': query}
