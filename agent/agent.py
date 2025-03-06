@@ -34,7 +34,7 @@ def verify_tool_relevance(query: str, tool_name: str):
     Returns True if the tool is relevant, False otherwise.
     """
     response = client.chat(
-        model='phi4:latest',
+        model='phi4-mini',
         messages=[
             {'role': 'system', 'content': 'You are a helpful assistant that determines if a specific tool is relevant for a user query. Output a JSON object with a single "relevant" boolean field indicating if the tool should be used for this query. Reply ONLY with the JSON object and nothing else.'},
             {'role': 'user', 'content': f'Query: "{query}"\nTool: {{"name": "{tool_name}", "description": "Get current weather data for a specified city. ONLY use for weather-related queries."}}\nIs this tool relevant for this query? Return a JSON object with a "relevant" field set to true or false.'}
