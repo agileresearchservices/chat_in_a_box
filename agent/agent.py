@@ -233,19 +233,18 @@ def get_weather_for_city(city: str) -> str:
 # Define the tool metadata for the LLM
 tools = [
     {
-        "type": "function",
-        "function": {
-            "name": "get_weather_for_city",
-            "description": "Get current weather data for a specified city in the United States. ONLY use this for EXPLICIT questions about current weather conditions. DO NOT use for any other types of queries.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "city": {
-                        "type": "string",
-                        "description": "Name of the city in the United States to get current weather for."
+        'function': {
+            'name': 'get_weather_for_city',
+            'description': 'Get the current weather conditions for a specific US city. This tool MUST NOT be used unless the user explicitly specifies a city name. If no city is mentioned, ask the user to specify a city instead of guessing.',
+            'parameters': {
+                'type': 'object',
+                'properties': {
+                    'city': {
+                        'type': 'string',
+                        'description': 'The name of the city in the US to get weather for. Do not hallucinate or guess this value if the user has not explicitly mentioned a city.'
                     }
                 },
-                "required": ["city"]
+                'required': ['city']
             }
         }
     }
@@ -293,14 +292,24 @@ def handle_query(query: str) -> str:
         )
         return direct_response.get('message', {}).get('content', 'I could not generate a response to your question.')
     
-    # For potential weather queries, try the tool approach first
-    print("Query may be weather-related, trying tool approach")
+    # Check if query has a city name before proceeding
+    # Simple heuristic to detect if a city is mentioned
+    city_indicators = ["in ", "at ", "for ", "of "]
+    has_explicit_city = any(indicator in query.lower() for indicator in city_indicators)
+    
+    # If it's weather-related but no city is specified, ask for clarification
+    if not has_explicit_city:
+        print("Weather query without specific city detected")
+        return "I'd be happy to provide weather information, but I need to know which city you're asking about. Could you please specify a city name?"
+    
+    # For potential weather queries with a city, try the tool approach
+    print("Query may be weather-related with city, trying tool approach")
     response = client.chat(
         model=MODEL_NAME,
         messages=[
             {
                 'role': 'system', 
-                'content': 'You are a helpful AI assistant with access to a weather tool. If the user is asking about CURRENT weather conditions for a specific US city, use the get_weather_for_city tool to retrieve real weather data. DO NOT use the tool for any other type of query.'
+                'content': 'You are a helpful AI assistant with access to a weather tool. If the user is asking about CURRENT weather conditions for a specific US city, use the get_weather_for_city tool to retrieve real weather data. The city MUST be explicitly mentioned by the user - NEVER guess or assume a location. DO NOT use the tool for any other type of query.'
             },
             {'role': 'user', 'content': query}
         ],
@@ -447,5 +456,12 @@ if __name__ == '__main__':
     print("\n=== Weather for Boston ===")
     print(handle_query("What's the weather in Boston?"))
 
+    print("\n=== Vague weather query ===")
+    print(handle_query("Is it cold outside?"))
+
     print("\n=== Non-weather query ===")
     print(handle_query("When should I plant tomatoes?"))
+
+    print("\n=== Technical query ===")
+    print(handle_query("How do I reset my iphone for trade in?"))
+
