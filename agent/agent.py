@@ -22,9 +22,7 @@ NOMINATIM_API_URL = "https://nominatim.openstreetmap.org/search"
 NWS_API_BASE_URL = "https://api.weather.gov"
 MODEL_NAME = "nemotron-mini"
 
-# Simple in-memory cache for geocoding results
-_geocode_cache = {}
-
+@lru_cache(maxsize=100)
 def geocode_city(city: str) -> Dict[str, Any]:
     """
     Convert a city name to geographic coordinates using Nominatim API.
@@ -36,11 +34,6 @@ def geocode_city(city: str) -> Dict[str, Any]:
         Dictionary with latitude, longitude, city name, region (state/province), and country,
         or an error dictionary with an 'error' key
     """
-    # Check if we have cached results for this city
-    if city in _geocode_cache:
-        print(f"Using cached geocoding data for: {city}")
-        return _geocode_cache[city]
-    
     print(f"Geocoding city: {city}")
     
     # Ensure we're looking for US cities by appending USA
@@ -90,9 +83,6 @@ def geocode_city(city: str) -> Dict[str, Any]:
             result["country"] = "United States"
         
         print(f"Location data: {result}")
-        
-        # Cache the result
-        _geocode_cache[city] = result
         
         return result
         
@@ -253,13 +243,42 @@ tools = [
 # Initialize Ollama client
 client = ollama.Client()
 
+def handle_weather_query(query: str) -> str:
+    """
+    Handle a weather-related query by extracting the city and getting weather information.
+    
+    Args:
+        query: The user's query string
+        
+    Returns:
+        A response string containing weather information or an error message
+    """
+    # Check if query has a city name before proceeding
+    city_indicators = ["in ", "at ", "for ", "of "]
+    has_explicit_city = any(indicator in query.lower() for indicator in city_indicators)
+    
+    if not has_explicit_city:
+        return "I'd be happy to provide weather information, but I need to know which city you're asking about. Could you please specify a city name?"
+    
+    # Extract city from query
+    city = ""
+    for pattern in city_indicators:
+        if pattern in query.lower():
+            parts = query.lower().split(pattern, 1)
+            if len(parts) > 1:
+                city_candidate = parts[1].strip().split()[0].capitalize()
+                if len(city_candidate) > 2:
+                    city = city_candidate
+                    break
+    
+    if not city:
+        return "Could not determine the city from your query. Please specify a city name."
+    
+    return get_weather_for_city(city)
+
 def handle_query(query: str) -> str:
     """
     Handle a user query by determining if it's weather-related and responding appropriately.
-    
-    This function processes the query through an LLM to determine if it's weather-related.
-    If it's about weather, it will use the weather tool to get real weather data.
-    Otherwise, it will return a direct answer from the LLM.
     
     Args:
         query: The user's query string
@@ -269,177 +288,18 @@ def handle_query(query: str) -> str:
     """
     print(f"Processing query: {query}")
     
-    # Quick pre-check if this might be weather-related (for efficiency)
     weather_keywords = ["weather", "temperature", "forecast", "rain", "snow", "sunny", "cloudy", "storm", "cold", "hot", "degrees"]
     is_likely_weather_query = any(keyword in query.lower() for keyword in weather_keywords)
     
-    # For likely non-weather queries, use a direct approach
-    if not is_likely_weather_query:
-        print("Query appears non-weather related, making direct call to LLM")
-        direct_response = client.chat(
-            model=MODEL_NAME,
-            messages=[
-                {
-                    'role': 'system',
-                    'content': 'You are a helpful AI assistant with broad knowledge. Answer this question thoroughly and accurately based on your general knowledge.'
-                },
-                {'role': 'user', 'content': query}
-            ],
-            options={
-                "temperature": 0.7,
-                "top_p": 0.9
-            }
-        )
-        return direct_response.get('message', {}).get('content', 'I could not generate a response to your question.')
+    if is_likely_weather_query:
+        return handle_weather_query(query)
     
-    # Check if query has a city name before proceeding
-    # Simple heuristic to detect if a city is mentioned
-    city_indicators = ["in ", "at ", "for ", "of "]
-    has_explicit_city = any(indicator in query.lower() for indicator in city_indicators)
-    
-    # If it's weather-related but no city is specified, ask for clarification
-    if not has_explicit_city:
-        print("Weather query without specific city detected")
-        return "I'd be happy to provide weather information, but I need to know which city you're asking about. Could you please specify a city name?"
-    
-    # For potential weather queries with a city, try the tool approach
-    print("Query may be weather-related with city, trying tool approach")
-    response = client.chat(
+    print("Query appears non-weather related, making direct call to LLM")
+    direct_response = client.chat(
         model=MODEL_NAME,
         messages=[
             {
-                'role': 'system', 
-                'content': 'You are a helpful AI assistant with access to a weather tool. If the user is asking about CURRENT weather conditions for a specific US city, use the get_weather_for_city tool to retrieve real weather data. The city MUST be explicitly mentioned by the user - NEVER guess or assume a location. DO NOT use the tool for any other type of query.'
-            },
-            {'role': 'user', 'content': query}
-        ],
-        tools=tools,
-        options={
-            "temperature": 0.3,
-            "top_p": 0.9
-        }
-    )
-    message = response.get('message', {})
-    print(f"LLM response content: {message.get('content', '')}")
-
-    # Check if a tool call is present in different possible formats
-    tool_call = None
-    tool_name = None
-    tool_args = {}
-    
-    # Format 1: Standard tool_calls field
-    if 'tool_calls' in message and message['tool_calls']:
-        tool_call = message['tool_calls'][0]
-        print(f"Found tool call in tool_calls format: {tool_call}")
-        
-        # Extract tool name and arguments
-        if 'function' in tool_call:
-            function_data = tool_call.get('function', {})
-            tool_name = function_data.get('name')
-            args_raw = function_data.get('arguments', '{}')
-            
-            # Parse arguments
-            if isinstance(args_raw, str):
-                try:
-                    tool_args = json.loads(args_raw)
-                except json.JSONDecodeError:
-                    print(f"Error parsing arguments: {args_raw}")
-                    tool_args = {}
-            else:
-                tool_args = args_raw
-    
-    # Format 2: Tool call embedded in content
-    elif 'content' in message and '<toolcall>' in message['content']:
-        content = message['content']
-        try:
-            # Extract the tool call JSON from the content
-            tool_call_start = content.find('<toolcall>') + len('<toolcall>')
-            tool_call_end = content.find('</toolcall>')
-            tool_call_json = content[tool_call_start:tool_call_end].strip()
-            tool_call = json.loads(tool_call_json)
-            print(f"Found tool call in content: {tool_call}")
-            
-            # Extract tool name and arguments from different possible formats
-            if 'functionName' in tool_call:
-                tool_name = tool_call.get('functionName')
-                args_raw = tool_call.get('arguments', '{}')
-            elif 'function' in tool_call:
-                function_data = tool_call.get('function', {})
-                if isinstance(function_data, dict):
-                    tool_name = function_data.get('name')
-                    args_raw = function_data.get('arguments', '{}')
-                else:
-                    tool_name = function_data
-                    args_raw = {}
-            elif 'type' in tool_call and tool_call.get('type') == 'function':
-                # The model might be using a simplified format
-                tool_name = 'get_weather_for_city'  # If we know there's only one function
-                args_raw = tool_call.get('arguments', {})
-            
-            # Parse arguments
-            if isinstance(args_raw, str):
-                try:
-                    tool_args = json.loads(args_raw)
-                except json.JSONDecodeError:
-                    print(f"Error parsing arguments: {args_raw}")
-                    tool_args = {}
-            else:
-                tool_args = args_raw
-        except (json.JSONDecodeError, ValueError) as e:
-            print(f"Error parsing tool call JSON: {e}")
-    
-    print(f"Extracted tool name: {tool_name}")
-    print(f"Extracted arguments: {tool_args}")
-    
-    # Process the tool call if found
-    if tool_name == 'get_weather_for_city':
-        print(f"Tool call detected: {tool_name}")
-        
-        # Extract city from arguments
-        city = tool_args.get('city', '')
-        
-        # If no city specified, try to extract from the query
-        if not city:
-            # Simple extraction for queries like "weather in New York"
-            for pattern in ["in ", "at ", "for "]:
-                if pattern in query.lower():
-                    parts = query.lower().split(pattern, 1)
-                    if len(parts) > 1:
-                        city_candidate = parts[1].strip().split()[0].capitalize()
-                        if len(city_candidate) > 2:  # Avoid single letters or short words
-                            city = city_candidate
-                            break
-        
-        print(f"Getting weather for city: '{city}'")
-        weather_result = get_weather_for_city(city)
-        
-        # Return the weather result
-        return weather_result
-    else:
-        print("No weather tool call detected")
-    
-    # If we got here with a weather keyword but no tool call, it might be an ambiguous query
-    # Or the model decided this isn't a current weather query despite the keywords
-    # Get a direct answer from the LLM
-    
-    # First, check if we got a response in the content field
-    content = message.get('content', '')
-    if content and '<toolcall>' not in content:
-        return content
-    
-    # If we have content with a toolcall, extract just the text part
-    if content and '<toolcall>' in content:
-        clean_content = content.split('<toolcall>')[0].strip()
-        if clean_content:
-            return clean_content
-    
-    # If we couldn't get a good response, make a final direct call with no tools
-    print("Making final direct call for general answer")
-    follow_up = client.chat(
-        model=MODEL_NAME,
-        messages=[
-            {
-                'role': 'system', 
+                'role': 'system',
                 'content': 'You are a helpful AI assistant with broad knowledge. Answer this question thoroughly and accurately based on your general knowledge.'
             },
             {'role': 'user', 'content': query}
@@ -449,7 +309,7 @@ def handle_query(query: str) -> str:
             "top_p": 0.9
         }
     )
-    return follow_up.get('message', {}).get('content', 'I could not find an answer to your question.')
+    return direct_response.get('message', {}).get('content', 'I could not generate a response to your question.')
 
 if __name__ == '__main__':
     # Test with different types of queries
