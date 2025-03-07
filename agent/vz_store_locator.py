@@ -27,55 +27,160 @@ def construct_url(city, state):
     
     # Construct URL for API
     # We'll use the direct API endpoint that the website is using to get store data
-    api_url = f"https://www.verizon.com/stores-services/endpoints/v1/locations-new?locality={city_part}&region={state_part}&country=US"
+    api_url = f"https://www.verizon.com/stores-services/endpoints/v1/locations?city={city_part}&state={state_part}&stateCode=&zipCode=&country=us&deviceSku=&deviceType=&isResidential=&isBusinessEligible=&isFios=false&isFiosTV=false&isCellular=false&isWireless=false&appointmentFlag=&storesAvailabilityNearBy=&storeType=&isPrepay=false&isSIM=false&isUpgrade=false&isActivation=false&isAccessory=false&isSmartHome=false&isDataDevice=false&isHomePhone=false&isDeviceProtection=false&radius=50&latitude=&longitude="
     
-    logger.info(f"Constructed API URL: {api_url}")
-    logger.info(f"Reference web URL: {web_url}")
+    logger.info({"message": "Constructed API URL", "url": api_url})
+    logger.info({"message": "Reference web URL", "url": web_url})
     
-    return api_url
+    return api_url, web_url
 
 def get_store_data(city, state):
-    api_url = construct_url(city, state)
+    """Fallback method using Selenium if the API call fails"""
+    web_url = f"https://www.verizon.com/stores/city/{state.lower().strip()}/{city.lower().replace(' ', '-').strip()}/"
+    logger.info({"message": "Using Selenium fallback method to access", "url": web_url})
     
-    # Try direct API call first (most efficient)
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--window-size=1920,1080")
+    chrome_options.add_argument("user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+    
+    # Important: Enable logging for network performance
+    chrome_options.set_capability('goog:loggingPrefs', {'performance': 'ALL'})
+    
+    driver = webdriver.Chrome(options=chrome_options)
+    
     try:
-        logger.info(f"Attempting direct API call to: {api_url}")
+        driver.get(web_url)
+        logger.info({"message": "Page loaded, waiting for dynamic content"})
         
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept': 'application/json',
-            'Referer': f'https://www.verizon.com/stores/city/{state.lower()}/{city.lower().replace(" ", "-")}/'
-        }
+        # Wait for page to load and potentially capture network requests
+        time.sleep(5)
         
-        response = requests.get(api_url, headers=headers)
+        # First, try to intercept network requests that might contain store data
+        logger.info({"message": "Analyzing network requests for store data"})
+        store_data = extract_from_network_requests(driver)
+        if store_data:
+            logger.info({"message": "Successfully extracted store data from network requests"})
+            return store_data
         
-        if response.status_code == 200:
-            try:
-                data = response.json()
-                logger.info(f"Successfully retrieved data from API. Status code: {response.status_code}")
-                
-                # Check if we have store data
-                if 'locations' in data and isinstance(data['locations'], list):
-                    logger.info(f"Found {len(data['locations'])} store locations")
-                    return extract_from_json(data['locations'])
-                elif 'stores' in data and isinstance(data['stores'], list):
-                    logger.info(f"Found {len(data['stores'])} store locations")
-                    return extract_from_json(data['stores'])
-                else:
-                    logger.warning("API returned data but no store locations were found")
-                    # Debug what we received
-                    logger.info(f"API response keys: {list(data.keys())}")
-            except Exception as e:
-                logger.error(f"Error parsing API response: {str(e)}")
-        else:
-            logger.warning(f"API request failed with status code: {response.status_code}")
-    
+        # If network approach fails, try to find store data in JSON within script tags
+        logger.info({"message": "Searching for embedded JSON data in page source"})
+        page_source = driver.page_source
+        soup = BeautifulSoup(page_source, 'html.parser')
+        scripts = soup.find_all('script')
+        
+        for script in scripts:
+            script_text = script.string if script.string else ""
+            
+            # Look for keywords that might indicate store data
+            keywords = ['storeList', 'storeName', 'storeLocation', 'locations', 'stores']
+            if script_text and any(keyword in script_text for keyword in keywords):
+                logger.info({"message": "Found script with potential store data"})
+                try:
+                    # Try to identify and extract JSON
+                    start_markers = ['{', '[']
+                    end_markers = ['}', ']']
+                    
+                    for start_marker, end_marker in zip(start_markers, end_markers):
+                        start_idx = script_text.find(start_marker)
+                        if start_idx >= 0:
+                            # Find balanced end marker
+                            depth = 0
+                            end_idx = -1
+                            for i in range(start_idx, len(script_text)):
+                                if script_text[i] == start_marker:
+                                    depth += 1
+                                elif script_text[i] == end_marker:
+                                    depth -= 1
+                                    if depth == 0:
+                                        end_idx = i + 1
+                                        break
+                            
+                            if end_idx > start_idx:
+                                json_str = script_text[start_idx:end_idx]
+                                try:
+                                    data = json.loads(json_str)
+                                    
+                                    # Check if the JSON contains store data
+                                    if isinstance(data, dict):
+                                        if 'locations' in data and isinstance(data['locations'], list):
+                                            return extract_from_json(data['locations'])
+                                        elif 'stores' in data and isinstance(data['stores'], list):
+                                            return extract_from_json(data['stores'])
+                                        elif 'storeList' in data and isinstance(data['storeList'], list):
+                                            return extract_from_json(data['storeList'])
+                                    elif isinstance(data, list) and len(data) > 0:
+                                        # Check if the first item looks like a store
+                                        if isinstance(data[0], dict) and any(key in data[0] for key in ['storeName', 'address', 'title']):
+                                            return extract_from_json(data)
+                                except json.JSONDecodeError:
+                                    # Not valid JSON, continue searching
+                                    pass
+                except Exception as e:
+                    logger.warning({
+                        "message": "Error parsing script tag",
+                        "errorType": e.__class__.__name__,
+                        "errorMessage": str(e)
+                    })
+        
+        # Try executing JavaScript to find store data directly
+        logger.info({"message": "Attempting to execute JavaScript to find store data"})
+        try:
+            js_result = driver.execute_script("""
+            // Look for store data in window variables
+            for (let key in window) {
+                try {
+                    let value = window[key];
+                    if (typeof value === 'object' && value !== null) {
+                        if (value.stores || value.locations || value.storeList) {
+                            return value;
+                        }
+                        // Check for arrays that might contain store objects
+                        if (Array.isArray(value) && value.length > 0) {
+                            let first = value[0];
+                            if (first && (first.storeName || first.address || first.title)) {
+                                return value;
+                            }
+                        }
+                    }
+                } catch (e) {
+                    // Ignore errors from accessing certain window properties
+                }
+            }
+            return null;
+            """)
+            
+            if js_result:
+                logger.info({"message": "Found store data via JavaScript execution"})
+                if isinstance(js_result, list):
+                    return extract_from_json(js_result)
+                elif isinstance(js_result, dict):
+                    if 'stores' in js_result and isinstance(js_result['stores'], list):
+                        return extract_from_json(js_result['stores'])
+                    elif 'locations' in js_result and isinstance(js_result['locations'], list):
+                        return extract_from_json(js_result['locations'])
+                    elif 'storeList' in js_result and isinstance(js_result['storeList'], list):
+                        return extract_from_json(js_result['storeList'])
+        except Exception as e:
+            logger.warning({
+                "message": "Error executing JavaScript",
+                "errorType": e.__class__.__name__,
+                "errorMessage": str(e)
+            })
+        
     except Exception as e:
-        logger.error(f"Error making API request: {str(e)}")
+        logger.error({
+            "message": "Error in Selenium fallback method",
+            "errorType": e.__class__.__name__,
+            "errorMessage": str(e)
+        })
+    finally:
+        driver.quit()
     
-    # Fallback to browser automation approach if API call fails
-    logger.info("Falling back to browser automation approach")
-    return fallback_browser_method(city, state)
+    return []
 
 def extract_from_json(store_list):
     """Extract store data from JSON structure"""
@@ -124,174 +229,166 @@ def extract_from_json(store_list):
                     store_info["Hours"] = " | ".join(hours)
             
             stores.append(store_info)
-            logger.info(f"Extracted store: {store_info['Store Name']} at {store_info['Address']}")
+            logger.info({
+                "message": "Extracted store data", 
+                "storeName": store_info['Store Name'], 
+                "address": store_info['Address']
+            })
             
         except Exception as e:
-            logger.error(f"Error extracting store data: {str(e)}")
+            logger.error({
+                "message": "Error extracting store data",
+                "errorType": e.__class__.__name__,
+                "errorMessage": str(e)
+            })
     
     return stores
 
-def fallback_browser_method(city, state):
-    """Fallback method using Selenium if the API call fails"""
-    web_url = f"https://www.verizon.com/stores/city/{state.lower().strip()}/{city.lower().replace(' ', '-').strip()}/"
-    logger.info(f"Using Selenium fallback method to access: {web_url}")
-    
-    chrome_options = Options()
-    chrome_options.add_argument("--headless")
-    chrome_options.add_argument("--disable-gpu")
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.add_argument("--window-size=1920,1080")
-    chrome_options.add_argument("user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-    
-    driver = webdriver.Chrome(options=chrome_options)
-    
+def extract_from_network_requests(driver):
+    """Extract store data from network requests captured by the browser"""
     try:
-        driver.get(web_url)
-        logger.info("Page loaded, waiting for dynamic content...")
+        # Collect all network requests
+        logs = driver.get_log('performance')
+        logger.info({"message": "Collected network events", "count": len(logs)})
         
-        # Wait for page to load and potentially capture network requests
-        time.sleep(5)
+        # Filter for XHR/Fetch requests
+        api_calls = []
+        store_data = []
         
-        # Try to find store data in JSON within script tags
-        logger.info("Searching for embedded JSON data in page source")
-        page_source = driver.page_source
-        soup = BeautifulSoup(page_source, 'html.parser')
-        scripts = soup.find_all('script')
-        
-        for script in scripts:
-            script_text = script.string if script.string else ""
-            
-            # Look for keywords that might indicate store data
-            keywords = ['storeList', 'storeName', 'storeLocation', 'locations', 'stores']
-            if script_text and any(keyword in script_text for keyword in keywords):
-                logger.info("Found script with potential store data")
-                try:
-                    # Try to identify and extract JSON
-                    start_markers = ['{', '[']
-                    end_markers = ['}', ']']
+        for log in logs:
+            try:
+                log_entry = json.loads(log['message'])
+                
+                # Check if this is a Network event
+                if 'message' in log_entry and 'method' in log_entry['message'] and log_entry['message']['method'].startswith('Network.'):
+                    message = log_entry['message']
                     
-                    for start_marker, end_marker in zip(start_markers, end_markers):
-                        start_idx = script_text.find(start_marker)
-                        if start_idx >= 0:
-                            # Find balanced end marker
-                            depth = 0
-                            end_idx = -1
-                            for i in range(start_idx, len(script_text)):
-                                if script_text[i] == start_marker:
-                                    depth += 1
-                                elif script_text[i] == end_marker:
-                                    depth -= 1
-                                    if depth == 0:
-                                        end_idx = i + 1
-                                        break
+                    # Look for request events
+                    if message['method'] == 'Network.requestWillBeSent':
+                        req_url = message['params']['request']['url']
+                        
+                        # Identify potential API calls related to store data
+                        if any(keyword in req_url.lower() for keyword in ['store', 'location', 'locator']):
+                            api_calls.append({
+                                'url': req_url,
+                                'method': message['params']['request'].get('method', 'GET'),
+                                'headers': message['params']['request'].get('headers', {}),
+                                'requestId': message['params'].get('requestId', '')
+                            })
+                            logger.info({"message": "Found potential store API request", "url": req_url})
+                    
+                    # Look for response events
+                    elif message['method'] == 'Network.responseReceived':
+                        req_id = message['params'].get('requestId', '')
+                        resp_url = message['params']['response']['url']
+                        mime_type = message['params']['response'].get('mimeType', '')
+                        
+                        # Focus on JSON responses
+                        if 'json' in mime_type and any(keyword in resp_url.lower() for keyword in ['store', 'location', 'locator']):
+                            logger.info({"message": "Found JSON response with potential store data", "url": resp_url})
                             
-                            if end_idx > start_idx:
-                                json_str = script_text[start_idx:end_idx]
-                                try:
-                                    data = json.loads(json_str)
-                                    
-                                    # Check if the JSON contains store data
-                                    if isinstance(data, dict):
-                                        if 'locations' in data and isinstance(data['locations'], list):
-                                            return extract_from_json(data['locations'])
-                                        elif 'stores' in data and isinstance(data['stores'], list):
-                                            return extract_from_json(data['stores'])
-                                        elif 'storeList' in data and isinstance(data['storeList'], list):
-                                            return extract_from_json(data['storeList'])
-                                    elif isinstance(data, list) and len(data) > 0:
-                                        # Check if the first item looks like a store
-                                        if isinstance(data[0], dict) and any(key in data[0] for key in ['storeName', 'address', 'title']):
-                                            return extract_from_json(data)
-                                except json.JSONDecodeError:
-                                    # Not valid JSON, continue searching
-                                    pass
-                except Exception as e:
-                    logger.warning(f"Error parsing script tag: {str(e)}")
-        
-        # Try executing JavaScript to find store data directly
-        logger.info("Attempting to execute JavaScript to find store data")
-        try:
-            js_result = driver.execute_script("""
-            // Look for store data in window variables
-            for (let key in window) {
-                try {
-                    let value = window[key];
-                    if (typeof value === 'object' && value !== null) {
-                        if (value.stores || value.locations || value.storeList) {
-                            return value;
-                        }
-                        // Check for arrays that might contain store objects
-                        if (Array.isArray(value) && value.length > 0) {
-                            let first = value[0];
-                            if (first && (first.storeName || first.address || first.title)) {
-                                return value;
-                            }
-                        }
-                    }
-                } catch (e) {
-                    // Ignore errors from accessing certain window properties
-                }
-            }
-            return null;
-            """)
+                            # Try to get the response body
+                            try:
+                                response_body = driver.execute_cdp_cmd('Network.getResponseBody', {'requestId': req_id})
+                                if 'body' in response_body:
+                                    try:
+                                        data = json.loads(response_body['body'])
+                                        
+                                        # Check for store data patterns
+                                        if isinstance(data, dict):
+                                            if 'locations' in data and isinstance(data['locations'], list):
+                                                logger.info({"message": "Found stores in network response", "count": len(data['locations'])})
+                                                return extract_from_json(data['locations'])
+                                            elif 'stores' in data and isinstance(data['stores'], list):
+                                                logger.info({"message": "Found stores in network response", "count": len(data['stores'])})
+                                                return extract_from_json(data['stores'])
+                                            elif 'response' in data and 'docs' in data['response']:
+                                                logger.info({"message": "Found stores in network response", "count": len(data['response']['docs'])})
+                                                return extract_from_json(data['response']['docs'])
+                                            # Log all keys to help identify where store data might be
+                                            logger.info({"message": "Response keys", "keys": list(data.keys())})
+                                    except json.JSONDecodeError as e:
+                                        logger.warning({
+                                            "message": "Error parsing JSON response",
+                                            "errorType": e.__class__.__name__,
+                                            "errorMessage": str(e)
+                                        })
+                            except Exception as e:
+                                logger.warning({
+                                    "message": "Error getting response body",
+                                    "errorType": e.__class__.__name__,
+                                    "errorMessage": str(e)
+                                })
+            except Exception as e:
+                # Individual log processing errors shouldn't stop the entire process
+                pass
+                
+        # If we found API calls but couldn't extract directly, retry with requests
+        if api_calls and not store_data:
+            logger.info({"message": "Trying to directly fetch data from potential API endpoints", "count": len(api_calls)})
             
-            if js_result:
-                logger.info("Found store data via JavaScript execution")
-                if isinstance(js_result, list):
-                    return extract_from_json(js_result)
-                elif isinstance(js_result, dict):
-                    if 'stores' in js_result and isinstance(js_result['stores'], list):
-                        return extract_from_json(js_result['stores'])
-                    elif 'locations' in js_result and isinstance(js_result['locations'], list):
-                        return extract_from_json(js_result['locations'])
-                    elif 'storeList' in js_result and isinstance(js_result['storeList'], list):
-                        return extract_from_json(js_result['storeList'])
-        except Exception as e:
-            logger.warning(f"Error executing JavaScript: {str(e)}")
-        
-        # Last attempt: try to intercept network requests for store data
-        logger.info("Attempting to intercept network requests")
-        try:
-            # Get network requests
-            performance_logs = driver.get_log('performance')
-            for log in performance_logs:
-                if 'message' in log:
-                    try:
-                        log_dict = json.loads(log['message'])
-                        if 'message' in log_dict and 'params' in log_dict['message']:
-                            params = log_dict['message']['params']
-                            if 'request' in params and 'url' in params['request']:
-                                url = params['request']['url']
-                                if any(keyword in url for keyword in ['store', 'location', 'stores-services']):
-                                    logger.info(f"Found potential API URL: {url}")
-                                    # Try to make a direct request to this URL
-                                    headers = {
-                                        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                                        'Accept': 'application/json',
-                                        'Referer': web_url
-                                    }
-                                    resp = requests.get(url, headers=headers)
-                                    if resp.status_code == 200:
-                                        try:
-                                            api_data = resp.json()
-                                            if 'locations' in api_data and isinstance(api_data['locations'], list):
-                                                return extract_from_json(api_data['locations'])
-                                            elif 'stores' in api_data and isinstance(api_data['stores'], list):
-                                                return extract_from_json(api_data['stores'])
-                                        except:
-                                            pass
-                    except:
-                        pass
-        except Exception as e:
-            logger.warning(f"Error intercepting network requests: {str(e)}")
-        
-    except Exception as e:
-        logger.error(f"Error in Selenium fallback method: {str(e)}")
-    finally:
-        driver.quit()
+            for api_call in api_calls:
+                try:
+                    # Use the headers from the browser request
+                    headers = api_call['headers'].copy()
+                    # Add some important headers if missing
+                    if 'User-Agent' not in headers:
+                        headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                    if 'Referer' not in headers:
+                        headers['Referer'] = driver.current_url
+                    
+                    logger.info({"message": "Requesting API endpoint", "url": api_call['url']})
+                    response = requests.get(api_call['url'], headers=headers)
+                    
+                    if response.status_code == 200:
+                        try:
+                            data = response.json()
+                            
+                            # Check for store data patterns
+                            if isinstance(data, dict):
+                                if 'locations' in data and isinstance(data['locations'], list):
+                                    logger.info({"message": "Found stores in API response", "count": len(data['locations'])})
+                                    return extract_from_json(data['locations'])
+                                elif 'stores' in data and isinstance(data['stores'], list):
+                                    logger.info({"message": "Found stores in API response", "count": len(data['stores'])})
+                                    return extract_from_json(data['stores'])
+                                elif 'response' in data and 'docs' in data['response']:
+                                    logger.info({"message": "Found stores in API response", "count": len(data['response']['docs'])})
+                                    return extract_from_json(data['response']['docs'])
+                                
+                                # Look for any array of objects that looks like store data
+                                for key, value in data.items():
+                                    if isinstance(value, list) and len(value) > 0 and isinstance(value[0], dict):
+                                        first_item = value[0]
+                                        if any(store_key in first_item for store_key in ['storeName', 'address', 'title', 'city', 'storeType']):
+                                            logger.info({
+                                                "message": "Found potential store array", 
+                                                "key": key, 
+                                                "count": len(value)
+                                            })
+                                            return extract_from_json(value)
+                        except json.JSONDecodeError as e:
+                            logger.warning({
+                                "message": "Error parsing response as JSON",
+                                "errorType": e.__class__.__name__,
+                                "errorMessage": str(e)
+                            })
+                except Exception as e:
+                    logger.warning({
+                        "message": "Error fetching API", 
+                        "errorType": e.__class__.__name__,
+                        "errorMessage": str(e)
+                    })
+                
+        return store_data
     
-    return []
+    except Exception as e:
+        logger.error({
+            "message": "Error extracting from network requests", 
+            "errorType": e.__class__.__name__,
+            "errorMessage": str(e)
+        })
+        return []
 
 def print_csv(stores):
     # Print CSV header
@@ -311,14 +408,14 @@ def main():
         
     city = sys.argv[1]
     state = sys.argv[2]
-    logger.info(f"Looking for Verizon stores in {city}, {state}")
+    logger.info({"message": "Looking for Verizon stores", "city": city, "state": state})
     
     stores = get_store_data(city, state)
     
     if not stores:
-        logger.warning(f"No stores found in {city}, {state}")
+        logger.warning({"message": "No stores found", "city": city, "state": state})
     else:
-        logger.info(f"Found {len(stores)} stores in {city}, {state}")
+        logger.info({"message": "Found stores", "count": len(stores), "city": city, "state": state})
     
     print_csv(stores)
 
@@ -326,5 +423,9 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        logger.error(f"Unhandled exception: {str(e)}")
+        logger.error({
+            "message": "Unhandled exception",
+            "errorType": e.__class__.__name__,
+            "errorMessage": str(e)
+        })
         sys.exit(1)
