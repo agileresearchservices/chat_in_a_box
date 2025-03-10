@@ -366,7 +366,7 @@ The Reranker microservice is a critical component of the Retrieval-Augmented Gen
 ### Docker Integration
 The reranker service is integrated into the `docker-compose.yml`:
 - Mapped to host port 8005
-- Built from `./reranker` directory
+- Built from `./external_services/reranker-service` directory
 
 ### Usage Example
 ```python
@@ -810,7 +810,7 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 
 Before running the application, ensure that the following services are running:
 
-- **Reranker Service**: The FastAPI reranker service with GPU (MPS) support must be active. Start it by running the `start.sh` script inside the `reranker-service` directory.
+- **Reranker Service**: The FastAPI reranker service with GPU (MPS) support must be active. Start it by running the `start.sh` script inside the `external_services/reranker-service` directory.
 - **npm**: Make sure npm (Node Package Manager) is installed and running for managing frontend dependencies.
 - **Docker**: Ensure that Docker is running since some services are containerized (e.g. database, other workers).
 
