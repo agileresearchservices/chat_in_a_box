@@ -24,6 +24,7 @@
  * @throws {Error} If the API call fails or returns an error
  */
 import logger from '@/utils/logger';
+import { agentService } from './agent';
 
 type Message = {
   role: 'system' | 'user' | 'assistant' | 'data';
@@ -34,41 +35,58 @@ type Message = {
 export const sendMessage = async (prompt: string, messages: Message[] = []): Promise<Response> => {
   logger.debug('Sending message', { prompt, messageCount: messages.length });
 
-  const response = await fetch('/api/chat', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      prompt,
-      messages: messages.map(msg => ({
-        role: msg.role,
-        content: msg.content,
-        id: msg.id
-      }))
-    })
-  })
-
-  if (!response.ok) {
-    const error = await response.json()
-    // Provide more specific error messages for different error types
-    if (error.error === 'Invalid input' && error.details) {
-      // Handle validation errors specifically
-      const validationErrors = error.details.map((e: any) => e.message).join(', ')
-      logger.error('Message sending validation failed', { 
-        validationErrors, 
-        errorType: error.error 
-      });
-      throw new Error(`Validation failed: ${validationErrors}`)
+  try {
+    // Check if this query should be handled by an agent
+    const agentType = agentService.detectAgentType(prompt);
+    
+    if (agentType) {
+      logger.info('Detected agent query', { agentType, prompt });
+      return await agentService.executeAgent(agentType, prompt);
     }
-    logger.error('Failed to send message', { 
-      error: error.message || error.details || error.error 
-    });
-    throw new Error(error.message || error.details || error.error || 'Failed to send message')
-  }
 
-  logger.debug('Message sent successfully');
-  return response
+    // If not an agent query, proceed with normal chat
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        prompt,
+        messages: messages.map(msg => ({
+          role: msg.role,
+          content: msg.content,
+          id: msg.id
+        }))
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      // Provide more specific error messages for different error types
+      if (error.error === 'Invalid input' && error.details) {
+        // Handle validation errors specifically
+        const validationErrors = error.details.map((e: any) => e.message).join(', ');
+        logger.error('Message sending validation failed', { 
+          validationErrors, 
+          errorType: error.error 
+        });
+        throw new Error(`Validation failed: ${validationErrors}`);
+      }
+      logger.error('Failed to send message', { 
+        error: error.message || error.details || error.error 
+      });
+      throw new Error(error.message || error.details || error.error || 'Failed to send message');
+    }
+
+    logger.debug('Message sent successfully');
+    return response;
+  } catch (error) {
+    logger.error('Error in sendMessage', {
+      error: error instanceof Error ? error.message : String(error),
+      prompt
+    });
+    throw error;
+  }
 }
 
 /**
