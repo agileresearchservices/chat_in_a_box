@@ -1,0 +1,20 @@
+Item,Description,Hours,Notes,,
+Discovery & Design,"Review integration points, select test data corpus, define demo use cases, finalize architecture, determine UI scope. Refine implementation estimates and document solution architecture.",24,"Includes API review, workflow mapping, and UI/UX considerations.",,Vertex for LLM and vector
+Vertex AI Setup & Configuration,"Set up Google Vertex AI environment, configure model hosting, vector store, and RAG components.",16,Ensure alignment with Verizon’s infrastructure and capabilities.,,OpenSearch for lexical
+Data Ingestion & Transformation (ETL),"Build and optimize data pipelines for ingestion of product catalogs, FAQs, billing data, and store locations. Implement transformation for vector storage.",40,Leverage Lucille ETL or custom pipeline for ingestion.,,Orchestrator API
+Embedding Model Selection & Optimization,"Research and select appropriate embedding models for similarity search. Optimize embeddings for product catalog, FAQs, and bill support queries.",16,Ensure compatibility with Vertex AI and hybrid search strategies.,,
+LLM Selection & Agent Design,"Evaluate potential LLMs (e.g., DeepSeek, 01, Claude 3.7). Design the conversational agent architecture, including memory and reasoning strategies.",24,Determine the best model for transactional reasoning and agentic decision-making.,,User interface for demo
+Agent Orchestration (LangChain & LangGraph),"Implement agent workflow, including query understanding, API integration, and decision-making for commerce, support, and recommendations.",40,Define agent pathways for different Verizon services.,,2 - tool integration/creation
+Retrieval-Augmented Generation (RAG) API,"Develop RESTful service for RAG-based queries, integrating hybrid search, retrieval, and ranking.",36,"Implement query handling, document retrieval, re-ranking, and API interfaces.",,
+Conversational UI (Next.js & React),"Develop a responsive UI to facilitate conversational commerce, support, and store lookup.",80,"Ensure intuitive, user-friendly interaction and contextual memory handling.",,tool creation for ecommerce search
+Hybrid Search & Query Design,"Implement search strategies combining vector search, lexical search, and structured queries for enhanced retrieval.",24,"Optimize hybrid search for different content types (product catalog, FAQs, store data).",,tool creation for store locator
+Personalized Recommendations System,Implement AI-driven recommendations using customer preferences and product catalog data.,24,Similar to Rufus AI recommendations for accessories and bundled products.,,Weather tool
+Conversational Memory & Context Handling,"Implement context-aware conversations, enabling multi-turn interactions across sessions.",24,Utilize LangGraph and other tools to maintain user context.,,
+LLM Prompt Engineering & Optimization,"Design, test, and refine prompts for LLM responses in commerce, billing, and support interactions.",8,Ensure optimal response accuracy and user engagement.,,Create sample store location data set
+API Integration with Verizon Services,"Connect the AI agent with Verizon’s billing, customer portal, and product catalog APIs.",120,Ensure seamless access to customer data for transactions and support.,,Create sample ecommerce data set
+Testing & Evaluation,"Conduct functional, performance, and security testing. Iterate based on results.",40,Includes stress testing for high-traffic scenarios.,,
+User Acceptance Testing (UAT) & Support,Provide direct support for Verizon team during UAT phase. 10 hours/week for 4 weeks.,16,"Address feedback, optimize UI and workflows.",,
+"Demo, Documentation & Cost Analysis","Prepare final demonstration, technical documentation, and cost estimates for full-scale deployment.",40,Deliver cost-benefit analysis for Verizon stakeholders.,,
+Technical Project Management,"Oversee execution, ensure milestones are met, and coordinate with Verizon teams.",36,Agile sprint planning and reporting included.,,
+Technical Oversight & Governance,"Provide expert oversight on AI integration, data privacy, and compliance.",80,Ensure AI meets regulatory and Verizon security requirements.,,
+,,688,,,
