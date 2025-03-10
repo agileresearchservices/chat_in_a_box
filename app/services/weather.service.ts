@@ -37,6 +37,7 @@ interface NominatimLocation {
     village?: string;
     state?: string;
     country?: string;
+    country_code?: string;
   };
 }
 
@@ -55,71 +56,74 @@ export type WeatherQuery = z.infer<typeof weatherQuerySchema>;
 async function geocodeCity(city: string): Promise<LocationData> {
   logger.info('Geocoding city:', { city });
   
-  // Clean and format the search query
-  const cleanCity = city.replace(/,\s*USA$/i, '').trim();
-  const searchQuery = cleanCity;
-  
-  const params = new URLSearchParams({
-    q: searchQuery,
-    format: 'json',
-    limit: '5',  // Increased to get more candidates
-    addressdetails: '1',
-    countrycodes: 'us'  // Explicitly restrict to US results
-  });
+  // List of search formats to try
+  const searchFormats = [
+    (c: string) => c.replace(/,\s*USA$/i, '').trim(), // Remove USA suffix
+    (c: string) => `${c}, USA`,  // Add USA suffix
+    (c: string) => `${c}, United States`, // Add full country name
+    (c: string) => c.split(',')[0].trim(), // Try just the city name
+  ];
 
-  try {
-    const response = await fetch(`${NOMINATIM_API_URL}?${params}`, {
-      headers: { 'User-Agent': USER_AGENT }
-    });
+  let lastError: Error | null = null;
 
-    if (!response.ok) {
-      throw new Error(`Geocoding request failed: ${response.statusText}`);
+  // Try each search format
+  for (const format of searchFormats) {
+    try {
+      const searchQuery = format(city);
+      
+      const params = new URLSearchParams({
+        q: searchQuery,
+        format: 'json',
+        limit: '5',
+        addressdetails: '1',
+        countrycodes: 'us'
+      });
+
+      const response = await fetch(`${NOMINATIM_API_URL}?${params}`, {
+        headers: { 'User-Agent': USER_AGENT }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Geocoding request failed: ${response.statusText}`);
+      }
+
+      const results: NominatimLocation[] = await response.json();
+      
+      if (results.length === 0) {
+        continue; // Try next format if no results
+      }
+
+      // Find the first result that is definitely in the US
+      for (const result of results) {
+        const isUS = result.address?.country === 'United States' || 
+                    result.address?.country_code?.toLowerCase() === 'us' ||
+                    result.address?.country === 'USA';
+                    
+        if (isUS) {
+          return {
+            latitude: parseFloat(result.lat),
+            longitude: parseFloat(result.lon),
+            city: result.address?.city || result.address?.town || result.address?.village || city,
+            region: result.address?.state || '',
+            country: 'United States',
+            display_name: result.display_name || ''
+          };
+        }
+      }
+    } catch (err) {
+      // Type guard for Error objects
+      const error = err instanceof Error ? err : new Error(String(err));
+      lastError = error;
+      logger.error('Geocoding attempt failed:', { 
+        city,
+        searchFormat: format(city),
+        error: error.message 
+      });
     }
-
-    const data = (await response.json()) as NominatimLocation[];
-    
-    if (!data.length) {
-      throw new Error(`No location found for '${city}'`);
-    }
-
-    // Filter for city-level results and sort by importance
-    const cityResults = data
-      .filter((loc: NominatimLocation) => {
-        const type = loc.type?.toLowerCase();
-        return type === 'city' || type === 'town' || type === 'administrative';
-      })
-      .sort((a: NominatimLocation, b: NominatimLocation) => 
-        (b.importance || 0) - (a.importance || 0)
-      );
-
-    if (!cityResults.length) {
-      throw new Error(`No city-level location found for '${city}'`);
-    }
-
-    const location = cityResults[0];
-    const address = location.address || {};
-
-    // Verify it's a US location
-    if (address.country !== 'United States' && 
-        !location.display_name?.includes('United States')) {
-      throw new Error(`Location '${city}' appears to be outside the United States`);
-    }
-
-    const result: LocationData = {
-      latitude: parseFloat(location.lat),
-      longitude: parseFloat(location.lon),
-      city: address.city || address.town || address.village || cleanCity,
-      region: address.state || 'Unknown',
-      country: 'United States',
-      display_name: location.display_name || 'Unknown'
-    };
-
-    logger.debug('Location data:', result);
-    return result;
-  } catch (error) {
-    logger.error('Geocoding error:', { error, city });
-    throw error;
   }
+
+  // If we get here, all formats failed
+  throw new Error(`Could not find US location: ${city}${lastError ? `. Last error: ${lastError.message}` : ''}`);
 }
 
 /**
