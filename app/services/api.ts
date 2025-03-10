@@ -1,50 +1,75 @@
 /**
- * Send Message API Service
+ * Chat Application API Service Module
  * 
- * Handles sending messages to the chat API with comprehensive error handling
+ * Core service module providing API interfaces for chat functionality, including:
+ * - Message handling with PydanticAI agent integration
+ * - Text embedding generation
+ * - Conversation memory management
  * 
- * Key Features:
- * - Sends user prompts to the chat endpoint
- * - Supports conversation context via message history
- * - Robust error handling and response validation
+ * This module serves as the primary interface between the frontend and various
+ * backend services, with special handling for agent-based queries through the
+ * PydanticAI system.
  * 
- * Workflow:
- * 1. Prepare request payload with prompt and message context
- * 2. Send POST request to chat API
- * 3. Validate response and handle potential errors
- * 
- * Use Cases:
- * - Conversational AI interactions
- * - Contextual chat message processing
- * - Streaming AI-generated responses
- * 
- * @param {string} prompt - The user's input message
- * @param {Array<Message>} [messages=[]] - Previous conversation messages for context
- * @returns {Promise<Response>} The API response stream
- * @throws {Error} If the API call fails or returns an error
+ * @module ApiService
  */
+
 import logger from '@/utils/logger';
 import { agentService } from './agent';
 
+/**
+ * Message structure for chat interactions
+ * Supports both regular chat and agent-based responses
+ */
 type Message = {
-  role: 'system' | 'user' | 'assistant' | 'data';
-  content: string;
-  id?: string;
+  role: 'system' | 'user' | 'assistant' | 'data';  // Message sender type
+  content: string;                                  // Message content
+  id?: string;                                     // Optional message identifier
 }
 
+/**
+ * Sends a message to the chat system with integrated agent detection
+ * 
+ * This function serves as the primary entry point for all chat interactions,
+ * incorporating both traditional chat functionality and PydanticAI agent processing.
+ * It automatically detects if a query should be handled by a specialized agent
+ * (e.g., weather, search) or processed as a regular chat message.
+ * 
+ * Features:
+ * - Automatic agent detection and routing
+ * - Conversation context management
+ * - Streaming response support
+ * - Comprehensive error handling
+ * - Request validation
+ * 
+ * @param prompt - User's input message to process
+ * @param messages - Previous conversation messages for context
+ * @returns Promise resolving to a streaming Response
+ * 
+ * @example
+ * ```typescript
+ * // Regular chat message
+ * const response = await sendMessage("Tell me a joke", previousMessages);
+ * 
+ * // Agent-based query (automatically detected)
+ * const weatherResponse = await sendMessage("What's the weather in Boston?");
+ * ```
+ * 
+ * @throws Error if message processing fails or returns an error response
+ */
 export const sendMessage = async (prompt: string, messages: Message[] = []): Promise<Response> => {
   logger.debug('Sending message', { prompt, messageCount: messages.length });
 
   try {
-    // Check if this query should be handled by an agent
+    // Check for agent-handleable queries
     const agentType = agentService.detectAgentType(prompt);
     
     if (agentType) {
+      // Route to appropriate PydanticAI agent
       logger.info('Detected agent query', { agentType, prompt });
       return await agentService.executeAgent(agentType, prompt);
     }
 
-    // If not an agent query, proceed with normal chat
+    // Process as regular chat message if no agent matches
     const response = await fetch('/api/chat', {
       method: 'POST',
       headers: {
@@ -60,11 +85,11 @@ export const sendMessage = async (prompt: string, messages: Message[] = []): Pro
       })
     });
 
+    // Handle API response errors
     if (!response.ok) {
       const error = await response.json();
-      // Provide more specific error messages for different error types
       if (error.error === 'Invalid input' && error.details) {
-        // Handle validation errors specifically
+        // Handle validation errors with specific messages
         const validationErrors = error.details.map((e: any) => e.message).join(', ');
         logger.error('Message sending validation failed', { 
           validationErrors, 
@@ -90,95 +115,106 @@ export const sendMessage = async (prompt: string, messages: Message[] = []): Pro
 }
 
 /**
- * Text Embedding API Service
+ * Text Embedding Generation Service
  * 
- * Generates vector embeddings for input text using the embedding API
+ * Generates vector embeddings for input text, supporting semantic search
+ * and similarity comparisons in the chat application. These embeddings
+ * are used for enhanced document retrieval and context matching.
  * 
- * Key Features:
- * - Converts text into high-dimensional vector representations
- * - Supports semantic search and machine learning tasks
- * - Robust error handling for embedding generation
+ * Features:
+ * - High-dimensional vector generation
+ * - Semantic similarity support
+ * - Integration with document search
+ * - Error handling and validation
  * 
- * Workflow:
- * 1. Send text to embedding API endpoint
- * 2. Validate API response
- * 3. Return embedding vector
+ * @param text - Input text to generate embeddings for
+ * @returns Promise resolving to embedding vectors
  * 
- * Use Cases:
- * - Semantic document search
- * - Text similarity comparison
- * - Machine learning model inputs
- * 
- * @param {string} text - The input text to generate embeddings for
- * @returns {Promise<Response>} The API response containing embeddings
- * @throws {Error} If embedding generation fails or no response is received
+ * @example
+ * ```typescript
+ * const embedding = await getEmbedding("What's the weather like?");
+ * ```
  */
 export const getEmbedding = async (text: string): Promise<Response> => {
   logger.debug('Generating embedding', { textLength: text.length });
 
-  // Send text to embedding API endpoint
-  const response = await fetch('/api/embed', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ text }),
-  })
-
-  // Validate API response and handle potential errors
-  if (!response.ok) {
-    // Extract and throw a meaningful error message
-    const error = await response.json()
-    logger.error('Failed to get embedding', { 
-      details: error.details, 
-      error: error.error 
+  try {
+    // Request embedding generation
+    const response = await fetch('/api/embed', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ text }),
     });
-    throw new Error(error.details || error.error || 'Failed to get embedding')
-  }
 
-  logger.debug('Embedding generated successfully');
-  return response
+    // Validate response and handle errors
+    if (!response.ok) {
+      const error = await response.json();
+      logger.error('Failed to get embedding', { 
+        details: error.details, 
+        error: error.error 
+      });
+      throw new Error(error.details || error.error || 'Failed to get embedding');
+    }
+
+    logger.debug('Embedding generated successfully');
+    return response;
+  } catch (error) {
+    logger.error('Error generating embedding', {
+      error: error instanceof Error ? error.message : String(error),
+      textLength: text.length
+    });
+    throw error;
+  }
 }
 
 /**
- * Conversation Memory Clearing API Service
+ * Conversation Memory Management Service
  * 
- * Provides a method to clear the entire conversation memory
+ * Provides functionality to clear conversation history and context.
+ * This is particularly important for managing conversation state
+ * and ensuring clean context for both regular chat and agent-based
+ * interactions.
  * 
- * Key Features:
- * - Sends a DELETE request to memory management endpoint
- * - Resets conversation context and history
- * - Robust error handling for memory clearing
+ * Features:
+ * - Complete memory reset
+ * - Agent context clearing
+ * - Conversation state management
+ * - Error handling and validation
  * 
- * Workflow:
- * 1. Send DELETE request to memory API
- * 2. Validate API response
- * 3. Confirm memory clearing
+ * @returns Promise confirming memory clearing
  * 
- * Use Cases:
- * - Resetting conversation state
- * - Starting a new conversation
- * - Clearing sensitive or temporary context
- * 
- * @returns {Promise<Response>} The API response confirming memory clearing
- * @throws {Error} If memory clearing fails
+ * @example
+ * ```typescript
+ * await _clearMemory();  // Start fresh conversation
+ * ```
  */
 export const _clearMemory = async (): Promise<Response> => {
   logger.debug('Attempting to clear conversation memory');
 
-  const response = await fetch('/api/chat', {
-    method: 'DELETE'
-  })
-
-  if (!response.ok) {
-    const error = await response.json()
-    logger.error('Failed to clear memory', { 
-      details: error.details, 
-      error: error.error 
+  try {
+    // Send memory clear request
+    const response = await fetch('/api/chat', {
+      method: 'DELETE'
     });
-    throw new Error(error.details || error.error || 'Failed to clear memory')
-  }
 
-  logger.debug('Conversation memory cleared successfully');
-  return response
+    // Validate response and handle errors
+    if (!response.ok) {
+      const error = await response.json();
+      logger.error('Failed to clear memory', { 
+        details: error.details, 
+        error: error.error 
+      });
+      throw new Error(error.details || error.error || 'Failed to clear memory');
+    }
+
+    logger.debug('Conversation memory cleared successfully');
+    return response;
+  } catch (error) {
+    logger.error('Error clearing memory', {
+      error: error instanceof Error ? error.message : String(error)
+    });
+    throw error;
+  }
 }

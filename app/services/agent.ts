@@ -1,23 +1,86 @@
+/**
+ * PydanticAI Agent Service Module
+ * 
+ * Core service module for managing and coordinating PydanticAI agents in the chat application.
+ * This module serves as the central hub for agent detection, execution, and coordination,
+ * providing a unified interface for all agent-based functionality.
+ * 
+ * Key Features:
+ * - Dynamic agent type detection
+ * - Unified agent execution interface
+ * - Streaming response handling
+ * - Integrated error management
+ * - Automatic parameter configuration
+ * 
+ * @module AgentService
+ */
+
 import logger from '@/utils/logger';
 
+/**
+ * Supported agent types in the system
+ * Add new agent types here when extending the system
+ */
 export type AgentType = 'weather' | 'search' | 'summarize';
 
+/**
+ * Interface defining the structure of agent responses
+ * Follows the PydanticAI agent response format for consistency
+ * across different agent types
+ */
 interface AgentResponse {
   message: {
-    content: string;
+    content: string;  // Contains either the agent's response or thinking process
   };
 }
 
 /**
- * Agent Service for handling specialized queries using PydanticAI
+ * AgentService Class
+ * 
+ * Central service for managing PydanticAI agents in the chat application.
+ * Handles agent detection, execution, and response processing.
+ * 
+ * Features:
+ * - Smart query routing to appropriate agents
+ * - Unified execution interface for all agent types
+ * - Streaming response support
+ * - Automatic parameter configuration
+ * - Comprehensive error handling
+ * 
+ * Usage:
+ * ```typescript
+ * const service = new AgentService();
+ * const agentType = service.detectAgentType(userQuery);
+ * if (agentType) {
+ *   const response = await service.executeAgent(agentType, userQuery);
+ * }
+ * ```
  */
 export class AgentService {
   /**
-   * Executes an agent for a specific query
-   * @param agentType Type of agent to use
-   * @param query User's query
-   * @param parameters Optional parameters for the agent
-   * @returns Response stream from the agent
+   * Executes a PydanticAI agent for a specific query
+   * 
+   * This method:
+   * 1. Validates and prepares the execution parameters
+   * 2. Configures agent-specific settings
+   * 3. Initiates the agent execution
+   * 4. Handles streaming responses
+   * 
+   * @param agentType - Type of agent to execute (weather, search, summarize)
+   * @param query - User's input query
+   * @param parameters - Optional configuration parameters for the agent
+   * @returns Promise resolving to a streaming Response
+   * 
+   * @example
+   * ```typescript
+   * const response = await agentService.executeAgent(
+   *   'weather',
+   *   'What\'s the weather in Boston?',
+   *   { weatherApiEndpoint: '/api/weather' }
+   * );
+   * ```
+   * 
+   * @throws Error if agent execution fails or returns an error response
    */
   public async executeAgent(
     agentType: AgentType,
@@ -30,17 +93,18 @@ export class AgentService {
         queryLength: query.length 
       });
 
-      // Add weather-specific parameters
+      // Configure agent-specific parameters
       if (agentType === 'weather') {
         parameters = {
           ...parameters,
-          weatherApiEndpoint: '/api/weather',
-          requiresLocation: true,
-          locationService: 'nominatim',
-          weatherService: 'nws'
+          weatherApiEndpoint: '/api/weather',    // Internal weather API endpoint
+          requiresLocation: true,                // Enable location processing
+          locationService: 'nominatim',          // Geocoding service
+          weatherService: 'nws'                  // Weather data provider
         };
       }
 
+      // Execute agent via API endpoint
       const response = await fetch('/api/agents', {
         method: 'POST',
         headers: {
@@ -54,6 +118,7 @@ export class AgentService {
         })
       });
 
+      // Handle error responses
       if (!response.ok) {
         const error = await response.json();
         logger.error('Agent execution failed', { error });
@@ -72,30 +137,44 @@ export class AgentService {
   }
 
   /**
-   * Detects if a query should be handled by a specific agent
-   * @param query User's input text
-   * @returns Agent type if query matches, null otherwise
+   * Analyzes a query to determine if it should be handled by a specific agent
+   * 
+   * Uses pattern matching to identify query intent and route to appropriate agent.
+   * Patterns are organized by agent type and designed to catch various
+   * ways users might phrase their requests.
+   * 
+   * @param query - User's input text to analyze
+   * @returns Matching agent type or null if no patterns match
+   * 
+   * @example
+   * ```typescript
+   * const query = "What's the weather like in Boston?";
+   * const agentType = agentService.detectAgentType(query);
+   * // Returns: 'weather'
+   * ```
    */
   public detectAgentType(query: string): AgentType | null {
+    // Define intent patterns for each agent type
     const patterns: Record<AgentType, RegExp[]> = {
       weather: [
-        /weather|temperature|forecast|rain|snow|sunny|cloudy|storm|cold|hot/i,
-        /what('s| is) (the weather|it) like in/i,
-        /how('s| is) the weather in/i,
-        /what('s| is) the temperature in/i,
-        /weather (report|update|info|information) for/i,
-        /weather (conditions?|forecast) (in|at|for)/i
+        /weather|temperature|forecast|rain|snow|sunny|cloudy|storm|cold|hot/i,      // Weather conditions
+        /what('s| is) (the weather|it) like in/i,                                  // Common weather questions
+        /how('s| is) the weather in/i,                                             // Alternative phrasing
+        /what('s| is) the temperature in/i,                                        // Temperature specific
+        /weather (report|update|info|information) for/i,                           // Information requests
+        /weather (conditions?|forecast) (in|at|for)/i                              // Forecast requests
       ],
       search: [
-        /search (for|about)|find (information|details) (about|on)/i,
-        /look up|tell me about|what (do you know|can you tell me) about/i
+        /search (for|about)|find (information|details) (about|on)/i,               // Search requests
+        /look up|tell me about|what (do you know|can you tell me) about/i          // Information queries
       ],
       summarize: [
-        /summarize|summarise|give me a summary|brief overview|key points/i,
-        /tldr|tl;dr|in (brief|short|summary)/i
+        /summarize|summarise|give me a summary|brief overview|key points/i,        // Summarization requests
+        /tldr|tl;dr|in (brief|short|summary)/i                                     // Common abbreviations
       ]
     };
 
+    // Check each agent type's patterns for a match
     for (const [type, typePatterns] of Object.entries(patterns)) {
       if (typePatterns.some(pattern => pattern.test(query))) {
         return type as AgentType;
@@ -106,5 +185,5 @@ export class AgentService {
   }
 }
 
-// Export a singleton instance
+// Export singleton instance for application-wide use
 export const agentService = new AgentService();

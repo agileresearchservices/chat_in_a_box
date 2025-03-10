@@ -496,6 +496,187 @@ The agent system is built with:
 - **TypeScript Integration**: Seamless frontend integration
 - **Streaming Support**: Real-time response updates
 
+## Creating New PydanticAI Agents
+
+The application supports extending its capabilities through custom PydanticAI agents. Follow this guide to create new agents.
+
+### Agent Architecture
+
+The agent system consists of three main components:
+1. Python Agent Class (`/app/api/agents/[agent_name]_agent.py`)
+2. TypeScript Agent Service (`/app/services/[agent_name]-agent.ts`)
+3. Agent Integration (`/app/services/agent.ts`)
+
+### Step-by-Step Guide
+
+1. **Create Python Agent Class**
+   ```python
+   from typing import Dict, Any, Optional
+   from .base import Agent
+   
+   class CustomAgent(Agent):
+       def __init__(self):
+           super().__init__()
+           # Define patterns for query detection
+           self.patterns = [
+               r'your_regex_pattern_1',
+               r'your_regex_pattern_2'
+           ]
+   
+       def process(self, query: str, parameters: Optional[Dict[str, Any]] = None) -> str:
+           """
+           Process the query using your agent's logic
+           
+           Args:
+               query: User's query
+               parameters: Additional parameters from the frontend
+           
+           Returns:
+               Formatted response string
+           """
+           try:
+               # Your agent's processing logic here
+               result = "Your processed result"
+               return result
+           except Exception as e:
+               return f"Error processing query: {str(e)}"
+   ```
+
+2. **Create TypeScript Agent Service**
+   ```typescript
+   export class CustomAgent {
+     private readonly agentType: AgentType = 'custom';
+   
+     public isCustomQuery(input: string): boolean {
+       const patterns = [
+         /your_regex_pattern_1/i,
+         /your_regex_pattern_2/i
+       ];
+       return patterns.some(pattern => pattern.test(input));
+     }
+   
+     public async handleCustomQuery(input: string): Promise<Response | null> {
+       try {
+         // Prepare parameters for Python agent
+         const parameters = {
+           customParam: 'value',
+           apiEndpoint: '/api/custom'
+         };
+   
+         // Execute agent via AgentService
+         const agentService = new AgentService();
+         return await agentService.executeAgent(
+           this.agentType,
+           input,
+           parameters
+         );
+       } catch (error) {
+         console.error('Custom agent error:', error);
+         return null;
+       }
+     }
+   }
+   ```
+
+3. **Update Agent Type Definition**
+   ```typescript
+   // In /app/services/agent.ts
+   export type AgentType = 'weather' | 'custom' | ... ;
+   ```
+
+4. **Integrate Agent Detection**
+   ```typescript
+   // In /app/services/agent.ts
+   export class AgentService {
+     private customAgent = new CustomAgent();
+   
+     public detectAgentType(query: string): AgentType | null {
+       if (this.customAgent.isCustomQuery(query)) {
+         return 'custom';
+       }
+       // ... other agent detections
+       return null;
+     }
+   }
+   ```
+
+### Best Practices
+
+1. **Query Detection**
+   - Use specific regex patterns to accurately identify agent-relevant queries
+   - Consider common variations in user input
+   - Test patterns with various input formats
+
+2. **Error Handling**
+   - Implement comprehensive error handling in both Python and TypeScript
+   - Provide informative error messages to users
+   - Log errors appropriately for debugging
+
+3. **Parameters**
+   - Define clear parameter interfaces
+   - Document required and optional parameters
+   - Validate parameters before processing
+
+4. **Response Format**
+   - Return well-structured responses
+   - Include relevant metadata when needed
+   - Format responses for readability
+
+### Example: Simple Calculator Agent
+
+```python
+# /app/api/agents/calculator_agent.py
+class CalculatorAgent(Agent):
+    def __init__(self):
+        super().__init__()
+        self.patterns = [
+            r'calculate\s+([\d\s\+\-\*\/\(\)]+)',
+            r'what\s+is\s+([\d\s\+\-\*\/\(\)]+)'
+        ]
+
+    def process(self, query: str, parameters: Optional[Dict[str, Any]] = None) -> str:
+        try:
+            # Extract expression using patterns
+            for pattern in self.patterns:
+                match = re.search(pattern, query)
+                if match:
+                    expression = match.group(1)
+                    result = eval(expression)  # Note: Use safe_eval in production
+                    return f"The result of {expression} is {result}"
+            return "I couldn't understand the calculation request"
+        except Exception as e:
+            return f"Error calculating result: {str(e)}"
+```
+
+### Testing Your Agent
+
+1. **Unit Tests**
+   ```python
+   def test_custom_agent():
+       agent = CustomAgent()
+       result = agent.process("your test query", {"param": "value"})
+       assert result == "expected output"
+   ```
+
+2. **Integration Testing**
+   ```typescript
+   describe('CustomAgent', () => {
+     it('should detect custom queries', () => {
+       const agent = new CustomAgent();
+       expect(agent.isCustomQuery('your test query')).toBe(true);
+     });
+   });
+   ```
+
+### Deployment
+
+1. Add your agent's Python dependencies to `requirements.txt`
+2. Update the agent type in the frontend components where needed
+3. Add appropriate error handling and logging
+4. Document your agent's capabilities and usage
+
+For more examples, refer to the Weather Agent implementation in the codebase.
+
 ## Recent Improvements
 
 ### Chat API Enhancements
