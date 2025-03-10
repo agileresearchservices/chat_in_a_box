@@ -1,11 +1,8 @@
 /**
- * This module imports necessary utilities and exports a custom class name utility function.
+ * This module provides utilities for handling Tailwind CSS class names.
  */
 
-// Import `ClassValue` type and `clsx` from the 'clsx' package for combining class names
 import { type ClassValue, clsx } from 'clsx';
-
-// Import `twMerge` from 'tailwind-merge' to merge Tailwind CSS classes intelligently
 import { twMerge } from 'tailwind-merge';
 
 /**

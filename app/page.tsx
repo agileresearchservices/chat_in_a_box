@@ -24,7 +24,7 @@ import {
 // Import application-specific services and utilities
 import { sendMessage, getEmbedding, _clearMemory } from './services/api'
 import { toast } from 'react-hot-toast'
-import { cn } from '@/lib/utils'
+import { cn } from '@/utils/tailwind'
 import { parseMessage } from '@/utils/message-parser'
 import logger from '@/utils/logger'
 
