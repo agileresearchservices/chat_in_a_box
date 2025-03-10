@@ -246,6 +246,89 @@ paths:
               schema:
                 $ref: '#/components/schemas/ServerError'
 
+  /api/weather:
+    post:
+      summary: Get US city weather information
+      description: |
+        Retrieves real-time weather data from the National Weather Service API for US cities.
+        Includes city geocoding, grid point retrieval, and detailed weather forecast information.
+        Note: This service only works for cities within the United States.
+      operationId: getWeatherForCity
+      tags:
+        - Weather
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                city:
+                  type: string
+                  description: Name of the US city to get weather for
+                  example: "Boston"
+              required:
+                - city
+      responses:
+        '200':
+          description: Successfully retrieved weather information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      location:
+                        type: string
+                        description: City and state name
+                        example: "Boston, Massachusetts"
+                      temperature:
+                        type: number
+                        description: Current temperature
+                        example: 72
+                      temperatureUnit:
+                        type: string
+                        description: Temperature unit (F for Fahrenheit)
+                        example: "F"
+                      shortForecast:
+                        type: string
+                        description: Brief weather description
+                        example: "Partly Sunny"
+                      detailedForecast:
+                        type: string
+                        description: Detailed weather forecast
+                        example: "Partly sunny with a high near 72. North wind around 10 mph."
+                  success:
+                    type: boolean
+                    example: true
+        '400':
+          description: Invalid input (e.g., empty city name)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '404':
+          description: City not found or non-US location
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Location 'Paris, France' appears to be outside the United States"
+                  success:
+                    type: boolean
+                    example: false
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerError'
+
 components:
   schemas:
     Message:

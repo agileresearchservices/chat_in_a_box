@@ -10,6 +10,15 @@ Chat in a Box is a cutting-edge Retrieval-Augmented Generation (RAG) application
 - **Advanced Vector Search**: Implements PostgreSQL with pgvector for efficient semantic document retrieval and similarity search.
 - **Multi-format Document Support**: Extract and process text from various file formats including .txt, .pdf, and .docx.
 - **Flexible AI Interactions**: Perform advanced document querying, generation, and reranking with local AI models.
+- **US Weather Information**: Real-time weather data for US cities using the National Weather Service API with intelligent city resolution.
+
+## Core Capabilities
+
+1. Semantic Document Search
+2. Local AI-powered Text Generation
+3. Intelligent Passage Reranking
+4. Flexible Embedding Generation
+5. Real-time US Weather Data
 
 ## Technology Stack
 
@@ -20,12 +29,41 @@ Chat in a Box is a cutting-edge Retrieval-Augmented Generation (RAG) application
 - **ORM**: Prisma
 - **Containerization**: Docker
 
-## Core Capabilities
+## API Endpoints
 
-1. Semantic Document Search
-2. Local AI-powered Text Generation
-3. Intelligent Passage Reranking
-4. Flexible Embedding Generation
+The application provides several RESTful API endpoints:
+
+### Chat Endpoints
+- `POST /api/chat`: Send messages and receive AI responses
+- `DELETE /api/chat`: Clear conversation memory
+
+### Search and Embedding
+- `POST /api/search`: Perform semantic document search
+- `POST /api/embed`: Generate text embeddings
+
+### Weather Information
+- `POST /api/weather`: Get real-time weather data for US cities
+  ```json
+  // Request
+  {
+    "city": "Boston"
+  }
+
+  // Response
+  {
+    "data": {
+      "location": "Boston, Massachusetts",
+      "temperature": 58,
+      "temperatureUnit": "F",
+      "shortForecast": "Sunny",
+      "detailedForecast": "Sunny, with a high near 58..."
+    },
+    "success": true
+  }
+  ```
+
+### Documentation
+- `GET /api/redoc`: OpenAPI/Swagger documentation
 
 ## Getting Started
 
