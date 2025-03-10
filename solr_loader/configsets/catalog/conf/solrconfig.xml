@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<config>
+  <!-- Set latest Lucene/Solr version -->
+  <luceneMatchVersion>9.0.0</luceneMatchVersion>
+  
+  <!-- Explicitly set updateLog for _version_ field -->
+  <updateHandler class="solr.DirectUpdateHandler2">
+    <updateLog>
+      <str name="dir">${solr.ulog.dir:}</str>
+    </updateLog>
+  </updateHandler>
+  
+  <!-- Auto-commit settings -->
+  <autoCommit>
+    <maxTime>${solr.autoCommit.maxTime:15000}</maxTime>
+    <openSearcher>false</openSearcher>
+  </autoCommit>
+  
+  <autoSoftCommit>
+    <maxTime>${solr.autoSoftCommit.maxTime:1000}</maxTime>
+  </autoSoftCommit>
+  
+  <!-- Request handlers -->
+  <requestHandler name="/select" class="solr.SearchHandler">
+    <lst name="defaults">
+      <str name="echoParams">explicit</str>
+      <int name="rows">10</int>
+      <str name="df">text</str>
+    </lst>
+  </requestHandler>
+  
+  <!-- Update request handlers -->
+  <requestHandler name="/update" class="solr.UpdateRequestHandler" />
+  
+  <!-- CSV update handler -->
+  <requestHandler name="/update/csv" class="solr.UpdateRequestHandler">
+    <lst name="defaults">
+      <str name="separator">,</str>
+      <str name="header">true</str>
+      <str name="encapsulator">"</str>
+      <str name="escape">\</str>
+    </lst>
+  </requestHandler>
+</config>
