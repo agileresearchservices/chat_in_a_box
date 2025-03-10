@@ -19,6 +19,7 @@ Chat in a Box is a cutting-edge Retrieval-Augmented Generation (RAG) application
 3. Intelligent Passage Reranking
 4. Flexible Embedding Generation
 5. Real-time US Weather Data
+6. PydanticAI Agent System
 
 ## Technology Stack
 
@@ -28,6 +29,7 @@ Chat in a Box is a cutting-edge Retrieval-Augmented Generation (RAG) application
 - **Database**: PostgreSQL with pgvector
 - **ORM**: Prisma
 - **Containerization**: Docker
+- **Agent System**: PydanticAI with custom agents
 
 ## API Endpoints
 
@@ -40,6 +42,31 @@ The application provides several RESTful API endpoints:
 ### Search and Embedding
 - `POST /api/search`: Perform semantic document search
 - `POST /api/embed`: Generate text embeddings
+
+### Agent System
+- `POST /api/agents`: Execute PydanticAI agents
+  ```json
+  // Request
+  {
+    "query": "What's the weather in Boston?",
+    "agentType": "weather",
+    "parameters": {
+      "weatherApiEndpoint": "/api/weather"
+    }
+  }
+
+  // Response (streaming)
+  {
+    "message": {
+      "content": "<think>Processing weather query using PydanticAI...</think>"
+    }
+  }
+  {
+    "message": {
+      "content": "Here's the current weather for Boston, Massachusetts:\n🌡️ Temperature: 58°F\nSunny\n\nDetailed Forecast:\nSunny, with a high near 58..."
+    }
+  }
+  ```
 
 ### Weather Information
 - `POST /api/weather`: Get real-time weather data for US cities
@@ -435,6 +462,39 @@ await prisma.document.create({
   }
 });
 ```
+
+## Agent System
+
+Chat in a Box includes a powerful agent system built with PydanticAI, enabling intelligent task handling and automation.
+
+### Available Agents
+
+1. **Weather Agent**
+   - Natural language weather queries for US cities
+   - Real-time data from National Weather Service API
+   - Intelligent city name extraction
+   - Detailed weather information and forecasts
+
+### Agent Features
+
+- **Dynamic Agent Detection**: Automatically identifies appropriate agent based on query patterns
+- **Streaming Responses**: Real-time response streaming with thinking indicators
+- **Error Handling**: Comprehensive error handling and informative messages
+- **Extensible Architecture**: Easy to add new agent types
+
+### Agent Usage
+
+Agents can be invoked through natural language in the chat interface:
+- Weather queries: "What's the weather like in Boston?"
+- Future agents: Search, summarization, and more coming soon
+
+### Agent Architecture
+
+The agent system is built with:
+- **PydanticAI**: For structured agent handling
+- **Python Virtual Environment**: Isolated execution environment
+- **TypeScript Integration**: Seamless frontend integration
+- **Streaming Support**: Real-time response updates
 
 ## Recent Improvements
 

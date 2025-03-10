@@ -1,0 +1,113 @@
+openapi: 3.0.0
+info:
+  title: Chat in a Box - Agent API
+  version: '1.0'
+  description: |
+    API for executing PydanticAI agents in Chat in a Box.
+    
+    The agent system enables intelligent task handling and automation through natural language queries.
+    Currently supports weather queries with more agent types coming soon.
+
+paths:
+  /api/agents:
+    post:
+      summary: Execute a PydanticAI agent
+      description: |
+        Executes a PydanticAI agent based on the provided query and agent type.
+        Returns a streaming response with thinking process and agent results.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentRequest'
+      responses:
+        '200':
+          description: Successful agent execution (streaming)
+          content:
+            text/event-stream:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: object
+                    properties:
+                      content:
+                        type: string
+                        description: Agent response content or thinking process
+                        example: |
+                          <think>Processing weather query using PydanticAI...</think>
+                          Here's the current weather for Boston, Massachusetts:
+                          🌡️ Temperature: 58°F
+                          Sunny
+                          
+                          Detailed Forecast:
+                          Sunny, with a high near 58...
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    AgentRequest:
+      type: object
+      required:
+        - query
+        - agentType
+      properties:
+        query:
+          type: string
+          description: Natural language query for the agent
+          example: What's the weather like in Boston?
+          minLength: 1
+        agentType:
+          type: string
+          description: Type of agent to execute
+          enum:
+            - weather
+            - search
+            - summarize
+          example: weather
+        parameters:
+          type: object
+          description: Additional parameters for the agent
+          additionalProperties: true
+          example:
+            weatherApiEndpoint: /api/weather
+    
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: Invalid input
+        details:
+          oneOf:
+            - type: string
+              description: Detailed error message
+              example: Unknown error
+            - type: array
+              description: List of validation errors
+              items:
+                type: object
+                properties:
+                  field:
+                    type: string
+                    description: Field with error
+                    example: query
+                  message:
+                    type: string
+                    description: Error message for field
+                    example: Query must not be empty
