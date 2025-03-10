@@ -181,7 +181,7 @@ agent_module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(agent_module)
 
 # Initialize and execute the appropriate agent
-agent_class_name = f"{agent_type[0].upper()}{agentType[1:]}Agent"
+agent_class_name = f"{agent_type[0].upper()}{agent_type[1:]}Agent"
 agent_class = getattr(agent_module, agent_class_name)
 agent = agent_class()
 result = agent.process(${JSON.stringify(query)}, ${pythonParameters})

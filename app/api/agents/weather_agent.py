@@ -25,10 +25,14 @@ class WeatherAgent(Agent):
     def __init__(self):
         super().__init__()
         self.city_patterns = [
-            r'(?:in|at|for) ([\w\s]+?)(?:\?|$|,|\s+(?:today|now|tomorrow|tonight))',
-            r'(?:weather|temperature|forecast) (?:in|at|for) ([\w\s]+?)(?:\?|$|,|\s+(?:today|now|tomorrow|tonight))'
+            # Match after weather-related phrases
+            r'(?:weather|temperature|forecast|conditions?)(?:[^a-zA-Z]+(?:in|at|for|of))?\s*([^?.,]*?)(?:\?|$|,|\s+(?:today|now|tomorrow|tonight))',
+            # Match after question words
+            r'(?:what|how|tell\s+me)(?:\s+is|\s*\'s)?\s*(?:the|current)?\s*(?:weather|temperature|forecast|conditions?)(?:[^a-zA-Z]+(?:in|at|for|of))?\s*([^?.,]*?)(?:\?|$|,|\s+(?:today|now|tomorrow|tonight))',
+            # Match simple preposition patterns
+            r'(?:^|\s+)(?:in|at|for|of)\s+([^?.,]*?)(?:\?|$|,|\s+(?:today|now|tomorrow|tonight))'
         ]
-    
+        
     def extract_city(self, query: str) -> Optional[str]:
         """Extract city name from query using regex patterns."""
         for pattern in self.city_patterns:
@@ -36,10 +40,12 @@ class WeatherAgent(Agent):
             if match and match.group(1):
                 # Clean up the extracted city name
                 city = match.group(1).strip()
+                city = re.sub(r'[\\\/]+', '', city)  # Remove slashes
                 city = re.sub(r'\s+', ' ', city)  # Normalize spaces
                 city = re.sub(r'^the\s+', '', city, flags=re.IGNORECASE)  # Remove leading "the"
                 city = re.sub(r'\s+city$', '', city, flags=re.IGNORECASE)  # Remove trailing "city"
-                return city
+                if city:  # Only return if we have a non-empty string after cleaning
+                    return city
         return None
     
     def process(self, query: str, parameters: Optional[Dict[str, Any]] = None) -> str:
@@ -57,9 +63,11 @@ class WeatherAgent(Agent):
         city = parameters.get('city') if parameters else None
         if not city:
             city = self.extract_city(query)
+            if not city:
+                return "I couldn't understand which city you're asking about. Please specify a city name."
             
-        if not city:
-            return "I couldn't understand which city you're asking about. Please specify a city name."
+            # Pass only the extracted city name to the weather API
+            query = city
             
         base_url = os.environ.get('NEXT_PUBLIC_BASE_URL', 'http://localhost:3000')
         weather_api_endpoint = f"{base_url}{parameters.get('weatherApiEndpoint', '/api/weather')}"
@@ -73,18 +81,18 @@ class WeatherAgent(Agent):
                 async with httpx.AsyncClient() as client:
                     response = await client.post(
                         weather_api_endpoint,
-                        json={'city': city},
+                        json={'city': query},
                         headers={'Content-Type': 'application/json'}
                     )
                     
                     if response.status_code == 404:
-                        return f"I couldn't find weather information for {city}. This service only works for US cities."
+                        return f"I couldn't find weather information for {query}. This service only works for US cities."
                         
                     response.raise_for_status()
                     data = response.json()
                     
                     if not data.get('data'):
-                        return f"Sorry, I couldn't get weather information for {city}. Please try again later."
+                        return f"Sorry, I couldn't get weather information for {query}. Please try again later."
                     
                     weather_data = data['data']
                     # Format the response using the existing structure
