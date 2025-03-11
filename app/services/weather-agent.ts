@@ -10,6 +10,7 @@
 
 import logger from '@/utils/logger';
 import { agentService, AgentType } from './agent';
+import { nlpService } from './nlp.service';
 
 /**
  * Regular expressions for detecting weather-related intents in user queries.
@@ -32,6 +33,7 @@ const WEATHER_PATTERNS = [
 /**
  * Regular expressions for extracting city names from weather queries.
  * These patterns are designed to capture city names in various query formats.
+ * Used as a fallback when NLP service doesn't identify a city.
  * 
  * Examples:
  * - "in Boston" -> "Boston"
@@ -62,7 +64,7 @@ interface WeatherResponse {
  * 
  * Key Features:
  * - Smart weather query detection using regex patterns
- * - Intelligent city name extraction from natural language
+ * - Intelligent city name extraction using NLP service with regex fallback
  * - Integration with PydanticAI agent system
  * - Real-time US weather data retrieval
  * - Comprehensive error handling and logging
@@ -89,10 +91,11 @@ export class WeatherAgent {
   }
 
   /**
-   * Extracts a city name from a weather-related query using regex patterns
+   * Extracts a city name from a weather-related query using NLP service.
+   * Falls back to regex patterns if NLP doesn't identify a city.
    * 
    * @param input - The user's raw input text
-   * @returns The cleaned city name or null if no city is found
+   * @returns A Promise resolving to the cleaned city name or null if no city is found
    * 
    * @example
    * Input: "What's the weather like in New York City?"
@@ -100,17 +103,79 @@ export class WeatherAgent {
    * 
    * @private
    */
-  private extractCity(input: string): string | null {
+  private async extractCityWithNLP(input: string): Promise<string | null> {
+    try {
+      logger.info('Attempting to extract city with NLP service', { input });
+      
+      // Use NLP service to analyze the text and extract entities
+      const nlpResult = await nlpService.analyze(input);
+      
+      // Debug output of all entities found
+      logger.debug('NLP analysis result', { 
+        entities: nlpResult.entities,
+        input 
+      });
+      
+      // Find city entities
+      const cityEntities = nlpResult.entities.filter(entity => entity.entity === 'city');
+      
+      if (cityEntities.length > 0) {
+        // Use the first city entity found
+        const extractedCity = cityEntities[0].value;
+        logger.info('City extracted by NLP service', { 
+          input,
+          extractedCity,
+          allCitiesFound: cityEntities.map(e => e.value)
+        });
+        
+        return extractedCity;
+      }
+      
+      logger.info('No city found by NLP service, falling back to regex', { input });
+      
+      // Fall back to regex extraction if NLP service didn't find a city
+      return this.extractCityWithRegex(input);
+    } catch (error) {
+      logger.error('Error extracting city with NLP', {
+        error: error instanceof Error ? error.message : String(error),
+        input
+      });
+      
+      // Fall back to regex extraction on error
+      return this.extractCityWithRegex(input);
+    }
+  }
+
+  /**
+   * Extracts a city name from a weather-related query using regex patterns.
+   * Used as a fallback when NLP service doesn't identify a city.
+   * 
+   * @param input - The user's raw input text
+   * @returns The cleaned city name or null if no city is found
+   * 
+   * @private
+   */
+  private extractCityWithRegex(input: string): string | null {
     for (const pattern of CITY_PATTERNS) {
       const match = input.match(pattern);
       if (match && match[1]) {
         // Clean up and normalize the extracted city name
-        return match[1].trim()
+        const extractedCity = match[1].trim()
           .replace(/\s+/g, ' ')     // Normalize multiple spaces to single space
           .replace(/^the\s+/i, '')  // Remove leading "the" (e.g., "the Boston")
           .replace(/\s+city$/i, ''); // Remove trailing "city" (e.g., "New York City" -> "New York")
+        
+        logger.info('City extracted by regex fallback', { 
+          input, 
+          extractedCity,
+          pattern: pattern.toString()
+        });
+        
+        return extractedCity;
       }
     }
+    
+    logger.info('No city found by regex patterns', { input });
     return null;
   }
 
@@ -130,17 +195,20 @@ export class WeatherAgent {
    */
   public async handleWeatherQuery(input: string): Promise<Response | null> {
     try {
-      // Extract city name from the query
-      const city = this.extractCity(input);
+      logger.info('Processing weather query', { input });
+      
+      // Extract city name from the query using NLP with regex fallback
+      const city = await this.extractCityWithNLP(input);
       
       if (!city) {
-        logger.info('No city found in weather query', { input });
+        logger.info('No city found in weather query after both NLP and regex extraction', { input });
         return null;
       }
 
-      logger.info('Processing weather query', { 
+      logger.info('Successfully extracted city for weather query', { 
         input,
-        extractedCity: city 
+        extractedCity: city,
+        extractionMethod: 'nlp+regex'
       });
 
       // Execute weather query through PydanticAI agent system
