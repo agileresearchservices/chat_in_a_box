@@ -22,6 +22,7 @@ export interface WeatherData {
   temperatureUnit: string;
   shortForecast: string;
   detailedForecast: string;
+  timeframe?: string;  
 }
 
 // Nominatim API response types
@@ -43,7 +44,8 @@ interface NominatimLocation {
 
 // Input validation schemas
 export const weatherQuerySchema = z.object({
-  city: z.string().min(1, 'City name is required')
+  city: z.string().min(1, 'City name is required'),
+  timeframe: z.string().optional().default('now')  
 });
 
 export type WeatherQuery = z.infer<typeof weatherQuerySchema>;
@@ -160,12 +162,123 @@ async function getGridPoints(latitude: number, longitude: number): Promise<strin
 }
 
 /**
+ * Selects the appropriate forecast period based on the requested timeframe
+ * 
+ * @param periods - Array of forecast periods from the NWS API
+ * @param timeframe - The requested timeframe (now, today, tomorrow, tonight, etc.)
+ * @returns The selected forecast period or the current period if no match is found
+ * 
+ * @private
+ */
+function selectForecastPeriod(periods: any[], timeframe: string): any {
+  logger.debug('Selecting forecast period', { timeframe, periodsAvailable: periods.length });
+  
+  if (!periods.length) return null;
+  
+  const now = new Date();
+  const hours = now.getHours();
+  const isDaytime = hours >= 6 && hours < 18;
+  
+  // Default to the current period (first in the list)
+  let selectedPeriod = periods[0];
+  let periodIndex = 0;
+  
+  switch (timeframe) {
+    case 'now':
+      // Current conditions (first period)
+      selectedPeriod = periods[0];
+      break;
+      
+    case 'today':
+      // If it's already evening, first period might be night, so ensure we get a daytime period
+      if (!isDaytime && periods.length > 1 && !periods[0].isDaytime) {
+        // Look for the next daytime period
+        for (let i = 1; i < periods.length; i++) {
+          if (periods[i].isDaytime) {
+            selectedPeriod = periods[i];
+            periodIndex = i;
+            break;
+          }
+        }
+      }
+      break;
+      
+    case 'tonight':
+      // Look for the first nighttime period
+      for (let i = 0; i < periods.length; i++) {
+        if (!periods[i].isDaytime) {
+          selectedPeriod = periods[i];
+          periodIndex = i;
+          break;
+        }
+      }
+      break;
+      
+    case 'tomorrow':
+      // Find tomorrow's daytime forecast
+      // If it's currently daytime, we need to go 2 periods ahead (tonight, then tomorrow)
+      // If it's currently nighttime, we need to go 1 period ahead (to tomorrow)
+      const tomorrowIndex = isDaytime ? 2 : 1;
+      if (periods.length > tomorrowIndex) {
+        selectedPeriod = periods[tomorrowIndex];
+        periodIndex = tomorrowIndex;
+      }
+      break;
+      
+    case 'week':
+    case 'next_week':
+      // For a weekly forecast, we'll just use a later period (3-4 days out)
+      const weekIndex = Math.min(6, periods.length - 1);
+      selectedPeriod = periods[weekIndex];
+      periodIndex = weekIndex;
+      break;
+      
+    case 'weekend':
+    case 'next_weekend':
+      // Find the weekend days (Fri, Sat, Sun)
+      for (let i = 0; i < periods.length; i++) {
+        const name = periods[i].name.toLowerCase();
+        if (name.includes('friday') || name.includes('saturday') || name.includes('sunday')) {
+          selectedPeriod = periods[i];
+          periodIndex = i;
+          break;
+        }
+      }
+      break;
+      
+    default:
+      // For any other timeframe, look for period names that contain the timeframe
+      for (let i = 0; i < periods.length; i++) {
+        const name = periods[i].name.toLowerCase();
+        const details = periods[i].detailedForecast.toLowerCase();
+        
+        if (name.includes(timeframe.toLowerCase()) || details.includes(timeframe.toLowerCase())) {
+          selectedPeriod = periods[i];
+          periodIndex = i;
+          break;
+        }
+      }
+  }
+  
+  logger.info('Selected forecast period', { 
+    timeframe, 
+    periodName: selectedPeriod.name,
+    periodIndex,
+    isDaytime: selectedPeriod.isDaytime 
+  });
+  
+  return selectedPeriod;
+}
+
+/**
  * Get weather information for a US city
- * @param city Name of the city
+ * @param query Weather query containing city name and optional timeframe
  * @returns Weather information including temperature and forecast
  */
 export async function getWeatherForCity(query: WeatherQuery): Promise<WeatherData> {
-  const { city } = query;
+  const { city, timeframe = 'now' } = query;
+  
+  logger.info('Getting weather for city with timeframe', { city, timeframe });
   
   // Step 1: Get coordinates
   const location = await geocodeCity(city);
@@ -187,18 +300,26 @@ export async function getWeatherForCity(query: WeatherQuery): Promise<WeatherDat
   }
 
   const data = await response.json();
-  const currentPeriod = data.properties?.periods?.[0];
+  const periods = data.properties?.periods || [];
 
-  if (!currentPeriod) {
+  if (!periods.length) {
     throw new Error(`No forecast data available for ${city}`);
+  }
+  
+  // Step 4: Select the appropriate forecast period based on the timeframe
+  const selectedPeriod = selectForecastPeriod(periods, timeframe);
+  
+  if (!selectedPeriod) {
+    throw new Error(`No forecast period available for timeframe: ${timeframe}`);
   }
 
   // Format response
   return {
     location: `${location.city}, ${location.region}`,
-    temperature: currentPeriod.temperature,
-    temperatureUnit: currentPeriod.temperatureUnit || 'F',
-    shortForecast: currentPeriod.shortForecast || 'No forecast available',
-    detailedForecast: currentPeriod.detailedForecast || 'No detailed forecast available'
+    temperature: selectedPeriod.temperature,
+    temperatureUnit: selectedPeriod.temperatureUnit || 'F',
+    shortForecast: selectedPeriod.shortForecast || 'No forecast available',
+    detailedForecast: selectedPeriod.detailedForecast || 'No detailed forecast available',
+    timeframe: timeframe  
   };
 }

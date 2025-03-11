@@ -13,12 +13,13 @@ import { createSuccessResponse, createErrorResponse } from '@/utils/api-response
  * - City name to coordinate conversion via Nominatim API
  * - Real-time weather data from National Weather Service
  * - US-specific weather information
+ * - Time-based forecasts (current, today, tomorrow, tonight, etc)
  * 
  * Workflow:
- * 1. Receive city name via POST request
+ * 1. Receive city name and optional timeframe via POST request
  * 2. Validate input
  * 3. Convert city to coordinates
- * 4. Fetch weather data
+ * 4. Fetch weather data for the specified timeframe
  * 5. Return formatted weather information
  * 
  * Error Handling:
@@ -28,6 +29,7 @@ import { createSuccessResponse, createErrorResponse } from '@/utils/api-response
  * 
  * @route POST /api/weather
  * @param {string} city - The name of the US city to get weather for
+ * @param {string} [timeframe='now'] - The timeframe for forecast (now, today, tomorrow, tonight)
  * @returns {NextResponse} JSON response containing weather information
  */
 export async function POST(req: Request) {
@@ -37,7 +39,8 @@ export async function POST(req: Request) {
     const query = weatherQuerySchema.parse(body);
 
     logger.info('Processing weather request:', { 
-      city: query.city 
+      city: query.city,
+      timeframe: query.timeframe || 'now'
     });
 
     // Get weather data
