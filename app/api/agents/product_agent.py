@@ -236,8 +236,8 @@ class ProductAgent(Agent):
         response = [header]
         
         for i, product in enumerate(products):
-            # Line 1: Product title with phone emoji
-            model_line = f"\n📱 {product['title']} 💰 ${float(product['price']):.2f}"
+            # Line 1: Product title with phone emoji and money bag before price
+            model_line = f"\n📱 {product['title']} 💸 ${float(product['price']):.2f}"
             
             # Line 2: All specs on one line with separators
             specs_parts = []
@@ -263,7 +263,7 @@ class ProductAgent(Agent):
             response.append(model_line)
             response.append(specs_line)
             
-            # Add a blank line between products except for the last one
+            # Add an empty line between products (single newline is rendered as space)
             if i < len(products) - 1:
                 response.append("")
         

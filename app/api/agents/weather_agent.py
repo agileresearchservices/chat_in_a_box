@@ -3,9 +3,9 @@ from typing import Optional, Dict, Any
 from collections.abc import Sequence
 import httpx
 import json
-import asyncio
 import os
 import re
+import asyncio
 
 class WeatherAgent(Agent):
     """
@@ -212,7 +212,7 @@ class WeatherAgent(Agent):
         # Default to current conditions if no time reference found
         return 'now'
     
-    def process(self, query: str, parameters: Optional[Dict[str, Any]] = None) -> str:
+    async def process(self, query: str, parameters: Optional[Dict[str, Any]] = None) -> str:
         """
         Process a weather query using the existing weather service.
         
@@ -237,90 +237,86 @@ class WeatherAgent(Agent):
             timeframe = self.extract_timeframe(query)
             
         base_url = os.environ.get('NEXT_PUBLIC_BASE_URL', 'http://localhost:3000')
-        weather_api_endpoint = f"{base_url}{parameters.get('weatherApiEndpoint', '/api/weather')}"
+        weather_api_endpoint = f"{base_url}/api/weather"
+        
+        # Only override with parameters if they exist
+        if parameters and 'weatherApiEndpoint' in parameters:
+            weather_api_endpoint = f"{base_url}{parameters.get('weatherApiEndpoint')}"
         
         try:
-            # Create an event loop to run async code in sync context
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            
-            async def fetch_weather():
-                async with httpx.AsyncClient() as client:
-                    # Log the request parameters for debugging
-                    print(f"Making weather request for city: '{city}', timeframe: '{timeframe}'")
-                    
-                    # Send both city and timeframe to the weather API
-                    response = await client.post(
-                        weather_api_endpoint,
-                        json={'city': city, 'timeframe': timeframe},
-                        headers={'Content-Type': 'application/json'}
-                    )
-                    
-                    if response.status_code == 404:
-                        return f"I couldn't find weather information for {city}. This service only works for US cities."
-                    
-                    # Handle other error codes with more details
-                    if response.status_code >= 400:
-                        # First, try to parse the response as JSON
-                        try:
-                            error_data = response.json()
-                            
-                            # Check for specific error messages about invalid/not found locations
-                            if 'errorMessage' in error_data and 'Could not find US location' in error_data['errorMessage']:
-                                return f"I couldn't find weather information for '{city}'. Please make sure you've entered a valid US city name."
-                                
-                            if 'error' in error_data:
-                                error_msg = error_data['error']
-                                if 'find' in error_msg.lower() and 'location' in error_msg.lower():
-                                    return f"I couldn't find weather information for '{city}'. Please make sure you've entered a valid US city name."
-                                return f"Sorry, I couldn't get weather information for {city} with timeframe '{timeframe}'. Error: {error_msg}"
-                        except json.JSONDecodeError:
-                            # If not JSON, try to check the raw response text
-                            error_text = response.text
-                            if 'Could not find US location' in error_text or 'No location found' in error_text:
-                                return f"I couldn't find weather information for '{city}'. Please make sure you've entered a valid US city name."
-                            
-                            return f"Sorry, I couldn't get weather information for {city} with timeframe '{timeframe}'. The weather service returned an error."
+            # Use asynchronous httpx client
+            async with httpx.AsyncClient() as client:
+                # Log the request parameters for debugging
+                print(f"Making weather request for city: '{city}', timeframe: '{timeframe}'")
+                
+                # Send both city and timeframe to the weather API
+                response = await client.post(
+                    weather_api_endpoint,
+                    json={'city': city, 'timeframe': timeframe},
+                    headers={'Content-Type': 'application/json'},
+                    timeout=10.0  # Add timeout for safety
+                )
+                
+                if response.status_code == 404:
+                    return f"I couldn't find weather information for {city}. This service only works for US cities."
+                
+                # Handle other error codes with more details
+                if response.status_code >= 400:
+                    # First, try to parse the response as JSON
+                    try:
+                        error_data = response.json()
                         
-                    response.raise_for_status()
-                    data = response.json()
+                        # Check for specific error messages about invalid/not found locations
+                        if 'errorMessage' in error_data and 'Could not find US location' in error_data['errorMessage']:
+                            return f"I couldn't find weather information for '{city}'. Please make sure you've entered a valid US city name."
+                            
+                        if 'error' in error_data:
+                            error_msg = error_data['error']
+                            if 'find' in error_msg.lower() and 'location' in error_msg.lower():
+                                return f"I couldn't find weather information for '{city}'. Please make sure you've entered a valid US city name."
+                            return f"Sorry, I couldn't get weather information for {city} with timeframe '{timeframe}'. Error: {error_msg}"
+                    except json.JSONDecodeError:
+                        # If not JSON, try to check the raw response text
+                        error_text = response.text
+                        if 'Could not find US location' in error_text or 'No location found' in error_text:
+                            return f"I couldn't find weather information for '{city}'. Please make sure you've entered a valid US city name."
+                        
+                        return f"Sorry, I couldn't get weather information for {city} with timeframe '{timeframe}'. The weather service returned an error."
                     
-                    if not data.get('data'):
-                        return f"Sorry, I couldn't get weather information for {city}. Please try again later."
-                    
-                    weather_data = data['data']
-                    
-                    # Format the response based on the timeframe requested
-                    time_description = ""
-                    if timeframe == 'now':
-                        time_description = "current"
-                    elif timeframe == 'today':
-                        time_description = "today's"
-                    elif timeframe == 'tomorrow':
-                        time_description = "tomorrow's"
-                    elif timeframe == 'tonight':
-                        time_description = "tonight's"
-                    elif timeframe == 'week' or timeframe == 'next_week':
-                        time_description = "this week's"
-                    elif timeframe == 'weekend' or timeframe == 'next_weekend':
-                        time_description = "weekend"
-                    else:
-                        # For any other timeframe or unknown values, default to "current"
-                        # This ensures we always have a time descriptor in the response
-                        time_description = timeframe if timeframe else "current"
-                    
-                    # Format the response using the existing structure with timeframe context
-                    return f"""Here's the {time_description} weather for {weather_data['location']}:
+                response.raise_for_status()
+                data = response.json()
+                
+                if not data.get('data'):
+                    return f"Sorry, I couldn't get weather information for {city}. Please try again later."
+                
+                weather_data = data['data']
+                
+                # Format the response based on the timeframe requested
+                time_description = ""
+                if timeframe == 'now':
+                    time_description = "current"
+                elif timeframe == 'today':
+                    time_description = "today's"
+                elif timeframe == 'tomorrow':
+                    time_description = "tomorrow's"
+                elif timeframe == 'tonight':
+                    time_description = "tonight's"
+                elif timeframe == 'week' or timeframe == 'next_week':
+                    time_description = "this week's"
+                elif timeframe == 'weekend' or timeframe == 'next_weekend':
+                    time_description = "weekend"
+                else:
+                    # For any other timeframe or unknown values, default to "current"
+                    # This ensures we always have a time descriptor in the response
+                    time_description = timeframe if timeframe else "current"
+                
+                # Format the response using the existing structure with timeframe context
+                return f"""Here's the {time_description} weather for {weather_data['location']}:
 🌡️ Temperature: {weather_data['temperature']}°{weather_data['temperatureUnit']}
 {weather_data['shortForecast']}
 
 Detailed Forecast:
 {weather_data['detailedForecast']}"""
-            
-            # Run the async function in the event loop
-            result = loop.run_until_complete(fetch_weather())
-            loop.close()
-            return result
                 
         except httpx.HTTPError as e:
             status_code = None
