@@ -126,12 +126,23 @@ RESPONSE=$(curl -s -X POST "http://localhost:9200/_bulk?pretty" \
 echo "$RESPONSE" > bulk_response.json
 
 # Check if the loading was successful by parsing the JSON response
-if echo "$RESPONSE" | grep -q '"errors":false'; then
-  echo "✓ Data loading successful!"
+if echo "$RESPONSE" | python3 -c '
+import json
+import sys
+try:
+    response = json.load(sys.stdin)
+    if not response.get("errors", True):  # Default to True if errors field not found
+        sys.exit(0)
+    else:
+        sys.exit(1)
+except Exception as e:
+    sys.exit(1)
+'; then
+    echo "✓ Data loading successful!"
 else
-  echo "✗ Error loading data:"
-  echo "Saved detailed response to bulk_response.json"
-  exit 1
+    echo "✗ Error loading data:"
+    echo "Check bulk_response.json for details"
+    exit 1
 fi
 
 # Verify document count
@@ -139,16 +150,21 @@ echo "Verifying document count..."
 sleep 2  # Give OpenSearch a moment to refresh
 curl -X POST "http://localhost:9200/catalog/_refresh" > /dev/null
 COUNT_RESPONSE=$(curl -s 'http://localhost:9200/catalog/_count')
-COUNT=$(echo "$COUNT_RESPONSE" | grep -o '"count":[0-9]*' | cut -d':' -f2)
+COUNT=$(echo "$COUNT_RESPONSE" | python3 -c '
+import json
+import sys
+try:
+    response = json.load(sys.stdin)
+    print(response.get("count", 0))
+except:
+    print(0)
+')
 
-if [ -z "$COUNT" ]; then
-  echo "✗ Could not retrieve document count"
-  exit 1
-elif [ "$COUNT" -eq 0 ]; then
-  echo "✗ No documents were loaded"
-  exit 1
+if [ -z "$COUNT" ] || [ "$COUNT" -eq 0 ]; then
+    echo "✗ No documents were loaded"
+    exit 1
 else
-  echo "✓ Successfully loaded $COUNT documents"
+    echo "✓ Successfully loaded $COUNT documents"
 fi
 
 echo "=== Setup Complete ==="
