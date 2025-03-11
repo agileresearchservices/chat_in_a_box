@@ -1,0 +1,196 @@
+openapi: 3.1.0
+info:
+  title: Chat in a Box API
+  version: '1.0'
+  description: |
+    API documentation for Chat in a Box, featuring intelligent chat and weather services.
+    
+    ## Key Features
+    - Natural language chat processing
+    - US weather data retrieval
+    - City-based weather queries
+    - Comprehensive error handling
+
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+
+paths:
+  /api/weather:
+    post:
+      summary: Get weather information for a US city
+      description: |
+        Retrieves current weather information for a specified US city using the National Weather Service API.
+        Includes temperature, conditions, and detailed forecast.
+      tags:
+        - Weather
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                city:
+                  type: string
+                  description: Name of the US city to get weather for
+                  example: "Boston"
+              required:
+                - city
+      responses:
+        '200':
+          description: Weather data retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  location:
+                    type: string
+                    description: Full location name (city, state)
+                    example: "Boston, Massachusetts"
+                  temperature:
+                    type: number
+                    description: Current temperature
+                    example: 72
+                  temperatureUnit:
+                    type: string
+                    description: Temperature unit (F/C)
+                    example: "F"
+                  shortForecast:
+                    type: string
+                    description: Brief weather condition description
+                    example: "Sunny"
+                  detailedForecast:
+                    type: string
+                    description: Detailed weather forecast
+                    example: "Sunny, with a high near 72. South wind 5 to 10 mph."
+                  timeframe:
+                    type: string
+                    description: Timeframe of the forecast
+                    example: "now"
+        '400':
+          description: Invalid request (missing or invalid city)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message
+                    example: "City name is required"
+        '404':
+          description: City not found or weather data unavailable
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message
+                    example: "Could not find weather data for the specified city"
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message
+                    example: "Internal server error"
+
+  /api/agents:
+    post:
+      summary: Process chat messages through specialized agents
+      description: |
+        Routes chat messages through specialized agents including the weather agent
+        for natural language weather queries.
+      tags:
+        - Agents
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  description: User's chat message
+                  example: "What's the weather in Boston?"
+                agentType:
+                  type: string
+                  description: Type of agent to process the message
+                  enum: ["weather"]
+                  example: "weather"
+              required:
+                - message
+                - agentType
+      responses:
+        '200':
+          description: Message processed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    type: string
+                    description: Processed response from the agent
+                    example: "Here's the weather for Boston: 72°F and Sunny"
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message
+                    example: "Invalid agent type"
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message
+                    example: "Internal server error"
+
+components:
+  schemas:
+    WeatherData:
+      type: object
+      properties:
+        location:
+          type: string
+          description: Full location name (city, state)
+        temperature:
+          type: number
+          description: Current temperature
+        temperatureUnit:
+          type: string
+          description: Temperature unit (F/C)
+        shortForecast:
+          type: string
+          description: Brief weather condition description
+        detailedForecast:
+          type: string
+          description: Detailed weather forecast
+        timeframe:
+          type: string
+          description: Timeframe of the forecast
+      required:
+        - location
+        - temperature
+        - temperatureUnit
+        - shortForecast
+        - detailedForecast

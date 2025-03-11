@@ -74,21 +74,17 @@ The application provides several RESTful API endpoints:
 ### Weather Information
 - `POST /api/weather`: Get real-time weather data for US cities
   ```json
-  // Request
   {
     "city": "Boston"
   }
 
   // Response
   {
-    "data": {
-      "location": "Boston, Massachusetts",
-      "temperature": 58,
-      "temperatureUnit": "F",
-      "shortForecast": "Sunny",
-      "detailedForecast": "Sunny, with a high near 58..."
-    },
-    "success": true
+    "location": "Boston, Massachusetts",
+    "temperature": 58,
+    "temperatureUnit": "F",
+    "shortForecast": "Sunny",
+    "detailedForecast": "Sunny, with a high near 58..."
   }
   ```
 
@@ -873,3 +869,43 @@ Follow these steps before starting the application:
 1. Activate the virtual environment and start the reranker service.
 2. Verify that npm is installed and run your frontend build/start commands.
 3. Ensure Docker is running and all necessary containers are up.
+
+## Weather System
+- `POST /api/weather`: Get real-time weather data for US cities
+  ```json
+  {
+    "city": "Boston"
+  }
+  ```
+  Response:
+  ```json
+  {
+    "location": "Boston, Massachusetts",
+    "temperature": 72,
+    "temperatureUnit": "F",
+    "shortForecast": "Sunny",
+    "detailedForecast": "Sunny, with a high near 72. South wind 5 to 10 mph.",
+    "timeframe": "now"
+  }
+  ```
+
+## Weather Agent
+The weather agent provides natural language processing for weather queries:
+- Smart query detection and city extraction
+- Support for various timeframes (now, today, tonight, tomorrow)
+- Real-time data from National Weather Service API
+- US-only location support with geocoding
+- Comprehensive error handling
+
+Example queries:
+- "What's the weather like in Boston?"
+- "Will it rain in Seattle tomorrow?"
+- "How hot is it in Miami tonight?"
+
+## API Documentation
+
+The API documentation is available at `/api/redoc` and includes:
+- OpenAPI 3.1.0 specification
+- Detailed endpoint descriptions
+- Request/response examples
+- Error handling documentation

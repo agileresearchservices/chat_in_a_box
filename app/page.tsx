@@ -1,3 +1,13 @@
+/**
+ * Chat in a Box - Main Application Page
+ * 
+ * This is the main page component for the Chat in a Box application.
+ * It handles the core chat functionality including message rendering,
+ * weather data processing, and user interactions.
+ * 
+ * @module ChatPage
+ */
+
 'use client'
 
 // Import essential React hooks and external libraries
@@ -34,21 +44,33 @@ import WeatherCard from './components/WeatherCard'
  * Extended Message Type with Enhanced Metadata
  * 
  * Augments the base AI message type with additional contextual information
+ * for enhanced message handling and display.
  * 
- * Key Enhancements:
- * - Adds timestamp for message tracking
- * - Includes thinking process metadata
- * - Supports streaming and thinking state flags
+ * @interface TimestampedMessage
+ * @extends {AiMessage}
+ * @property {Date} timestamp - When the message was created/received
+ * @property {string} [thinkingProcess] - Optional AI reasoning process
+ * @property {boolean} [isThinking] - Flag indicating if AI is processing
+ * @property {boolean} [isError] - Flag indicating if message contains an error
+ * @property {string} [errorDetail] - Detailed error information if present
+ * @property {boolean} [isStreaming] - Flag indicating if message is being streamed
+ * @property {string} [renderedContent] - Processed content ready for display
  * 
- * Use Cases:
- * - Detailed message history tracking
- * - Capturing AI reasoning process
- * - Managing message rendering states
+ * Key Features:
+ * - Timestamp tracking for message history
+ * - AI reasoning process capture
+ * - Support for streaming and thinking states
+ * - Error handling and display
+ * - Content rendering management
  */
 interface TimestampedMessage extends AiMessage {
   timestamp: Date
   thinkingProcess?: string
   isThinking?: boolean
+  isError?: boolean
+  errorDetail?: string
+  isStreaming?: boolean
+  renderedContent?: string
 }
 
 /**

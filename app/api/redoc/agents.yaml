@@ -1,4 +1,4 @@
-openapi: 3.0.0
+openapi: 3.1.0
 info:
   title: Chat in a Box - Agent API
   version: '1.0'
@@ -6,7 +6,16 @@ info:
     API for executing PydanticAI agents in Chat in a Box.
     
     The agent system enables intelligent task handling and automation through natural language queries.
-    Currently supports weather queries with more agent types coming soon.
+    
+    ## Weather Agent
+    The weather agent provides real-time US weather data with the following capabilities:
+    - Smart weather query detection using regex patterns
+    - City name extraction from natural language input
+    - Real-time weather data fetching from National Weather Service API
+    - Temperature, current conditions, and detailed forecast
+    - Support for various timeframes (now, today, tonight, tomorrow)
+    - Graceful error handling with informative messages
+    - US-only location support with city-to-coordinate conversion
 
 paths:
   /api/agents:
@@ -49,6 +58,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: City not found or weather data unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '500':
           description: Server error
           content:
@@ -60,15 +75,13 @@ components:
   schemas:
     AgentRequest:
       type: object
-      required:
-        - query
-        - agentType
       properties:
         query:
           type: string
-          description: Natural language query for the agent
-          example: What's the weather like in Boston?
-          minLength: 1
+          description: |
+            Natural language query for the agent.
+            For weather agent, can include city name and optional timeframe.
+          example: "What's the weather like in Boston tomorrow?"
         agentType:
           type: string
           description: Type of agent to execute
@@ -76,23 +89,24 @@ components:
             - weather
             - search
             - summarize
-          example: weather
+          example: "weather"
         parameters:
           type: object
           description: Additional parameters for the agent
           additionalProperties: true
           example:
             weatherApiEndpoint: /api/weather
-    
+      required:
+        - query
+        - agentType
+
     ErrorResponse:
       type: object
-      required:
-        - error
       properties:
         error:
           type: string
           description: Error message
-          example: Invalid input
+          example: "Could not find weather data for the specified city"
         details:
           oneOf:
             - type: string
@@ -111,3 +125,32 @@ components:
                     type: string
                     description: Error message for field
                     example: Query must not be empty
+
+    WeatherResponse:
+      type: object
+      description: Weather agent response format
+      properties:
+        location:
+          type: string
+          description: Full location name (city, state)
+          example: "Boston, Massachusetts"
+        temperature:
+          type: number
+          description: Current temperature
+          example: 58
+        temperatureUnit:
+          type: string
+          description: Temperature unit (F/C)
+          example: "F"
+        shortForecast:
+          type: string
+          description: Brief weather condition description
+          example: "Sunny"
+        detailedForecast:
+          type: string
+          description: Detailed weather forecast
+          example: "Sunny, with a high near 58. South wind 5 to 10 mph."
+        timeframe:
+          type: string
+          description: Timeframe of the forecast (now, today, tonight, tomorrow)
+          example: "now"

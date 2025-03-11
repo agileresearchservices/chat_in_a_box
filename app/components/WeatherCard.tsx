@@ -1,3 +1,12 @@
+/**
+ * Weather Card Component Module
+ * 
+ * This module provides a React component for displaying weather information in a visually appealing card format.
+ * It supports various weather conditions and provides appropriate icons based on the weather state and time of day.
+ * 
+ * @module WeatherCard
+ */
+
 'use client'
 
 import React from 'react';
@@ -10,7 +19,20 @@ import {
 import { BoltIcon } from '@heroicons/react/24/solid';
 import { ArrowPathIcon } from '@heroicons/react/24/outline';
 
-// Define weather condition interface
+/**
+ * Weather Data Interface
+ * 
+ * Defines the structure of weather data required by the WeatherCard component.
+ * 
+ * @interface WeatherData
+ * @property {string} location - The name of the location (city, state)
+ * @property {number} temperature - The current temperature value
+ * @property {string} temperatureUnit - The unit of temperature measurement (F/C)
+ * @property {string} shortForecast - A brief description of the weather conditions
+ * @property {string} detailedForecast - A detailed weather forecast description
+ * @property {string} [timeframe] - Optional timeframe of the forecast (now, today, tonight, etc.)
+ * @property {boolean} [isError] - Optional flag indicating if there was an error fetching weather data
+ */
 export interface WeatherData {
   location: string;
   temperature: number;
@@ -21,14 +43,34 @@ export interface WeatherData {
   isError?: boolean;
 }
 
-// Props for the WeatherCard component
+/**
+ * Weather Card Props Interface
+ * 
+ * @interface WeatherCardProps
+ * @property {WeatherData} data - The weather data to display in the card
+ */
 interface WeatherCardProps {
   data: WeatherData;
 }
 
 /**
- * Helper function to get the appropriate weather icon
- * based on the forecast and time of day
+ * Get Weather Icon Function
+ * 
+ * Determines and returns the appropriate weather icon based on the forecast conditions
+ * and time of day. Icons are selected based on a priority order of weather conditions.
+ * 
+ * Priority order:
+ * 1. Clear/Sunny conditions
+ * 2. Cloudy conditions
+ * 3. Rain
+ * 4. Snow
+ * 5. Thunderstorms
+ * 6. Fog/Mist
+ * 7. Default to clear/sunny
+ * 
+ * @param {WeatherData} data - The weather data containing forecast information
+ * @param {boolean} isNight - Flag indicating if it's nighttime
+ * @returns {JSX.Element} The appropriate weather icon component
  */
 function getWeatherIcon(data: WeatherData, isNight: boolean): JSX.Element {
   const lowerForecast = data.shortForecast.toLowerCase();
@@ -105,7 +147,11 @@ function getWeatherIcon(data: WeatherData, isNight: boolean): JSX.Element {
 /**
  * Weather Card Component
  * 
- * Displays weather information in a visually appealing card
+ * Displays weather information in a visually appealing card format.
+ * Supports various weather conditions and provides appropriate icons based on the weather state and time of day.
+ * 
+ * @param {WeatherCardProps} props - The component props
+ * @returns {JSX.Element} The WeatherCard component
  */
 const WeatherCard: React.FC<WeatherCardProps> = ({ data }) => {
   const { location, temperature, temperatureUnit, shortForecast, detailedForecast, timeframe, isError } = data;
