@@ -23,17 +23,16 @@ curl -X PUT "http://localhost:9200/catalog" -H 'Content-Type: application/json' 
   "mappings": {
     "properties": {
       "SKU": { "type": "keyword" },
-      "Brand": { "type": "keyword" },
-      "Model": { "type": "text" },
+      "SKU_ID": { "type": "keyword" },
+      "Base_ID": { "type": "keyword" },
       "Title": { "type": "text" },
-      "Color": { "type": "keyword" },
-      "Release_Year": { "type": "integer" },
-      "Screen_Size": { "type": "float" },
-      "Storage": { "type": "keyword" },
-      "RAM": { "type": "keyword" },
       "Price": { "type": "float" },
-      "Rating": { "type": "float" },
-      "Description": { "type": "text" }
+      "Description": { "type": "text" },
+      "Stock": { "type": "keyword" },
+      "Release_Year": { "type": "integer" },
+      "Storage": { "type": "keyword" },
+      "Screen_Size": { "type": "float" },
+      "Color": { "type": "keyword" }
     }
   }
 }'
@@ -89,12 +88,6 @@ with open("cleaned_catalog.csv", "r") as f:
                 except ValueError:
                     row["Price"] = 0
             
-            if "Rating" in row and row["Rating"].strip():
-                try:
-                    row["Rating"] = float(row["Rating"])
-                except ValueError:
-                    row["Rating"] = 0
-            
             if "Release_Year" in row and row["Release_Year"].strip():
                 try:
                     row["Release_Year"] = int(row["Release_Year"])
@@ -110,7 +103,7 @@ with open("cleaned_catalog.csv", "r") as f:
             # Handle any null values
             for key in row:
                 if not row[key]:
-                    if key in ["Price", "Rating", "Release_Year", "Screen_Size"]:
+                    if key in ["Price", "Release_Year", "Screen_Size"]:
                         row[key] = 0
                     else:
                         row[key] = ""
@@ -132,29 +125,21 @@ RESPONSE=$(curl -s -X POST "http://localhost:9200/_bulk?pretty" \
 # Save response for debugging
 echo "$RESPONSE" > bulk_response.json
 
-# Check if the loading was successful
-if [[ $RESPONSE == *"\"errors\":false"* ]]; then
+# Check if the loading was successful by parsing the JSON response
+if echo "$RESPONSE" | grep -q '"errors":false'; then
   echo "✓ Data loading successful!"
 else
   echo "✗ Error loading data:"
   echo "Saved detailed response to bulk_response.json"
-  
-  # Extract a sample of errors for display
-  ERROR_SAMPLE=$(echo "$RESPONSE" | grep -o '"error":{[^}]*}' | head -3)
-  if [ -n "$ERROR_SAMPLE" ]; then
-    echo "Sample errors:"
-    echo "$ERROR_SAMPLE"
-  fi
-  
-  # Continue execution despite errors - some documents might have been loaded
-  echo "Continuing despite errors..."
+  exit 1
 fi
 
 # Verify document count
 echo "Verifying document count..."
 sleep 2  # Give OpenSearch a moment to refresh
 curl -X POST "http://localhost:9200/catalog/_refresh" > /dev/null
-COUNT=$(curl -s 'http://localhost:9200/catalog/_count' | grep -o '"count":[0-9]*' | cut -d':' -f2)
+COUNT_RESPONSE=$(curl -s 'http://localhost:9200/catalog/_count')
+COUNT=$(echo "$COUNT_RESPONSE" | grep -o '"count":[0-9]*' | cut -d':' -f2)
 
 if [ -z "$COUNT" ]; then
   echo "✗ Could not retrieve document count"
@@ -169,5 +154,14 @@ fi
 echo "=== Setup Complete ==="
 echo "OpenSearch catalog index is ready for use!"
 echo "Access OpenSearch at: http://localhost:9200/"
-echo "Query example: http://localhost:9200/catalog/_search?q=*"
+echo ""
+echo "Example queries:"
+echo "1. Search all documents:"
+echo "   curl -X GET \"http://localhost:9200/catalog/_search\" -H \"Content-Type: application/json\" -d'{\"query\": {\"match_all\": {}}}'"
+echo ""
+echo "2. Search by title:"
+echo "   curl -X GET \"http://localhost:9200/catalog/_search\" -H \"Content-Type: application/json\" -d'{\"query\": {\"match\": {\"Title\": \"XenoPhone\"}}}'"
+echo ""
+echo "3. Filter by color:"
+echo "   curl -X GET \"http://localhost:9200/catalog/_search\" -H \"Content-Type: application/json\" -d'{\"query\": {\"term\": {\"Color\": \"Black\"}}}'"
 echo ""

@@ -48,23 +48,90 @@ This will:
 - Load the data into OpenSearch
 - Verify the document count
 
+## Data Schema
+
+The catalog index uses the following field mappings:
+
+```json
+{
+  "SKU": { "type": "keyword" },
+  "SKU_ID": { "type": "keyword" },
+  "Base_ID": { "type": "keyword" },
+  "Title": { "type": "text" },
+  "Price": { "type": "float" },
+  "Description": { "type": "text" },
+  "Stock": { "type": "keyword" },
+  "Release_Year": { "type": "integer" },
+  "Storage": { "type": "keyword" },
+  "Screen_Size": { "type": "float" },
+  "Color": { "type": "keyword" }
+}
+```
+
 ## Querying Data
 
-Once the data is loaded, you can query it using OpenSearch's REST API:
+Once the data is loaded, you can query it using OpenSearch's REST API. Here are some example queries:
 
-- Basic search: `http://localhost:9200/catalog/_search?q=*`
-- Field search: `http://localhost:9200/catalog/_search?q=Brand:Apple`
-- Advanced search using JSON:
-  ```
-  curl -X GET "http://localhost:9200/catalog/_search" -H "Content-Type: application/json" -d'
-  {
-    "query": {
-      "match": {
-        "Brand": "Samsung"
+### 1. Search All Documents
+```bash
+curl -X GET "http://localhost:9200/catalog/_search" -H "Content-Type: application/json" -d'{
+  "query": {
+    "match_all": {}
+  }
+}'
+```
+
+### 2. Search by Title (Full-Text Search)
+```bash
+curl -X GET "http://localhost:9200/catalog/_search" -H "Content-Type: application/json" -d'{
+  "query": {
+    "match": {
+      "Title": "XenoPhone"
+    }
+  }
+}'
+```
+
+### 3. Filter by Color (Exact Match)
+```bash
+curl -X GET "http://localhost:9200/catalog/_search" -H "Content-Type: application/json" -d'{
+  "query": {
+    "term": {
+      "Color": "Black"
+    }
+  }
+}'
+```
+
+### 4. Price Range Query
+```bash
+curl -X GET "http://localhost:9200/catalog/_search" -H "Content-Type: application/json" -d'{
+  "query": {
+    "range": {
+      "Price": {
+        "gte": 500,
+        "lte": 1000
       }
     }
-  }'
-  ```
+  }
+}'
+```
+
+### 5. Combined Query (Title Search + Color Filter)
+```bash
+curl -X GET "http://localhost:9200/catalog/_search" -H "Content-Type: application/json" -d'{
+  "query": {
+    "bool": {
+      "must": [
+        { "match": { "Title": "XenoPhone" } }
+      ],
+      "filter": [
+        { "term": { "Color": "Black" } }
+      ]
+    }
+  }
+}'
+```
 
 ## Stopping the Service
 
@@ -78,4 +145,3 @@ To completely remove the data volumes as well:
 
 ```bash
 docker-compose down -v
-```
