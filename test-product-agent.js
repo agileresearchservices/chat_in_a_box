@@ -28,12 +28,22 @@ const TEST_QUERIES = [
   'Find black phones with 256GB storage',
   'Show me gold phones under $1000',
   'Find phones with 512GB storage around $1200',
+  'Find blue phones from HyperPhone',
+  'Show me black phones by HyperPhone',
+  'Find red phones from HyperPhone under $600',
+  'Show me gold phones from HyperPhone with 256GB storage',
   
   // Edge cases
   'Find phones',  // No filters
   'Show me phones with 1TB storage',  // Unusual storage size
   'Find phones under $100',  // Very low price
   'Show me phones in rainbow color',  // Invalid color
+  'Find phones with no color specified',  // No color filter
+  'Find phones with very high storage capacity',  // Unusual storage size
+  'Show me phones priced exactly at $500',  // Exact price
+  'Find phones with multiple colors',  // Multiple color filters
+  'Show me phones with no filters',  // Completely generic query
+  'Find phones from unknown brand',  // Brand not in the catalog
 ];
 
 // Helper function to test a single query against the agents API

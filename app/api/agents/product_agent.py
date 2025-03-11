@@ -120,33 +120,13 @@ class ProductAgent(Agent):
         if any(re.search(pattern, query.lower()) for pattern in self.latest_patterns):
             search_params['sort'] = [{'Release_Year': 'desc'}]  # Sort by release year descending
         
-        # Extract price ranges
-        price_match = None
-        for pattern in self.price_patterns:
-            match = re.search(pattern, query.lower())
-            if match:
-                price_match = match
-                break
+        # Extract brand preferences
+        brand_match = re.search(r'(from|by)\s+(\w+)', query.lower())
+        if brand_match:
+            search_params['filters']['brand'] = brand_match.group(2).capitalize()
+            logging.debug(f'Set brand filter to {search_params["filters"]["brand"]}')
         
-        if price_match:
-            logging.debug(f'Price match found: {price_match.groups()}')
-            if len(price_match.groups()) == 2:
-                search_params['filters']['minPrice'] = float(price_match.group(1))
-                search_params['filters']['maxPrice'] = float(price_match.group(2))
-                logging.debug(f'Set minPrice to {search_params["filters"]["minPrice"]} and maxPrice to {search_params["filters"]["maxPrice"]}')
-            elif 'under' in query.lower() or 'less than' in query.lower() or 'below' in query.lower():
-                search_params['filters']['maxPrice'] = float(price_match.group(1))
-                logging.debug(f'Set maxPrice to {search_params["filters"]["maxPrice"]}')
-            elif 'over' in query.lower() or 'more than' in query.lower() or 'at least' in query.lower():
-                search_params['filters']['minPrice'] = float(price_match.group(1))
-                logging.debug(f'Set minPrice to {search_params["filters"]["minPrice"]}')
-            else:
-                target_price = float(price_match.group(1))
-                search_params['filters']['minPrice'] = target_price * 0.8
-                search_params['filters']['maxPrice'] = target_price * 1.2
-                logging.debug(f'Set minPrice to {search_params["filters"]["minPrice"]} and maxPrice to {search_params["filters"]["maxPrice"]} for around price')
-            logging.debug(f'Search params after price extraction: {search_params}')
-        # Extract color preferences (keyword match)
+        # Extract color preferences
         for pattern in self.color_patterns:
             match = re.search(pattern, query.lower())
             if match:
@@ -178,6 +158,33 @@ class ProductAgent(Agent):
             search_params['filters']['storage'] = storage_formatted.upper()
             logging.debug(f'Set storage filter to {search_params["filters"]["storage"]}')
         
+        # Extract price ranges
+        price_match = None
+        for pattern in self.price_patterns:
+            match = re.search(pattern, query.lower())
+            if match:
+                price_match = match
+                break
+        
+        if price_match:
+            logging.debug(f'Price match found: {price_match.groups()}')
+            if len(price_match.groups()) == 2:
+                search_params['filters']['minPrice'] = float(price_match.group(1))
+                search_params['filters']['maxPrice'] = float(price_match.group(2))
+                logging.debug(f'Set minPrice to {search_params["filters"]["minPrice"]} and maxPrice to {search_params["filters"]["maxPrice"]}')
+            elif 'under' in query.lower() or 'less than' in query.lower() or 'below' in query.lower():
+                search_params['filters']['maxPrice'] = float(price_match.group(1))
+                logging.debug(f'Set maxPrice to {search_params["filters"]["maxPrice"]}')
+            elif 'over' in query.lower() or 'more than' in query.lower() or 'at least' in query.lower():
+                search_params['filters']['minPrice'] = float(price_match.group(1))
+                logging.debug(f'Set minPrice to {search_params["filters"]["minPrice"]}')
+            else:
+                target_price = float(price_match.group(1))
+                search_params['filters']['minPrice'] = target_price * 0.8
+                search_params['filters']['maxPrice'] = target_price * 1.2
+                logging.debug(f'Set minPrice to {search_params["filters"]["minPrice"]} and maxPrice to {search_params["filters"]["maxPrice"]} for around price')
+            logging.debug(f'Search params after price extraction: {search_params}')
+        
         # Only set query if we have non-filter search terms
         query_terms = query.lower()
         for pattern in (self.price_patterns + self.color_patterns + self.storage_patterns + 
@@ -207,6 +214,8 @@ class ProductAgent(Agent):
                 constraints.append(f"over ${filters['minPrice']}")
             if filters.get('minScreenSize'):
                 constraints.append("with large screens")
+            if filters.get('brand'):
+                constraints.append(f"from {filters['brand']}")
             
             constraint_text = " and ".join(constraints) if constraints else "matching your criteria"
             return f"I couldn't find any products {constraint_text}. Try adjusting your search criteria."
