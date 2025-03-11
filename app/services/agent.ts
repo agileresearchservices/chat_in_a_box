@@ -21,7 +21,7 @@ import logger from '@/utils/logger';
  * Supported agent types in the system
  * Add new agent types here when extending the system
  */
-export type AgentType = 'weather' | 'search' | 'summarize';
+export type AgentType = 'weather' | 'search' | 'summarize' | 'product';
 
 /**
  * Interface defining the structure of agent responses
@@ -66,7 +66,7 @@ export class AgentService {
    * 3. Initiates the agent execution
    * 4. Handles streaming responses
    * 
-   * @param agentType - Type of agent to execute (weather, search, summarize)
+   * @param agentType - Type of agent to execute (weather, search, summarize, product)
    * @param query - User's input query
    * @param parameters - Optional configuration parameters for the agent
    * @returns Promise resolving to a streaming Response
@@ -101,6 +101,14 @@ export class AgentService {
           requiresLocation: true,                // Enable location processing
           locationService: 'nominatim',          // Geocoding service
           weatherService: 'nws'                  // Weather data provider
+        };
+      } else if (agentType === 'product') {
+        parameters = {
+          ...parameters,
+          baseUrl: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',  // Base URL for API calls
+          productApiEndpoint: '/api/products',    // Internal product API endpoint
+          catalogIndex: 'catalog',               // OpenSearch index name
+          maxResults: 5                          // Maximum number of results to return
         };
       }
 
@@ -171,6 +179,14 @@ export class AgentService {
       summarize: [
         /summarize|summarise|give me a summary|brief overview|key points/i,        // Summarization requests
         /tldr|tl;dr|in (brief|short|summary)/i                                     // Common abbreviations
+      ],
+      product: [
+        /find (me )?a (phone|device|xenophone)/i,                                  // Direct product requests
+        /search for (a )?(phone|device|xenophone)/i,                               // Search-based requests
+        /looking for (a )?(phone|device|xenophone)/i,                              // Browse-based requests
+        /show me (phones|devices|xenophones)/i,                                    // Display requests
+        /(phone|device|xenophone).+(under|less than|cheaper than|below|around|about|between|\$)/i,  // Price-based queries
+        /(phone|device|xenophone).+(with|has|in).+(gb|tb|storage|color|black|white|blue|red)/i     // Feature-based queries
       ]
     };
 

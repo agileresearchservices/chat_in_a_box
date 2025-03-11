@@ -1,0 +1,163 @@
+openapi: 3.0.0
+info:
+  title: Product Search API
+  version: '1.0'
+  description: |
+    API for searching the product catalog using OpenSearch.
+    
+    Features:
+    - Full-text search across product titles and descriptions
+    - Price range filtering
+    - Color filtering
+    - Storage capacity filtering
+    - Release year filtering
+    - Pagination support
+    - Relevance-based sorting with price as secondary sort
+
+paths:
+  /api/products:
+    post:
+      summary: Search products
+      description: Search for products using text query and optional filters
+      operationId: searchProducts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - query
+              properties:
+                query:
+                  type: string
+                  description: Search query to match against product titles and descriptions
+                  example: "XenoPhone 64GB"
+                filters:
+                  type: object
+                  properties:
+                    minPrice:
+                      type: number
+                      description: Minimum price filter
+                      example: 500
+                    maxPrice:
+                      type: number
+                      description: Maximum price filter
+                      example: 1000
+                    color:
+                      type: string
+                      description: Color filter (exact match)
+                      example: "Black"
+                    storage:
+                      type: string
+                      description: Storage capacity filter (exact match)
+                      example: "64GB"
+                    releaseYear:
+                      type: number
+                      description: Release year filter (exact match)
+                      example: 2022
+                size:
+                  type: number
+                  description: Number of results per page (1-100)
+                  default: 10
+                  minimum: 1
+                  maximum: 100
+                page:
+                  type: number
+                  description: Page number for pagination
+                  default: 1
+                  minimum: 1
+      responses:
+        '200':
+          description: Successful search response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      products:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Product'
+                      total:
+                        type: number
+                        description: Total number of matching products
+                        example: 150
+        '400':
+          description: Invalid input parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier
+          example: "1234"
+        skuId:
+          type: string
+          description: Stock keeping unit ID
+          example: "SKU1234"
+        baseId:
+          type: string
+          description: Base product ID
+          example: "BASE123"
+        title:
+          type: string
+          description: Product title
+          example: "XenoPhone Fusion - 64GB, 5.8\", Black"
+        price:
+          type: number
+          description: Product price
+          example: 789.49
+        description:
+          type: string
+          description: Product description
+          example: "Perfect for professionals, featuring a stunning display and top-tier security features."
+        stock:
+          type: string
+          description: Stock quantity
+          example: "333"
+        releaseYear:
+          type: integer
+          description: Year of release
+          example: 2022
+        storage:
+          type: string
+          description: Storage capacity
+          example: "64GB"
+        screenSize:
+          type: number
+          description: Screen size in inches
+          example: 5.8
+        color:
+          type: string
+          description: Product color
+          example: "Black"
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          description: Error message
+          example: "Invalid input: query is required"

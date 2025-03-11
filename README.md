@@ -46,6 +46,47 @@ The application provides several RESTful API endpoints:
 - `POST /api/search`: Perform semantic document search
 - `POST /api/embed`: Generate text embeddings
 
+### Product Search
+- `POST /api/products`: Search product catalog with advanced filtering
+  ```json
+  // Request
+  {
+    "query": "xenophone black 64gb",
+    "filters": {
+      "minPrice": 500,
+      "maxPrice": 1000,
+      "color": "Black",
+      "storage": "64GB",
+      "releaseYear": 2022
+    },
+    "size": 10,
+    "page": 1
+  }
+
+  // Response
+  {
+    "success": true,
+    "data": {
+      "products": [
+        {
+          "id": "1",
+          "skuId": "SKU1234",
+          "baseId": "BASE123",
+          "title": "XenoPhone Fusion - 64GB, 5.8\", Black",
+          "price": 789.49,
+          "description": "Perfect for professionals, featuring a stunning display and top-tier security features.",
+          "stock": "333",
+          "releaseYear": 2022,
+          "storage": "64GB",
+          "screenSize": 5.8,
+          "color": "Black"
+        }
+      ],
+      "total": 150
+    }
+  }
+  ```
+
 ### Agent System
 - `POST /api/agents`: Execute PydanticAI agents
   ```json
@@ -67,6 +108,29 @@ The application provides several RESTful API endpoints:
   {
     "message": {
       "content": "Here's the current weather for Boston, Massachusetts:\n🌡️ Temperature: 58°F\nSunny\n\nDetailed Forecast:\nSunny, with a high near 58..."
+    }
+  }
+  ```
+
+  ```json
+  // Request
+  {
+    "query": "Find me a black xenophone with 64GB under $800",
+    "agentType": "product",
+    "parameters": {
+      "baseUrl": "/api/products"
+    }
+  }
+
+  // Response (streaming)
+  {
+    "message": {
+      "content": "<think>Processing product search using PydanticAI...</think>"
+    }
+  }
+  {
+    "message": {
+      "content": "I found 150 products matching your search. Here are the top 5 results:\n\n1. XenoPhone Fusion - 64GB, 5.8\", Black\n   Price: $789.49\n   In Stock: 333 units\n   Specs: 64GB, 5.8\" screen, Black\n\nFilters applied: maximum price $800.00, color Black, storage 64GB"
     }
   }
   ```

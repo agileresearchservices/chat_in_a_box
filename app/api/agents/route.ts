@@ -32,7 +32,7 @@ import path from 'path';
  */
 const AgentRequestSchema = z.object({
   query: z.string().min(1, 'Query must not be empty'),
-  agentType: z.enum(['weather', 'search', 'summarize']),
+  agentType: z.enum(['weather', 'search', 'summarize', 'product']),
   parameters: z.record(z.any()).optional()
 });
 
@@ -169,23 +169,28 @@ export async function POST(request: NextRequest) {
     const script = `
 import os
 import sys
+import asyncio
 import importlib.util
 
-# Set agent type
-agent_type = ${JSON.stringify(agentType)}
+async def main():
+    # Set agent type
+    agent_type = ${JSON.stringify(agentType)}
 
-# Import the agent-specific module dynamically
-agent_module_path = os.environ['AGENT_MODULE_PATH']
-spec = importlib.util.spec_from_file_location("agent_module", agent_module_path)
-agent_module = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(agent_module)
+    # Import the agent-specific module dynamically
+    agent_module_path = os.environ['AGENT_MODULE_PATH']
+    spec = importlib.util.spec_from_file_location("agent_module", agent_module_path)
+    agent_module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(agent_module)
 
-# Initialize and execute the appropriate agent
-agent_class_name = f"{agent_type[0].upper()}{agent_type[1:]}Agent"
-agent_class = getattr(agent_module, agent_class_name)
-agent = agent_class()
-result = agent.process(${JSON.stringify(query)}, ${pythonParameters})
-print(result)
+    # Initialize and execute the appropriate agent
+    agent_class_name = f"{agent_type[0].upper()}{agent_type[1:]}Agent"
+    agent_class = getattr(agent_module, agent_class_name)
+    agent = agent_class()
+    result = await agent.process(${JSON.stringify(query)}, ${pythonParameters})
+    print(result)
+
+# Run the async main function
+asyncio.run(main())
     `.trim();
 
     logger.info('Executing PydanticAI agent', {
