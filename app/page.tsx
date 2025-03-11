@@ -266,6 +266,11 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
   const isWeatherMessage = !isUser && isWeatherResponse(message.content)
   const weatherData = isWeatherMessage ? parseWeatherData(message.content) : null
 
+  // Debug weather data
+  if (weatherData) {
+    console.log('Weather data from parser:', weatherData);
+  }
+
   // Debounce content updates for smoother rendering
   useEffect(() => {
     const timeoutId = setTimeout(() => {
