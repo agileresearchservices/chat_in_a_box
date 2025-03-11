@@ -329,6 +329,102 @@ paths:
               schema:
                 $ref: '#/components/schemas/ServerError'
 
+  /api/nlp:
+    post:
+      summary: Natural Language Processing Analysis
+      description: |
+        Performs comprehensive natural language processing on input text, including:
+        - Named Entity Recognition (NER) for people, cities, dates, emails, phones, and URLs
+        - Sentiment Analysis with scoring and classification
+        - Part-of-speech tagging
+      operationId: analyzeText
+      tags:
+        - NLP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                text:
+                  type: string
+                  description: Text to analyze
+                  example: "John visited New York last summer and loved the city!"
+                  minLength: 1
+                  maxLength: 1000
+              required:
+                - text
+      responses:
+        '200':
+          description: Successful analysis
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  entities:
+                    type: array
+                    description: Named entities found in the text
+                    items:
+                      type: object
+                      properties:
+                        entity:
+                          type: string
+                          description: Type of entity (e.g., person, city, date)
+                          example: "city"
+                        value:
+                          type: string
+                          description: Actual value of the entity
+                          example: "New York"
+                        type:
+                          type: string
+                          description: Entity recognition method
+                          example: "enum"
+                  tokens:
+                    type: array
+                    description: Tokenized words with part-of-speech tags
+                    items:
+                      type: object
+                      properties:
+                        token:
+                          type: string
+                          description: Individual word or token
+                          example: "visited"
+                        tag:
+                          type: string
+                          description: Part-of-speech tag
+                          example: "VBD"
+                  sentiment:
+                    type: object
+                    description: Sentiment analysis results
+                    properties:
+                      score:
+                        type: number
+                        description: Sentiment score (-1 to 1)
+                        example: 0.6
+                      comparative:
+                        type: number
+                        description: Comparative sentiment score
+                        example: 0.2
+                      vote:
+                        type: string
+                        description: Overall sentiment classification
+                        enum: ["positive", "negative", "neutral"]
+                        example: "positive"
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerError'
+
 components:
   schemas:
     Message:

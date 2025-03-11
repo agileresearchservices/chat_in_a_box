@@ -106,19 +106,20 @@ The application provides several RESTful API endpoints:
       {
         "entity": "person",
         "value": "John",
-        "type": "person"
+        "type": "enum"
       },
       {
-        "entity": "location",
+        "entity": "city",
         "value": "New York",
-        "type": "city"
+        "type": "enum"
+      },
+      {
+        "entity": "daterange",
+        "value": "last summer",
+        "type": "enum"
       }
     ],
     "tokens": [
-      {
-        "token": "John",
-        "tag": "NNP"
-      },
       {
         "token": "visited",
         "tag": "VBD"
@@ -130,6 +131,16 @@ The application provides several RESTful API endpoints:
       "vote": "positive"
     }
   }
+  ```
+
+  The NLP service provides comprehensive logging for debugging and monitoring:
+  ```
+  [NLP API] Received NLP analysis request
+  [NLP API] Request body: { "text": "..." }
+  [NLPService] Analyzing text: ...
+  [NLPService] Analysis result: { ... }
+  [NLP API] Analysis completed successfully
+  [NLP API] Response: { ... }
   ```
 
 ### Documentation
