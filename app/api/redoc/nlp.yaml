@@ -1,0 +1,147 @@
+openapi: 3.0.0
+info:
+  title: Chat in a Box - NLP API
+  version: '1.0'
+  description: |
+    Natural Language Processing API for Chat in a Box.
+    
+    Provides comprehensive text analysis capabilities including:
+    - Named Entity Recognition (NER)
+    - Sentiment Analysis
+    - Part-of-speech Tagging
+
+paths:
+  /api/nlp:
+    post:
+      summary: Analyze text using NLP
+      description: |
+        Performs natural language processing on the provided text, extracting entities,
+        analyzing sentiment, and identifying parts of speech.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NLPRequest'
+      responses:
+        '200':
+          description: Successful NLP analysis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NLPResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    NLPRequest:
+      type: object
+      required:
+        - text
+      properties:
+        text:
+          type: string
+          description: Text to analyze
+          example: "John visited New York last summer and loved the city."
+          minLength: 1
+          maxLength: 1000
+    
+    NLPResponse:
+      type: object
+      required:
+        - entities
+        - tokens
+      properties:
+        entities:
+          type: array
+          description: Named entities found in the text
+          items:
+            type: object
+            required:
+              - entity
+              - value
+            properties:
+              entity:
+                type: string
+                description: Type of entity (e.g., person, city, date)
+                example: "city"
+              value:
+                type: string
+                description: Actual value of the entity
+                example: "New York"
+              type:
+                type: string
+                description: Additional type information
+                example: "enum"
+        tokens:
+          type: array
+          description: Tokenized words with part-of-speech tags
+          items:
+            type: object
+            required:
+              - token
+              - tag
+            properties:
+              token:
+                type: string
+                description: Individual word or token
+                example: "visited"
+              tag:
+                type: string
+                description: Part-of-speech tag (e.g., NNP, VBD)
+                example: "VBD"
+        sentiment:
+          type: object
+          description: Sentiment analysis results
+          properties:
+            score:
+              type: number
+              description: Sentiment score (-1 to 1)
+              example: 0.6
+            comparative:
+              type: number
+              description: Comparative sentiment score
+              example: 0.2
+            vote:
+              type: string
+              description: Overall sentiment classification
+              enum: ["positive", "negative", "neutral"]
+              example: "positive"
+    
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: "Invalid request data"
+        details:
+          oneOf:
+            - type: string
+              description: Detailed error message
+            - type: array
+              description: List of validation errors
+              items:
+                type: object
+                properties:
+                  field:
+                    type: string
+                    description: Field with error
+                    example: "text"
+                  message:
+                    type: string
+                    description: Error message for field
+                    example: "Text must not be empty"

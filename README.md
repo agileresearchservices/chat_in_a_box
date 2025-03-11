@@ -11,6 +11,7 @@ Chat in a Box is a cutting-edge Retrieval-Augmented Generation (RAG) application
 - **Multi-format Document Support**: Extract and process text from various file formats including .txt, .pdf, and .docx.
 - **Flexible AI Interactions**: Perform advanced document querying, generation, and reranking with local AI models.
 - **US Weather Information**: Real-time weather data for US cities using the National Weather Service API with intelligent city resolution.
+- **Natural Language Processing Analysis**: Analyze text for entities, parts of speech, and sentiment using Node-NLP.
 
 ## Core Capabilities
 
@@ -20,6 +21,7 @@ Chat in a Box is a cutting-edge Retrieval-Augmented Generation (RAG) application
 4. Flexible Embedding Generation
 5. Real-time US Weather Data
 6. PydanticAI Agent System
+7. Natural Language Processing Analysis
 
 ## Technology Stack
 
@@ -30,6 +32,7 @@ Chat in a Box is a cutting-edge Retrieval-Augmented Generation (RAG) application
 - **ORM**: Prisma
 - **Containerization**: Docker
 - **Agent System**: PydanticAI with custom agents
+- **NLP**: Node-NLP for text analysis
 
 ## API Endpoints
 
@@ -86,6 +89,46 @@ The application provides several RESTful API endpoints:
       "detailedForecast": "Sunny, with a high near 58..."
     },
     "success": true
+  }
+  ```
+
+### Natural Language Processing
+- `POST /api/nlp`: Analyze text for entities, parts of speech, and sentiment
+  ```json
+  // Request
+  {
+    "text": "John visited New York last summer and loved the city."
+  }
+
+  // Response
+  {
+    "entities": [
+      {
+        "entity": "person",
+        "value": "John",
+        "type": "person"
+      },
+      {
+        "entity": "location",
+        "value": "New York",
+        "type": "city"
+      }
+    ],
+    "tokens": [
+      {
+        "token": "John",
+        "tag": "NNP"
+      },
+      {
+        "token": "visited",
+        "tag": "VBD"
+      }
+    ],
+    "sentiment": {
+      "score": 0.6,
+      "comparative": 0.2,
+      "vote": "positive"
+    }
   }
   ```
 
