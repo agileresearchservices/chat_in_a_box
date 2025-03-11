@@ -27,6 +27,8 @@ import { toast } from 'react-hot-toast'
 import { cn } from '@/utils/tailwind'
 import { parseMessage } from '@/utils/message-parser'
 import logger from '@/utils/logger'
+import { isWeatherResponse, parseWeatherData } from '@/utils/weather-parser'
+import WeatherCard from './components/WeatherCard'
 
 /**
  * Extended Message Type with Enhanced Metadata
@@ -260,6 +262,10 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
   const messageContentRef = useRef<HTMLDivElement>(null)
   const [renderedContent, setRenderedContent] = useState(message.content)
 
+  // Check if message contains weather data
+  const isWeatherMessage = !isUser && isWeatherResponse(message.content)
+  const weatherData = isWeatherMessage ? parseWeatherData(message.content) : null
+
   // Debounce content updates for smoother rendering
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -284,6 +290,16 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
 
   const hasThinkingProcess = !isUser && message.thinkingProcess
 
+  // If this is a weather message, only show the weather card
+  if (isWeatherMessage && weatherData) {
+    return (
+      <div className="flex justify-center w-full my-4">
+        <WeatherCard data={weatherData} />
+      </div>
+    )
+  }
+
+  // Regular message rendering
   return (
     <>
       <div className={cn("flex px-2 sm:px-0", isUser ? "justify-end" : "justify-start")}>
