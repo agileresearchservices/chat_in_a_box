@@ -4,6 +4,8 @@
 
 Chat in a Box is a cutting-edge Retrieval-Augmented Generation (RAG) application designed to provide powerful, local AI-driven document interaction and search capabilities. Built with a focus on privacy, performance, and flexibility, this application leverages state-of-the-art technologies to create an intelligent document retrieval and generation platform.
 
+> For a detailed explanation of the system architecture and technology flow, see the [Application Flow Document](README_Application_Flow.md).
+
 ## Key Features
 
 - **Local AI Inference**: Utilizes Ollama to run AI models (phi4, deepseek-r1) directly on your machine, ensuring data privacy and reducing external dependencies.
@@ -22,6 +24,8 @@ Chat in a Box is a cutting-edge Retrieval-Augmented Generation (RAG) application
 5. Real-time US Weather Data
 6. PydanticAI Agent System
 7. Natural Language Processing Analysis
+
+For details on how these capabilities are implemented in the processing flow, refer to the [system architecture document](README_Application_Flow.md).
 
 ## Technology Stack
 
@@ -42,9 +46,13 @@ The application provides several RESTful API endpoints:
 - `POST /api/chat`: Send messages and receive AI responses
 - `DELETE /api/chat`: Clear conversation memory
 
+For details on how the chat processing works under the hood, see [Basic LLM Call Flow](README_Application_Flow.md#action-1-basic-llm-call-no-tool-usage).
+
 ### Search and Embedding
 - `POST /api/search`: Perform semantic document search
 - `POST /api/embed`: Generate text embeddings
+
+Learn more about the [embedding generation process](README_Application_Flow.md#technology-overview) in our architecture document.
 
 ### Product Search
 - `POST /api/products`: Search product catalog with advanced filtering
@@ -86,6 +94,8 @@ The application provides several RESTful API endpoints:
     }
   }
   ```
+
+For a detailed explanation of how product search queries are processed, see our [Product Search Flow](README_Application_Flow.md#action-3-product-search).
 
 ### Agent System
 - `POST /api/agents`: Execute PydanticAI agents
@@ -151,6 +161,8 @@ The application provides several RESTful API endpoints:
     "detailedForecast": "Sunny, with a high near 58..."
   }
   ```
+
+For details on the weather processing flow, check out the [Weather Query Processing](README_Application_Flow.md#action-2-weather-query-processing) section.
 
 ### Natural Language Processing
 - `POST /api/nlp`: Analyze text for entities, parts of speech, and sentiment
@@ -235,6 +247,8 @@ Chat in a Box implements a sophisticated conversation memory system designed to:
 - Maintain conversational context across multiple interactions
 - Prevent token overflow and excessive memory consumption
 - Provide AI models with relevant dialogue history
+
+For details on how memory management integrates with the processing flow, see our [Technology Integration Points](README_Application_Flow.md#technology-integration-points) section.
 
 #### Key Features
 - **Sliding Window Memory**: Automatically manages conversation history
@@ -581,6 +595,8 @@ await prisma.document.create({
 
 Chat in a Box includes a powerful agent system built with PydanticAI, enabling intelligent task handling and automation.
 
+> For details on agent detection and processing flow, see our [Technology Integration Points](README_Application_Flow.md#technology-integration-points) and [Alternative Approaches to Agent Detection](README_Application_Flow.md#alternative-approaches-to-agent-detection).
+
 ### Available Agents
 
 1. **Weather Agent**
@@ -818,22 +834,6 @@ For more examples, refer to the Weather Agent implementation in the codebase.
 - Prioritize error handling and user experience
 
 ### Troubleshooting
-If you encounter any issues with the recent updates:
-- Check the console for detailed error messages
-- Verify your Ollama and PostgreSQL configurations
-- Ensure all dependencies are up to date
-
-### Future Roadmap
-- Continue improving code modularity
-- Enhance AI response generation
-- Implement more advanced error recovery mechanisms
-
-## Future Roadmap
-
-Continue improving code modularity, enhance AI response generation, and implement more advanced error recovery mechanisms.
-
-## Advanced Features and Design Principles
-
 ### Logging and Error Handling
 
 The application implements a robust logging and error handling strategy:
