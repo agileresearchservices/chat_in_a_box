@@ -249,26 +249,25 @@ function buildSearchQuery(query: StoreQuery): OpenSearchQuery {
   }
 
   if (filters.state) {
-    // Using the State.lowercase field which has the lowercase_analyzer applied
-    const lowerState = filters.state.toLowerCase();
+    // Using the State.keyword field which has the keyword analyzer applied
     filter.push({
       match: {
-        "State.lowercase": lowerState
+        "State.keyword": filters.state
       }
     });
-    logger.debug(`Adding state filter: original=${filters.state}, lowercase=${lowerState}`);
+    logger.debug(`Adding state filter: original=${filters.state}`);
     // Add extra debugging for state filters
     logger.debug(`State filter debug: type=${typeof filters.state}, value=${filters.state}, length=${filters.state.length}`);
   }
 
-  // Use prefix matching for ZIP codes to allow matching on just the starting digits
+  // Use exact term matching for ZIP codes
   if (filters.zipCode) {
     filter.push({
-      prefix: {
+      term: {
         ZIP_Code: filters.zipCode
       }
     });
-    logger.debug(`Adding ZIP code filter with prefix matching: ${filters.zipCode}`);
+    logger.debug(`Adding ZIP code filter with exact term matching: ${filters.zipCode}`);
   }
 
   // Create the query with minimal structure
