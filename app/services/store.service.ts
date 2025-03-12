@@ -223,8 +223,25 @@ function buildSearchQuery(query: StoreQuery): OpenSearchQuery {
   // Build must conditions for bool query
   const must = [];
   
-  // Only add text search if query is not empty
-  if (query.query?.trim()) {
+  // Check if query contains location information that will be handled by filters
+  const queryContainsLocationInfo = 
+    query.query?.toLowerCase().includes('stores in') || 
+    query.query?.toLowerCase().includes('find stores') ||
+    (filters.zipCode && (
+      query.query?.includes(filters.zipCode) || 
+      query.query?.toLowerCase().includes('zip')
+    )) ||
+    (filters.state && (
+      query.query?.includes(filters.state) || 
+      query.query?.toLowerCase().includes(filters.state.toLowerCase())
+    )) ||
+    (filters.city && (
+      query.query?.includes(filters.city) || 
+      query.query?.toLowerCase().includes(filters.city.toLowerCase())
+    ));
+  
+  // Only add text search if query is not empty and doesn't overlap with filters
+  if (query.query?.trim() && !queryContainsLocationInfo) {
     must.push({
       multi_match: {
         query: query.query,

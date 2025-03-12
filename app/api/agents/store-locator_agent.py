@@ -115,7 +115,21 @@ class StoreLocatorAgent(Agent):
             'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
         ]
         
-        # FIRST extract state (to avoid matching state names as cities)
+        # Extract ZIP code FIRST using simpler, more reliable pattern
+        zipcode = None
+        # Look for any 5-digit number in the query, which is most likely a ZIP code
+        zip_match = re.search(r'\b(\d{5})\b', query)
+        if zip_match:
+            zipcode = zip_match.group(1)
+            logging.debug(f'Extracted ZIP code: {zipcode}')
+            # Create a modified query where we remove the ZIP code before extracting city
+            # This prevents treating the ZIP as a city name
+            query_without_zip = re.sub(r'\b' + re.escape(zipcode) + r'\b', '', query)
+            logging.debug(f'Modified query without ZIP: {query_without_zip}')
+        else:
+            query_without_zip = query
+        
+        # THEN extract state (to avoid matching state names as cities)
         state = None
         state_abbrevs_list = list(self.state_abbrevs.values())
         
@@ -156,13 +170,15 @@ class StoreLocatorAgent(Agent):
                     logging.debug(f"Found state name: {potential_state}, abbreviation: {state}")
                     break
         
-        # THEN extract city - but don't consider state abbreviations as cities
+        # THEN extract city - but don't consider state abbreviations or ZIP codes as cities
         city = None
         state_abbrevs_list_set = set(state_abbrevs_list)
-        if not (len(query.strip()) == 2 and query.strip().upper() in state_abbrevs_list_set):  # Skip if query is just a state code
+        query_for_city = query_without_zip  # Use the version without ZIP code
+        
+        if not (len(query_for_city.strip()) == 2 and query_for_city.strip().upper() in state_abbrevs_list_set):  # Skip if query is just a state code
             # First try patterns with clear context (in/at/near)
             for pattern in self.city_patterns[0:2]:  # First try patterns with context
-                match = re.search(pattern, query, re.IGNORECASE)
+                match = re.search(pattern, query_for_city, re.IGNORECASE)
                 if match:
                     potential_city = match.group(1).strip()
                     # Clean up the city name - remove trailing state or zip code if present
@@ -172,10 +188,15 @@ class StoreLocatorAgent(Agent):
                     # Further clean by removing trailing digits (ZIP codes)
                     potential_city = re.sub(r'\s+\d+$', '', potential_city)
                     
-                    # Don't treat state abbreviations as cities, and don't extract same text as both city and state
+                    # Validate the potential city:
+                    # 1. Not empty
+                    # 2. Not a state abbreviation
+                    # 3. Not the same as the state
+                    # 4. Not the same as the ZIP code we extracted
                     if (potential_city and 
                             potential_city.upper() not in state_abbrevs_list_set and
-                            (not state or potential_city.upper() != state)):
+                            (not state or potential_city.upper() != state) and
+                            (not zipcode or potential_city != zipcode)):
                         city = potential_city
                         logging.debug(f"Found city with context: {city}")
                         break
@@ -187,12 +208,12 @@ class StoreLocatorAgent(Agent):
                 city_prefixes = ["Port", "South", "North", "East", "West", "New", "Fort", "Mount", "San", "Santa", "Saint", "Lake"]
                 for prefix in city_prefixes:
                     prefix_pattern = rf'\b{prefix}\s+([A-Za-z]+(?:\s+[A-Za-z]+)?)\b'
-                    match = re.search(prefix_pattern, query, re.IGNORECASE)
+                    match = re.search(prefix_pattern, query_for_city, re.IGNORECASE)
                     if match:
                         # Extract the full city name including the prefix
                         start_idx = match.start()
                         end_idx = match.end()
-                        potential_city = query[start_idx:end_idx].strip()
+                        potential_city = query_for_city[start_idx:end_idx].strip()
                         
                         # Additional validation to ensure we don't pick up false positives
                         if (potential_city and 
@@ -206,7 +227,7 @@ class StoreLocatorAgent(Agent):
             # like "ville", "town", "burg", "port", "ford", "bury", etc.
             if not city:
                 city_suffix_pattern = r'\b([A-Za-z]+(?:ville|town|burg|port|ford|bury|mouth|fort|field|dale|wood|land))\b'
-                match = re.search(city_suffix_pattern, query, re.IGNORECASE)
+                match = re.search(city_suffix_pattern, query_for_city, re.IGNORECASE)
                 if match:
                     potential_city = match.group(1).strip()
                     if (potential_city and 
@@ -214,14 +235,6 @@ class StoreLocatorAgent(Agent):
                             (not state or potential_city.upper() != state)):
                         city = potential_city
                         logging.debug(f"Found city with common suffix: {city}")
-        
-        # Extract ZIP code using simpler, more reliable pattern
-        zipcode = None
-        # Look for any 5-digit number in the query, which is most likely a ZIP code
-        zip_match = re.search(r'\b(\d{5})\b', query)
-        if zip_match:
-            zipcode = zip_match.group(1)
-            logging.debug(f'Extracted ZIP code: {zipcode}')
         
         # Add extracted parameters to the filters object
         # The Store API expects filters in a nested structure
@@ -422,13 +435,8 @@ class StoreLocatorAgent(Agent):
             if 'filters' in search_params and 'zipCode' in search_params['filters'] and search_params['filters']['zipCode'] == '81775':
                 logging.warning(f"Making API call for ZIP 81775 with params: {json.dumps(search_params)}")
             
-            # Format API URL with parameters
-            params = {k: v for k, v in search_params.items() if k not in ['filters']}
-            
-            # Add filters to params
-            if 'filters' in search_params:
-                for filter_key, filter_value in search_params['filters'].items():
-                    params[filter_key] = filter_value
+            # Create a copy of the search params to avoid modifying the original
+            params = {k: v for k, v in search_params.items()}
             
             # Get API URL from parameters or use default
             base_url = os.environ.get('NEXT_PUBLIC_API_BASE_URL', 'http://localhost:3000')
