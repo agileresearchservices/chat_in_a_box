@@ -32,7 +32,7 @@ import path from 'path';
  */
 const AgentRequestSchema = z.object({
   query: z.string().min(1, 'Query must not be empty'),
-  agentType: z.enum(['weather', 'search', 'summarize', 'product']),
+  agentType: z.enum(['weather', 'search', 'summarize', 'product', 'store-locator']),
   parameters: z.record(z.any()).optional()
 });
 
@@ -183,7 +183,13 @@ async def main():
     spec.loader.exec_module(agent_module)
 
     # Initialize and execute the appropriate agent
-    agent_class_name = f"{agent_type[0].upper()}{agent_type[1:]}Agent"
+    # Handle hyphenated agent types (convert 'store-locator' to 'StoreLocator')
+    if '-' in agent_type:
+        parts = agent_type.split('-')
+        agent_type_pascal = ''.join(part.capitalize() for part in parts)
+        agent_class_name = f"{agent_type_pascal}Agent"
+    else:
+        agent_class_name = f"{agent_type[0].upper()}{agent_type[1:]}Agent"
     agent_class = getattr(agent_module, agent_class_name)
     agent = agent_class()
     result = await agent.process(${JSON.stringify(query)}, ${pythonParameters})

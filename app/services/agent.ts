@@ -21,7 +21,7 @@ import logger from '@/utils/logger';
  * Supported agent types in the system
  * Add new agent types here when extending the system
  */
-export type AgentType = 'weather' | 'search' | 'summarize' | 'product';
+export type AgentType = 'weather' | 'search' | 'summarize' | 'product' | 'store-locator';
 
 /**
  * Interface defining the structure of agent responses
@@ -110,6 +110,14 @@ export class AgentService {
           catalogIndex: 'catalog',               // OpenSearch index name
           maxResults: 5                          // Maximum number of results to return
         };
+      } else if (agentType === 'store-locator') {
+        parameters = {
+          ...parameters,
+          baseUrl: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',  // Base URL for API calls
+          storeApiEndpoint: '/api/stores',       // Internal store API endpoint
+          storeIndex: 'stores',                 // OpenSearch index name
+          maxResults: 10                         // Maximum number of results to return
+        };
       }
 
       // Execute agent via API endpoint
@@ -187,6 +195,17 @@ export class AgentService {
         /show me (phones|devices|xenophones)/i,                                    // Display requests
         /(phone|device|xenophone).+(under|less than|cheaper than|below|around|about|between|\$)/i,  // Price-based queries
         /(phone|device|xenophone).+(with|has|in).+(gb|tb|storage|color|black|white|blue|red)/i     // Feature-based queries
+      ],
+      'store-locator': [
+        /find (me )?(stores?|locations?|shops?|outlets?)/i,                        // Direct store requests
+        /search for (a )?(stores?|locations?|shops?|outlets?)/i,                    // Search-based requests
+        /looking for (a )?(stores?|locations?|shops?|outlets?)/i,                   // Browse-based requests
+        /show me (stores?|locations?|shops?|outlets?)/i,                            // Display requests
+        /where (can I|do you have|are your) (stores?|locations?|shops?|outlets?)/i,  // Location-based queries
+        /(stores?|locations?|shops?|outlets?) (in|near|around|close to)/i,          // Geographic queries
+        /locate (a )?(stores?|locations?|shops?|outlets?)/i,                        // Locate requests
+        /nearest (stores?|locations?|shops?|outlets?)/i,                            // Proximity queries
+        /(stores?|locations?|shops?|outlets?).+(city|state|zip|postal)/i            // Specific location queries
       ]
     };
 

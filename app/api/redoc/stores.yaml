@@ -1,0 +1,146 @@
+openapi: 3.1.0
+info:
+  title: Store Locator API
+  version: '1.0'
+  description: |
+    Store location search API documentation for Chat in a Box.
+    
+    ## Key Features
+    - Full-text search across store names, addresses, and cities
+    - City filtering with case-insensitive matching
+    - State filtering with case-insensitive matching
+    - ZIP code filtering with case-insensitive matching
+    - Pagination support
+    - Relevance-based sorting
+
+paths:
+  /api/stores:
+    post:
+      summary: Search for stores with filtering options
+      description: |
+        Searches for store locations based on various criteria including city, state, and ZIP code.
+        Returns paginated results with store information.
+      tags:
+        - Stores
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                query:
+                  type: string
+                  description: Optional search query to match against store names and addresses
+                  example: "electronics"
+                city:
+                  type: string
+                  description: Filter stores by city name (case-insensitive)
+                  example: "Port Ericmouth"
+                state:
+                  type: string
+                  description: Filter stores by state code (case-insensitive)
+                  example: "NM"
+                zipCode:
+                  type: string
+                  description: Filter stores by ZIP code
+                  example: "42056"
+                size:
+                  type: integer
+                  description: Number of results per page (1-100)
+                  default: 10
+                  minimum: 1
+                  maximum: 100
+                  example: 10
+                page:
+                  type: integer
+                  description: Page number (starting from 1)
+                  default: 1
+                  minimum: 1
+                  example: 1
+                fallbackStrategy:
+                  type: string
+                  description: Strategy to use when no results are found
+                  enum: [relaxFilters, expandSearch, none]
+                  default: none
+      responses:
+        '200':
+          description: Store search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Indicates if the request was successful
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      stores:
+                        type: array
+                        description: List of store locations matching the criteria
+                        items:
+                          $ref: '#/components/schemas/Store'
+                      total:
+                        type: integer
+                        description: Total number of stores matching the criteria
+                        example: 25
+        '400':
+          description: Bad request - invalid input parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error processing the request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    Store:
+      type: object
+      properties:
+        storeNumber:
+          type: string
+          description: Unique identifier for the store
+          example: "1"
+        storeName:
+          type: string
+          description: Name of the store
+          example: "Rosales Group Electronics"
+        address:
+          type: string
+          description: Street address of the store
+          example: "994 Tyler Square"
+        city:
+          type: string
+          description: City where the store is located
+          example: "Port Ericmouth"
+        state:
+          type: string
+          description: State code where the store is located
+          example: "NM"
+        zipCode:
+          type: string
+          description: ZIP code of the store location
+          example: "42056"
+        phoneNumber:
+          type: string
+          description: Contact phone number for the store
+          example: "020.533.1899"
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indicates the request failed
+          example: false
+        error:
+          type: string
+          description: Error message detailing what went wrong
+          example: "Invalid input: city parameter must be a string"

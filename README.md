@@ -12,6 +12,7 @@ Chat in a Box is a cutting-edge Retrieval-Augmented Generation (RAG) application
 - **Advanced Vector Search**: Implements PostgreSQL with pgvector for efficient semantic document retrieval and similarity search.
 - **Multi-format Document Support**: Extract and process text from various file formats including .txt, .pdf, and .docx.
 - **Flexible AI Interactions**: Perform advanced document querying, generation, and reranking with local AI models.
+- **Store Locator**: Find retail locations with powerful filtering by city, state, and ZIP code with case-insensitive matching.
 - **US Weather Information**: Real-time weather data for US cities using the National Weather Service API with intelligent city resolution.
 - **Natural Language Processing Analysis**: Analyze text for entities, parts of speech, and sentiment using Node-NLP.
 
@@ -21,9 +22,10 @@ Chat in a Box is a cutting-edge Retrieval-Augmented Generation (RAG) application
 2. Local AI-powered Text Generation
 3. Intelligent Passage Reranking
 4. Flexible Embedding Generation
-5. Real-time US Weather Data
-6. PydanticAI Agent System
-7. Natural Language Processing Analysis
+5. Store Location Search & Filtering
+6. Real-time US Weather Data
+7. PydanticAI Agent System
+8. Natural Language Processing Analysis
 
 For details on how these capabilities are implemented in the processing flow, refer to the [system architecture document](README_Application_Flow.md).
 
@@ -96,6 +98,39 @@ Learn more about the [embedding generation process](README_Application_Flow.md#t
   ```
 
 For a detailed explanation of how product search queries are processed, see our [Product Search Flow](README_Application_Flow.md#action-3-product-search).
+
+### Store Locator
+- `POST /api/stores`: Find store locations with advanced filtering
+  ```json
+  // Request
+  {
+    "query": "electronics",
+    "city": "Port Ericmouth",
+    "state": "NM",
+    "zipCode": "",
+    "size": 5,
+    "page": 1
+  }
+
+  // Response
+  {
+    "success": true,
+    "data": {
+      "stores": [
+        {
+          "storeNumber": "1",
+          "storeName": "Rosales Group Electronics",
+          "address": "994 Tyler Square",
+          "city": "Port Ericmouth",
+          "state": "NM",
+          "zipCode": "42056",
+          "phoneNumber": "020.533.1899"
+        }
+      ],
+      "total": 1
+    }
+  }
+  ```
 
 ### Agent System
 - `POST /api/agents`: Execute PydanticAI agents

@@ -1,0 +1,472 @@
+from pydantic_ai import Agent
+from typing import Dict, Any, Optional
+import httpx
+import json
+import os
+import re
+import logging
+import sys
+
+# Configure logging to write to a file
+logging.basicConfig(filename='logs/app.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+
+class StoreLocatorAgent(Agent):
+    """
+    PydanticAI agent for handling store location search queries using the OpenSearch stores index.
+    
+    Integrates with:
+    - Store Service (/app/services/store.service.ts)
+    - Store API Route (/app/api/stores/route.ts)
+    
+    Features:
+    - Natural language query parsing
+    - City extraction
+    - State extraction
+    - ZIP code extraction
+    - Error handling and logging
+    """
+    
+    def __init__(self):
+        super().__init__()
+        
+        # More flexible city patterns that handle various cases
+        self.city_patterns = [
+            r'(?:in|at|near)\s+([A-Za-z0-9\s]+)(?:,|\s+(?:[A-Za-z]{2}|[A-Za-z]+)|\s*$)',
+            r'(?:store|stores|location|locations)\s+(?:in|at|near)\s+([A-Za-z0-9\s]+)(?:,|\s+(?:[A-Za-z]{2}|[A-Za-z]+)|\s*$)',
+            r'\b([A-Za-z0-9\s]+)\b'
+        ]
+        
+        # More flexible state patterns (both abbreviations and full names)
+        self.state_patterns = [
+            r'(?:in|at|near)\s+(?:[A-Za-z0-9\s]+,\s+)?([A-Za-z]{2})(?:\s+\d{5}|\s*$)',
+            r'(?:in|at|near)\s+(?:[A-Za-z0-9\s]+,\s+)?(Alabama|Alaska|Arizona|Arkansas|California|Colorado|Connecticut|Delaware|Florida|Georgia|Hawaii|Idaho|Illinois|Indiana|Iowa|Kansas|Kentucky|Louisiana|Maine|Maryland|Massachusetts|Michigan|Minnesota|Mississippi|Missouri|Montana|Nebraska|Nevada|New\s+Hampshire|New\s+Jersey|New\s+Mexico|New\s+York|North\s+Carolina|North\s+Dakota|Ohio|Oklahoma|Oregon|Pennsylvania|Rhode\s+Island|South\s+Carolina|South\s+Dakota|Tennessee|Texas|Utah|Vermont|Virginia|Washington|West\s+Virginia|Wisconsin|Wyoming)(?:\s+\d{5}|\s*$)',
+            r'\b(AL|AK|AZ|AR|CA|CO|CT|DE|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY)\b'
+        ]
+        
+        # State abbreviations lookup table
+        self.state_abbrevs = {
+            'Alabama': 'AL', 'Alaska': 'AK', 'Arizona': 'AZ', 'Arkansas': 'AR', 'California': 'CA',
+            'Colorado': 'CO', 'Connecticut': 'CT', 'Delaware': 'DE', 'Florida': 'FL', 'Georgia': 'GA',
+            'Hawaii': 'HI', 'Idaho': 'ID', 'Illinois': 'IL', 'Indiana': 'IN', 'Iowa': 'IA',
+            'Kansas': 'KS', 'Kentucky': 'KY', 'Louisiana': 'LA', 'Maine': 'ME', 'Maryland': 'MD',
+            'Massachusetts': 'MA', 'Michigan': 'MI', 'Minnesota': 'MN', 'Mississippi': 'MS', 'Missouri': 'MO',
+            'Montana': 'MT', 'Nebraska': 'NE', 'Nevada': 'NV', 'New Hampshire': 'NH', 'New Jersey': 'NJ',
+            'New Mexico': 'NM', 'New York': 'NY', 'North Carolina': 'NC', 'North Dakota': 'ND', 'Ohio': 'OH',
+            'Oklahoma': 'OK', 'Oregon': 'OR', 'Pennsylvania': 'PA', 'Rhode Island': 'RI', 'South Carolina': 'SC',
+            'South Dakota': 'SD', 'Tennessee': 'TN', 'Texas': 'TX', 'Utah': 'UT', 'Vermont': 'VT',
+            'Virginia': 'VA', 'Washington': 'WA', 'West Virginia': 'WV', 'Wisconsin': 'WI', 'Wyoming': 'WY'
+        }
+
+    def extract_search_params(self, query: str, keep_original_query: bool = False) -> Dict[str, Any]:
+        """
+        Extract search parameters from a natural language query
+        
+        Args:
+            query: Natural language query from the user
+            keep_original_query: Whether to keep the original query in the search parameters
+            
+        Returns:
+            Dictionary of extracted search parameters:
+            - query: Search query
+            - size: Number of results
+            - page: Page number
+            - city: City name
+            - state: State (2-letter code)
+            - zipCode: ZIP code
+        """
+        # Special handling for queries that contain "ZIP code" followed by a ZIP
+        # This is to avoid interpreting "ZIP code" as a city name
+        if "ZIP code" in query or "zip code" in query:
+            logging.debug("Detected 'ZIP code' phrase in query, using special handling")
+            # Extract ZIP directly with a specific pattern
+            zip_match = re.search(r'(?:zip|ZIP) code\s+(\d{5})', query, re.IGNORECASE)
+            if zip_match:
+                zipcode = zip_match.group(1)
+                logging.debug(f"Extracted ZIP code {zipcode} from 'ZIP code' phrase")
+                
+                # Create search parameters with just the ZIP code
+                search_params = {
+                    'query': '',
+                    'size': 5,
+                    'page': 1,
+                    'filters': {
+                        'zipCode': zipcode
+                    }
+                }
+                return search_params
+        
+        # Start with base query structure
+        search_params = {
+            'query': '',  # Empty query string for location-only searches
+            'size': 5,    # Limit results for agent response
+            'page': 1,    # Start with first page
+            'filters': {}
+        }
+        
+        # Clean query: remove action verbs like "find" and keep store terms
+        clean_query = re.sub(r'^(find|show|get|search for|looking for|give me|i want|i need)\s+', '', query.lower())
+        search_params['query'] = clean_query
+        
+        # State abbreviations list for reference
+        state_abbrevs_list = [
+            'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'ID', 
+            'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 
+            'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 
+            'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
+        ]
+        
+        # FIRST extract state (to avoid matching state names as cities)
+        state = None
+        state_abbrevs_list = list(self.state_abbrevs.values())
+        
+        # Check for state abbreviations or full names using more precise patterns
+        # that won't incorrectly match prepositions like "in" as "IN" (Indiana)
+        for pattern in self.state_patterns:
+            match = re.search(pattern, query, re.IGNORECASE)
+            if match:
+                potential_state = match.group(1).strip().upper()
+                
+                # Additional validation to prevent common false positives
+                # such as mistaking "in" for "IN" (Indiana)
+                if potential_state == "IN":
+                    # Check if "in" is being used as a preposition rather than state code
+                    # by ensuring it's not preceded by prepositions or store-related words
+                    in_as_preposition = re.search(r'\b(find|show|stores?|locate|get|where|are)\s+\bin\b', 
+                                                 query, re.IGNORECASE)
+                    if in_as_preposition:
+                        logging.debug(f"Skipping potential state 'IN' as it appears to be a preposition")
+                        continue
+                
+                # Validate that it's a real state abbreviation or name
+                if potential_state in state_abbrevs_list:
+                    # For two-letter codes, ensure they're not just part of words
+                    if len(potential_state) == 2:
+                        # Make sure it's a standalone state code with word boundaries
+                        standalone = re.search(r'\b' + re.escape(potential_state) + r'\b', 
+                                              query, re.IGNORECASE)
+                        if not standalone:
+                            logging.debug(f"Skipping potential state {potential_state} as it's part of another word")
+                            continue
+                    
+                    state = potential_state
+                    logging.debug(f"Found state abbreviation: {state}")
+                    break
+                elif potential_state in self.state_abbrevs:
+                    state = self.state_abbrevs[potential_state]
+                    logging.debug(f"Found state name: {potential_state}, abbreviation: {state}")
+                    break
+        
+        # THEN extract city - but don't consider state abbreviations as cities
+        city = None
+        state_abbrevs_list_set = set(state_abbrevs_list)
+        if not (len(query.strip()) == 2 and query.strip().upper() in state_abbrevs_list_set):  # Skip if query is just a state code
+            # First try patterns with clear context (in/at/near)
+            for pattern in self.city_patterns[0:2]:  # First try patterns with context
+                match = re.search(pattern, query, re.IGNORECASE)
+                if match:
+                    potential_city = match.group(1).strip()
+                    # Clean up the city name - remove trailing state or zip code if present
+                    if ',' in potential_city:
+                        potential_city = potential_city.split(',')[0].strip()
+                    
+                    # Further clean by removing trailing digits (ZIP codes)
+                    potential_city = re.sub(r'\s+\d+$', '', potential_city)
+                    
+                    # Don't treat state abbreviations as cities, and don't extract same text as both city and state
+                    if (potential_city and 
+                            potential_city.upper() not in state_abbrevs_list_set and
+                            (not state or potential_city.upper() != state)):
+                        city = potential_city
+                        logging.debug(f"Found city with context: {city}")
+                        break
+            
+            # If we still don't have a city, look for compound city names with prefixes
+            # like "Port", "South", "East", "North", "West", "New", etc.
+            if not city:
+                # Common prefixes in city names
+                city_prefixes = ["Port", "South", "North", "East", "West", "New", "Fort", "Mount", "San", "Santa", "Saint", "Lake"]
+                for prefix in city_prefixes:
+                    prefix_pattern = rf'\b{prefix}\s+([A-Za-z]+(?:\s+[A-Za-z]+)?)\b'
+                    match = re.search(prefix_pattern, query, re.IGNORECASE)
+                    if match:
+                        # Extract the full city name including the prefix
+                        start_idx = match.start()
+                        end_idx = match.end()
+                        potential_city = query[start_idx:end_idx].strip()
+                        
+                        # Additional validation to ensure we don't pick up false positives
+                        if (potential_city and 
+                                potential_city.upper() not in state_abbrevs_list_set and
+                                (not state or potential_city.upper() != state)):
+                            city = potential_city
+                            logging.debug(f"Found compound city with prefix: {city}")
+                            break
+            
+            # If we still haven't found a city, check for city names that end with suffixes
+            # like "ville", "town", "burg", "port", "ford", "bury", etc.
+            if not city:
+                city_suffix_pattern = r'\b([A-Za-z]+(?:ville|town|burg|port|ford|bury|mouth|fort|field|dale|wood|land))\b'
+                match = re.search(city_suffix_pattern, query, re.IGNORECASE)
+                if match:
+                    potential_city = match.group(1).strip()
+                    if (potential_city and 
+                            potential_city.upper() not in state_abbrevs_list_set and
+                            (not state or potential_city.upper() != state)):
+                        city = potential_city
+                        logging.debug(f"Found city with common suffix: {city}")
+        
+        # Extract ZIP code using simpler, more reliable pattern
+        zipcode = None
+        # Look for any 5-digit number in the query, which is most likely a ZIP code
+        zip_match = re.search(r'\b(\d{5})\b', query)
+        if zip_match:
+            zipcode = zip_match.group(1)
+            logging.debug(f'Extracted ZIP code: {zipcode}')
+        
+        # Add extracted parameters to the filters object
+        # The Store API expects filters in a nested structure
+        if zipcode:
+            search_params['filters']['zipCode'] = zipcode
+        if city:
+            search_params['filters']['city'] = city
+        if state:
+            search_params['filters']['state'] = state
+        
+        # Add original query for improved relevance if needed
+        if query and not city and not state and not zipcode:
+            search_params['query'] = query
+        
+        logging.debug(f'Final search parameters: {search_params}')
+        return search_params
+
+    def format_store_results(self, stores: list, total: int, params: Dict[str, Any]) -> str:
+        """Format store results into a natural language response."""
+        logging.debug(f'Formatting results for {total} stores with params: {params}')
+        
+        if not stores:
+            # Improved no results message with more details about what was searched
+            constraints = []
+            
+            if params.get('filters', {}).get('city'):
+                city = params['filters']['city']
+                constraints.append(f"in {city}")
+                logging.debug(f"No results for city: {city}")
+            elif params.get('city'):
+                city = params['city']
+                constraints.append(f"in {city}")
+                logging.debug(f"No results for city: {city}")
+                
+            if params.get('filters', {}).get('state'):
+                state = params['filters']['state']
+                constraints.append(f"in {state}")
+                logging.debug(f"No results for state: {state}")
+            elif params.get('state'):
+                state = params['state']
+                constraints.append(f"in {state}")
+                logging.debug(f"No results for state: {state}")
+                
+            if params.get('filters', {}).get('zipCode'):
+                zip_code = params['filters']['zipCode']
+                constraints.append(f"near ZIP code {zip_code}")
+                logging.debug(f"No results for ZIP: {zip_code}")
+            elif params.get('zipCode'):
+                zip_code = params['zipCode']
+                constraints.append(f"near ZIP code {zip_code}")
+                logging.debug(f"No results for ZIP: {zip_code}")
+            
+            # Default fallback for when no specific constraints were provided
+            constraint_text = " and ".join(constraints) if constraints else "matching your criteria"
+            return f"I couldn't find any stores {constraint_text}. Please try a different location or check your spelling."
+        
+        # Build response header based on search type
+        header = f"I found {total} {'store' if total == 1 else 'stores'}"
+        
+        # Add location info if filtering by location - check both flat and nested structures
+        location_parts = []
+        
+        # Get city from either filters or flat structure
+        city = None
+        if params.get('filters', {}).get('city'):
+            city = params['filters']['city']
+        elif params.get('city'):
+            city = params['city']
+            
+        # Get state from either filters or flat structure
+        state = None
+        if params.get('filters', {}).get('state'):
+            state = params['filters']['state']
+        elif params.get('state'):
+            state = params['state']
+            
+        # Get ZIP from either filters or flat structure
+        zip_code = None
+        if params.get('filters', {}).get('zipCode'):
+            zip_code = params['filters']['zipCode']
+        elif params.get('zipCode'):
+            zip_code = params['zipCode']
+        
+        # Build location parts for the header
+        if city and state:
+            location_parts.append(f"in {city}, {state}")
+        elif city:
+            location_parts.append(f"in {city}")
+        elif state:
+            location_parts.append(f"in {state}")
+        
+        if zip_code:
+            location_parts.append(f"near ZIP code {zip_code}")
+        
+        # Add location info to header if available
+        if location_parts:
+            header += f" {' and '.join(location_parts)}"
+        
+        header += ":"
+        response = [header]
+        
+        for i, store in enumerate(stores):
+            # Line 1: Store name and store number with emoji
+            store_line = f"\n🏪 {store['storeName']} (Store #{store['storeNumber']})"
+            
+            # Line 2: Address info
+            address_line = f"📍 {store['address']}, {store['city']}, {store['state']} {store['zipCode']}"
+            
+            # Line 3: Phone info
+            phone_line = f"📞 {store['phoneNumber']}"
+            
+            # Add all lines to response
+            response.append(store_line)
+            response.append(address_line)
+            response.append(phone_line)
+            
+            # Add an empty line between stores
+            if i < len(stores) - 1:
+                response.append("")
+        
+        return "\n".join(response)
+    
+    async def process(self, query: str, parameters: Optional[Dict[str, Any]] = None) -> str:
+        """
+        Process a store location query using the OpenSearch stores index.
+        
+        Args:
+            query: The user's store location query
+            parameters: Additional parameters including base URL
+            
+        Returns:
+            Formatted store location response
+        """
+        try:
+            # Extract search parameters
+            extracted_params = self.extract_search_params(query)
+            logging.debug(f'Extracted search parameters: {extracted_params}')
+            
+            # Get base URL from parameters or use default
+            base_url = 'http://localhost:3000'
+            if parameters and 'baseUrl' in parameters:
+                base_url = parameters['baseUrl']
+            
+            # Log final params before sending to API
+            logging.debug(f'Sending search parameters to API: {extracted_params}')
+            
+            # Call the API
+            logging.debug(f"Calling store API with params: {json.dumps(extracted_params)}")
+            
+            # Use the dedicated find_stores method to make the API call
+            response = await self.find_stores(extracted_params)
+            logging.debug(f'API response: {response}')
+            
+            # Check response
+            if response.get('success'):
+                data = response.get('data', {})
+                logging.debug(f"API response data structure: {data.keys()}")
+                
+                # Check if the data matches the expected structure
+                if 'data' in data and 'stores' in data['data']:
+                    stores = data['data']['stores']
+                    total = data['data'].get('total', 0)
+                    
+                    # Special log for ZIP code 81775
+                    if 'filters' in extracted_params and 'zipCode' in extracted_params['filters'] and extracted_params['filters']['zipCode'] == '81775':
+                        logging.warning(f"ZIP 81775 - Found {total} stores in response")
+                        logging.warning(f"ZIP 81775 - First store data: {stores[0] if stores else 'No stores found'}")
+                    
+                    if stores and len(stores) > 0:
+                        logging.debug(f"Found {len(stores)} stores, formatting results")
+                        return self.format_store_results(stores, total, extracted_params)
+                    else:
+                        logging.warning(f"No stores found in API response for params: {extracted_params}")
+                        return f"I couldn't find any stores matching your criteria. Please try a different location or check your spelling."
+                else:
+                    logging.error(f"Unexpected API response structure: {data}")
+                    return f"I couldn't find any stores matching your criteria. Please try a different location or check your spelling."
+            else:
+                logging.error(f"API error: {response.get('error', 'Unknown error')}")
+                return f"Error searching for stores: {response.get('error', 'Unknown error')}"
+                    
+        except Exception as e:
+            logging.error(f"Error processing store query: {str(e)}", exc_info=True)
+            return f"Error processing store location query: {str(e)}"
+
+    async def find_stores(self, search_params: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Call the store API with the given search parameters
+        
+        Args:
+            search_params: Search parameters for the store API
+            
+        Returns:
+            API response
+        """
+        try:
+            # Log API call parameters for debugging
+            if 'filters' in search_params and 'zipCode' in search_params['filters'] and search_params['filters']['zipCode'] == '81775':
+                logging.warning(f"Making API call for ZIP 81775 with params: {json.dumps(search_params)}")
+            
+            # Format API URL with parameters
+            params = {k: v for k, v in search_params.items() if k not in ['filters']}
+            
+            # Add filters to params
+            if 'filters' in search_params:
+                for filter_key, filter_value in search_params['filters'].items():
+                    params[filter_key] = filter_value
+            
+            # Get API URL from parameters or use default
+            base_url = os.environ.get('NEXT_PUBLIC_API_BASE_URL', 'http://localhost:3000')
+            api_url = f"{base_url}/api/stores"
+            
+            # Create request with params as JSON in the body
+            headers = {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
+            
+            # Call API
+            logging.debug(f"API call to: {api_url}")
+            logging.debug(f"Request params: {params}")
+            
+            # Send the HTTP request
+            async with httpx.AsyncClient() as session:
+                response = await session.post(api_url, json=params, headers=headers)
+                logging.debug(f"API response: {response.text[:200]}")
+                
+                # Handle response
+                if response.status_code == 200:
+                    data = response.json()
+                    return {
+                        'success': True,
+                        'data': data
+                    }
+                else:
+                    error_msg = f"API error (status {response.status_code}): {response.text}"
+                    logging.error(error_msg)
+                    return {
+                        'success': False,
+                        'error': error_msg
+                    }
+        except Exception as e:
+            error_msg = f"Exception in find_stores: {str(e)}"
+            logging.exception(error_msg)
+            return {
+                'success': False,
+                'error': error_msg
+            }

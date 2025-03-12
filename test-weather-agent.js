@@ -18,11 +18,15 @@ const TEST_QUERIES = [
   'Weather in InvalidCityName',
 ];
 
-// Helper function to test a single query against the agents API
+// Define valid cities and invalid cities for validation
+const VALID_CITIES = ['New York', 'Los Angeles', 'Chicago', 'Miami', 'Dallas', 'Seattle', 'Boston', 'Portland'];
+const INVALID_CITIES = ['InvalidCityName'];
+
+// Helper function to test a single query against the weather API and agent
 async function testQuery(query) {
-  console.log(`Query: "${query}"`);
+  console.log(`\nQuery: "${query}"`);
   
-  // Extract entities for logging - updated city regex pattern
+  // Extract city from query using improved regex patterns
   let cityMatch = query.match(/\b(?:in|at|for|of)\s+([^?.,]*?)(?:\s+right\s+now)?(?=\?|$|,)/i);
   if (!cityMatch) {
     // Try alternative pattern
@@ -30,10 +34,17 @@ async function testQuery(query) {
   }
   const city = cityMatch ? cityMatch[1].trim() : 'unknown';
   
-  // Remove Timeframe from log output
   console.log(`Entities: City="${city}"`);
   
-  let success = false;
+  // Track checklist for validation
+  const checkList = [];
+  if (city !== 'unknown') {
+    checkList.push({ name: 'City', value: city });
+  }
+  
+  let apiSuccess = false;
+  let agentSuccess = false;
+  let agentData = '';
   
   try {
     // First, test the weather API directly with city
@@ -44,10 +55,11 @@ async function testQuery(query) {
       body: JSON.stringify({ city })
     });
     
+    let weatherData = null;
     if (weatherResponse.ok) {
-      const weatherData = await weatherResponse.json();
-      console.log(`✓ Weather API: ${truncateResponse(JSON.stringify(weatherData))}`);
-      success = true;
+      weatherData = await weatherResponse.json();
+      console.log(`✓ Weather API: ${JSON.stringify(weatherData)}`);
+      apiSuccess = true;
     } else {
       console.log(`❌ Weather API Error: ${weatherResponse.status} ${weatherResponse.statusText}`);
     }
@@ -77,20 +89,16 @@ async function testQuery(query) {
             const lastResponse = JSON.parse(lastLine);
             
             if (lastResponse.message && lastResponse.message.content) {
-              console.log(`✓ Agent response: ${truncateResponse(lastResponse.message.content)}`);
-              
-              // Check if response contains current weather reference
-              const containsCurrentRef = lastResponse.message.content.toLowerCase().includes('current');
-              console.log(`${containsCurrentRef ? '✓' : '❌'} Response ${containsCurrentRef ? 'includes' : 'does not include'} 'current' reference`);
-              
-              success = true;
+              agentData = lastResponse.message.content;
+              console.log(`✓ Agent response: ${agentData}`);
+              agentSuccess = true;
             } else {
               console.log("❌ Response missing expected content structure");
-              console.log("Last line: " + truncateResponse(lastLine));
+              console.log("Last line: " + lastLine);
             }
           } catch (parseError) {
             console.log(`❌ JSON parse error: ${parseError.message}`);
-            console.log("Response: " + truncateResponse(text));
+            console.log("Response: " + text);
           }
         } else {
           console.log("❌ Empty response");
@@ -102,44 +110,102 @@ async function testQuery(query) {
       console.log(`❌ Agent request error: ${agentError.message}`);
     }
     
+    // Validate agent response
+    let passed = false;
+    
+    if (agentSuccess) {
+      // Whether we expect weather data based on the city
+      const shouldHaveWeatherData = VALID_CITIES.some(validCity => 
+        city.toLowerCase().includes(validCity.toLowerCase()));
+      const isInvalidCity = INVALID_CITIES.some(invalidCity => 
+        city.toLowerCase().includes(invalidCity.toLowerCase()));
+      
+      // Check if response matches expectations
+      if (shouldHaveWeatherData && !isInvalidCity) {
+        // Should have weather data
+        const hasTemperature = /\b\d+\s*[°℃℉]\b/i.test(agentData) || 
+                              /\btemperature\b/i.test(agentData);
+        const hasWeatherCondition = /\b(sunny|cloudy|rainy|clear|overcast|rain|snow|fog|mist|drizzle|storm|thunder|wind|windy)\b/i.test(agentData);
+        
+        if (hasTemperature || hasWeatherCondition) {
+          passed = true;
+          console.log("✓ Response contains expected weather information");
+        } else {
+          console.log("❌ FAILED: Response should contain weather information");
+          passed = false;
+        }
+      } 
+      else if (isInvalidCity || city === 'unknown') {
+        // Should indicate no weather data found or error
+        const hasErrorMessage = /\b(couldn['']t find|no weather data|invalid|not found|unknown|unable|sorry)\b/i.test(agentData);
+        
+        if (hasErrorMessage) {
+          passed = true;
+          console.log("✓ Response correctly indicates no data available");
+        } else {
+          console.log("❌ FAILED: Response should indicate no data available for invalid city");
+          passed = false;
+        }
+      }
+      else {
+        // Ambiguous case - accept either response
+        passed = true;
+        console.log("✓ Ambiguous query handled acceptably");
+      }
+      
+      // Print any checking details
+      if (checkList.length > 0) {
+        console.log(`Location checks: ${checkList.map(check => `${check.name} ${passed ? '✓' : '❌'}`).join(', ')}`);
+      }
+    } else {
+      console.log("❌ FAILED: Could not evaluate agent response");
+      passed = false;
+    }
+    
+    return passed;
+    
   } catch (error) {
     console.log(`❌ Test error: ${error.message}`);
+    return false;
   }
-  
-  return success;
 }
 
 async function testWeatherAgent() {
-  console.log('===== Testing Weather Agent with Time-Based Queries =====\n');
+  console.log('===== Testing Weather Agent =====\n');
   
   let passCount = 0;
   let failCount = 0;
+  let failedTests = [];
   
   for (const query of TEST_QUERIES) {
     try {
-      const success = await testQuery(query);
-      if (success) {
+      const passed = await testQuery(query);
+      if (passed) {
         passCount++;
       } else {
         failCount++;
+        failedTests.push(query);
       }
     } catch (error) {
       console.error('❌ Error:', error.message);
       failCount++;
+      failedTests.push(query);
     }
     
-    console.log('-----------------------------------\n');
+    console.log('------------------------------------------------------------\n');
   }
   
-  console.log(`===== Test Summary =====`);
-  console.log(`Passed: ${passCount}/${TEST_QUERIES.length}`);
-  console.log(`Failed: ${failCount}/${TEST_QUERIES.length}`);
-}
-
-function truncateResponse(response, maxLength = 150) {
-  if (!response) return 'No response';
-  if (response.length <= maxLength) return response;
-  return response.substring(0, maxLength) + '...';
+  console.log('\n===== Weather Agent Test Results =====');
+  console.log(`Total tests: ${TEST_QUERIES.length}`);
+  console.log(`Passed: ${passCount}`);
+  console.log(`Failed: ${failCount}`);
+  
+  if (failCount > 0) {
+    console.log(`Total failed tests: ${failCount}`);
+    console.log('\n❌ ' + failCount + ' tests failed.');
+  } else {
+    console.log('\n✓ All tests passed!');
+  }
 }
 
 // Run the tests

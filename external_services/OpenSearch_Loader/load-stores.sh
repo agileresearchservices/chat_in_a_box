@@ -18,15 +18,42 @@ sleep 2
 curl -X PUT "http://localhost:9200/stores" -H 'Content-Type: application/json' -d '{
   "settings": {
     "number_of_shards": 1,
-    "number_of_replicas": 0
+    "number_of_replicas": 0,
+    "analysis": {
+      "analyzer": {
+        "lowercase_analyzer": {
+          "type": "custom",
+          "tokenizer": "keyword",
+          "filter": ["lowercase"]
+        }
+      }
+    }
   },
   "mappings": {
     "properties": {
       "Store_Number": { "type": "keyword" },
       "Store_Name": { "type": "text" },
       "Address": { "type": "text" },
-      "City": { "type": "keyword" },
-      "State": { "type": "keyword" },
+      "City": { 
+        "type": "text",
+        "fields": {
+          "keyword": { "type": "keyword" },
+          "lowercase": { 
+            "type": "text",
+            "analyzer": "lowercase_analyzer"
+          }
+        }
+      },
+      "State": { 
+        "type": "text",
+        "fields": {
+          "keyword": { "type": "keyword" },
+          "lowercase": { 
+            "type": "text",
+            "analyzer": "lowercase_analyzer"
+          }
+        }
+      },
       "ZIP_Code": { "type": "keyword" },
       "Phone_Number": { "type": "keyword" }
     }

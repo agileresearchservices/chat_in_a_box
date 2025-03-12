@@ -3,12 +3,13 @@ info:
   title: Chat in a Box API
   version: '1.0'
   description: |
-    API documentation for Chat in a Box, featuring intelligent chat and weather services.
+    API documentation for Chat in a Box, featuring intelligent chat, weather services, and store location search.
     
     ## Key Features
     - Natural language chat processing
     - US weather data retrieval
     - City-based weather queries
+    - Store locator with filtering by city, state, and ZIP code
     - Comprehensive error handling
 
 servers:
