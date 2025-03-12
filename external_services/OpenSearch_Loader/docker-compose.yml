@@ -22,11 +22,30 @@ services:
     volumes:
       - opensearch_data:/usr/share/opensearch/data
       - ./cell_phone_catalog_expanded.csv:/data/cell_phone_catalog_expanded.csv
+      - ./fictional_stores.csv:/data/fictional_stores.csv
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health"]
       interval: 10s
       timeout: 5s
       retries: 5
+
+  opensearch-dashboards:
+    image: opensearchproject/opensearch-dashboards:2.11.0
+    container_name: opensearch-dashboards
+    ports:
+      - "5601:5601"
+    environment:
+      - "OPENSEARCH_HOSTS=http://opensearch:9200"
+      - "DISABLE_SECURITY_DASHBOARDS_PLUGIN=true"
+      - "OPENSEARCH_DASHBOARDS_LOCALE=en"
+      - "I18N_LOCALE=en"
+      - "NODE_ENV=production"
+      - "OPENSEARCH_REQUESTTIMEOUT=60000"
+      - "SERVER_MAXPAYLOADSIZE=1048576"
+      - "NODE_OPTIONS=--no-warnings --max-http-header-size=65536"
+    depends_on:
+      opensearch:
+        condition: service_healthy
 
 volumes:
   opensearch_data:
