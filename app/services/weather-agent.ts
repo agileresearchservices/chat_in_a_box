@@ -41,8 +41,8 @@ const WEATHER_PATTERNS = [
  * - "temperature for San Francisco tomorrow" -> "San Francisco"
  */
 const CITY_PATTERNS = [
-  /(?:in|at|for) ([\w\s]+?)(?:\?|$|,|\s+(?:today|now|tomorrow|tonight))/i,
-  /(?:weather|temperature|forecast) (?:in|at|for) ([\w\s]+?)(?:\?|$|,|\s+(?:today|now|tomorrow|tonight))/i
+  /\b(?:in|at|for|of)\s+([^?.,]*?)(?:\s+right\s+now)?(?=\?|$|,)/i,
+  /\b(?:weather|temperature|forecast)\s+(?:in|at|for|of)\s+([^?.,]*?)(?:\s+right\s+now)?(?=\?|$|,)/i
 ];
 
 /**
@@ -215,12 +215,16 @@ export class WeatherAgent {
    * const response = await agent.handleWeatherQuery("What's the weather in Boston?");
    * ```
    */
-  public async handleWeatherQuery(input: string): Promise<Response | null> {
+  public async handleWeatherQuery(input: string): Promise<WeatherResponse | null> {
+    let city: string | null = null;
+    
     try {
       logger.info('Processing weather query', { input });
       
       // Extract city and time entities from the query
-      const { city, timeframe } = await this.extractEntities(input);
+      const entities = await this.extractEntities(input);
+      city = entities.city;
+      const timeframe = entities.timeframe;
       
       if (!city) {
         logger.info('No city found in weather query after NLP and regex extraction', { input });
@@ -230,26 +234,38 @@ export class WeatherAgent {
       logger.info('Successfully extracted entities for weather query', { 
         input,
         extractedCity: city,
-        timeframe: 'now',
         extractionMethod: 'nlp+regex'
       });
 
       // Execute weather query through PydanticAI agent system
-      return await agentService.executeAgent(this.agentType, input, {
+      const agentResponse = await agentService.executeAgent(this.agentType, input, {
         city,                           // Extracted city name
-        timeframe: 'now',               // Always use current conditions
         weatherApiEndpoint: '/api/weather',  // Internal API endpoint
         requiresLocation: true,         // Indicates geocoding is needed
         locationService: 'nominatim',   // Service for city->coordinates
         weatherService: 'nws'           // National Weather Service API
       });
 
+      const responseData = await agentResponse.json();
+
+      return {
+        message: {
+          content: responseData.message || 'Weather information retrieved successfully.'
+        }
+      };
+
     } catch (error) {
       logger.error('Error handling weather query', { 
         error: error instanceof Error ? error.message : String(error),
         input 
       });
-      throw error;
+
+      // Include city name in the error message
+      return {
+        message: {
+          content: `Weather information not available for city: ${city || 'unknown'}.`
+        }
+      };
     }
   }
 }

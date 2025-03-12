@@ -22,11 +22,16 @@ const TEST_QUERIES = [
 async function testQuery(query) {
   console.log(`Query: "${query}"`);
   
-  // Extract entities for logging
-  const cityMatch = query.match(/\b(?:in|at|for|of)\s+([^?.,]*?)(?:\s+right\s+now)?(?:\?|$|,)/i);
-  const city = cityMatch ? cityMatch[1].trim().replace(/\?$/, '') : 'unknown';
+  // Extract entities for logging - updated city regex pattern
+  let cityMatch = query.match(/\b(?:in|at|for|of)\s+([^?.,]*?)(?:\s+right\s+now)?(?=\?|$|,)/i);
+  if (!cityMatch) {
+    // Try alternative pattern
+    cityMatch = query.match(/\b(?:weather|temperature|forecast)\s+(?:in|at|for|of)\s+([^?.,]*?)(?:\s+right\s+now)?(?=\?|$|,)/i);
+  }
+  const city = cityMatch ? cityMatch[1].trim() : 'unknown';
   
-  console.log(`Entities: City="${city}", Timeframe="now"`);
+  // Remove Timeframe from log output
+  console.log(`Entities: City="${city}"`);
   
   let success = false;
   
@@ -36,7 +41,7 @@ async function testQuery(query) {
     const weatherResponse = await fetch('http://localhost:3000/api/weather', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ city, timeframe: 'now' })
+      body: JSON.stringify({ city })
     });
     
     if (weatherResponse.ok) {
