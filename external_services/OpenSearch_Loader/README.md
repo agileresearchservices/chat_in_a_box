@@ -194,12 +194,12 @@ curl -X GET "http://localhost:9200/stores/_search" -H "Content-Type: application
 }'
 ```
 
-#### 2. Search by State (Exact Match)
+#### 2. Search by State (Exact Match with Keyword Field)
 ```bash
 curl -X GET "http://localhost:9200/stores/_search" -H "Content-Type: application/json" -d'{
   "query": {
     "term": {
-      "State": "CA"
+      "State.keyword": "CA"
     }
   }
 }'
@@ -216,7 +216,18 @@ curl -X GET "http://localhost:9200/stores/_search" -H "Content-Type: application
 }'
 ```
 
-#### 4. Combined Query (City + State)
+#### 4. Search by ZIP Code (Exact Term Match)
+```bash
+curl -X GET "http://localhost:9200/stores/_search" -H "Content-Type: application/json" -d'{
+  "query": {
+    "term": {
+      "ZipCode": "42056"
+    }
+  }
+}'
+```
+
+#### 5. Combined Query (City + State)
 ```bash
 curl -X GET "http://localhost:9200/stores/_search" -H "Content-Type: application/json" -d'{
   "query": {
@@ -244,4 +255,3 @@ To completely remove the data volumes as well:
 
 ```bash
 docker-compose down -v
-```

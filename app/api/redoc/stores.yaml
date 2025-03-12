@@ -8,8 +8,9 @@ info:
     ## Key Features
     - Full-text search across store names, addresses, and cities
     - City filtering with case-insensitive matching
-    - State filtering with case-insensitive matching
-    - ZIP code filtering with case-insensitive matching
+    - State filtering with exact keyword matching
+    - ZIP code filtering with exact term matching
+    - Nested filter structure for precise control
     - Pagination support
     - Relevance-based sorting
 
@@ -33,18 +34,22 @@ paths:
                   type: string
                   description: Optional search query to match against store names and addresses
                   example: "electronics"
-                city:
-                  type: string
-                  description: Filter stores by city name (case-insensitive)
-                  example: "Port Ericmouth"
-                state:
-                  type: string
-                  description: Filter stores by state code (case-insensitive)
-                  example: "NM"
-                zipCode:
-                  type: string
-                  description: Filter stores by ZIP code
-                  example: "42056"
+                filters:
+                  type: object
+                  description: Nested filters object for more precise control
+                  properties:
+                    city:
+                      type: string
+                      description: Filter stores by city name (case-insensitive)
+                      example: "Port Ericmouth"
+                    state:
+                      type: string
+                      description: Filter stores by state code (uses exact keyword matching)
+                      example: "NM"
+                    zipCode:
+                      type: string
+                      description: Filter stores by ZIP code (uses exact term matching)
+                      example: "42056"
                 size:
                   type: integer
                   description: Number of results per page (1-100)

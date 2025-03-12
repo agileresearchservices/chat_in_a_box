@@ -12,7 +12,7 @@ Chat in a Box is a cutting-edge Retrieval-Augmented Generation (RAG) application
 - **Advanced Vector Search**: Implements PostgreSQL with pgvector for efficient semantic document retrieval and similarity search.
 - **Multi-format Document Support**: Extract and process text from various file formats including .txt, .pdf, and .docx.
 - **Flexible AI Interactions**: Perform advanced document querying, generation, and reranking with local AI models.
-- **Store Locator**: Find retail locations with powerful filtering by city, state, and ZIP code with case-insensitive matching.
+- **Store Locator**: Find retail locations with powerful filtering by city, state, and ZIP code with case-insensitive matching and exact term matching for precise ZIP code searches.
 - **US Weather Information**: Real-time weather data for US cities using the National Weather Service API with intelligent city resolution.
 - **Natural Language Processing Analysis**: Analyze text for entities, parts of speech, and sentiment using Node-NLP.
 
@@ -105,9 +105,11 @@ For a detailed explanation of how product search queries are processed, see our 
   // Request
   {
     "query": "electronics",
-    "city": "Port Ericmouth",
-    "state": "NM",
-    "zipCode": "",
+    "filters": {
+      "city": "Port Ericmouth",
+      "state": "NM",
+      "zipCode": "42056"
+    },
     "size": 5,
     "page": 1
   }
