@@ -11,31 +11,16 @@ class WeatherAgent(Agent):
     """
     PydanticAI agent for handling weather queries using the existing weather service.
     
-    Integrates with:
-    - Weather Service (/app/services/weather.service.ts)
-    - Weather API Route (/app/api/weather/route.ts)
-    
     Features:
     - Uses existing geocoding via Nominatim API
     - Real-time weather data from National Weather Service API
     - US-only location support
-    - Time-based forecast selection (today, tomorrow, tonight)
+    - Current conditions only
     - Error handling and logging
     """
     
     def __init__(self):
         super().__init__()
-        # Define time patterns first to identify and remove them from city extraction
-        self.time_patterns = [
-            r'\b(?:today|now|current(?:ly)?)\b',
-            r'\b(?:tomorrow|tmrw)\b',
-            r'\b(?:tonight|this evening|evening|later today)\b',
-            r'\b(?:this|next)\s+(?:week|weekend)\b',
-            r'\b(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b'
-        ]
-        
-        # Combined time pattern for pre-filtering
-        self.combined_time_pattern = r'\b(?:today|now|current(?:ly)?|tomorrow|tmrw|tonight|this evening|evening|later today|this\s+(?:week|weekend)|next\s+(?:week|weekend)|monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b'
         
         # Words that shouldn't be included in city names
         self.filter_words = [
@@ -65,30 +50,6 @@ class WeatherAgent(Agent):
             # Match cities in question patterns
             r'(?:what|how)(?:\'s|\s+is)\s+(?:the\s+)?(?:weather|forecast|temperature)\s+(?:like\s+)?(?:in|at|for|of)\s+([a-zA-Z\s.-]+?)(?:,|\s+(?:and|or|\?|$|today|now|tomorrow|tonight|this|next))'
         ]
-        
-        self.time_mappings = {
-            'today': 'today',
-            'now': 'now',
-            'currently': 'now',
-            'current': 'now',
-            'tomorrow': 'tomorrow',
-            'tmrw': 'tomorrow',
-            'tonight': 'tonight',
-            'this evening': 'tonight',
-            'evening': 'tonight',
-            'later today': 'tonight',
-            'this week': 'week',
-            'next week': 'next_week',
-            'this weekend': 'weekend',
-            'next weekend': 'next_weekend',
-            'monday': 'monday',
-            'tuesday': 'tuesday',
-            'wednesday': 'wednesday',
-            'thursday': 'thursday',
-            'friday': 'friday',
-            'saturday': 'saturday',
-            'sunday': 'sunday'
-        }
     
     def clean_city_name(self, city: str) -> str:
         """Clean a potential city name by removing common non-city words and patterns."""
@@ -102,10 +63,6 @@ class WeatherAgent(Agent):
         city = re.sub(r'^the\s+', '', city, flags=re.IGNORECASE)  # Remove leading "the"
         city = re.sub(r'\s+city$', '', city, flags=re.IGNORECASE)  # Remove trailing "city"
         
-        # Remove time words from city
-        for time_pattern in self.time_patterns:
-            city = re.sub(time_pattern, '', city, flags=re.IGNORECASE)
-            
         # Remove filter words that shouldn't be part of city names
         city = re.sub(self.filter_words_pattern, '', city, flags=re.IGNORECASE)
         
@@ -115,10 +72,7 @@ class WeatherAgent(Agent):
         return city
         
     def extract_city(self, query: str) -> Optional[str]:
-        """
-        Extract city name from query using regex patterns.
-        Pre-filters time references to avoid including them in city names.
-        """
+        """Extract city name from query using regex patterns."""
         # Special handling for common multi-word city names that were having issues
         if re.search(r'\bnew\s+york\b', query, re.IGNORECASE):
             return "New York"
@@ -164,7 +118,6 @@ class WeatherAgent(Agent):
                     return city
         
         # Last resort - look for capitalized words that might be city names
-        # This is less reliable but can catch simple "Weather in Miami" type queries
         words = query.split()
         for word in words:
             # Check if word is capitalized and not a common word to exclude
@@ -188,30 +141,6 @@ class WeatherAgent(Agent):
             
         return None
     
-    def extract_timeframe(self, query: str) -> Optional[str]:
-        """Extract time reference from query using regex patterns."""
-        query_lower = query.lower()
-        
-        # First try direct matches for common time phrases
-        for time_key, time_value in self.time_mappings.items():
-            if time_key in query_lower:
-                return time_value
-        
-        # Then try regex patterns for more complex time references
-        for pattern in self.time_patterns:
-            match = re.search(pattern, query_lower)
-            if match:
-                time_phrase = match.group(0)
-                # Try to find a mapping for this time phrase
-                for time_key, time_value in self.time_mappings.items():
-                    if time_key in time_phrase:
-                        return time_value
-                # If no mapping found, return the matched phrase as is
-                return time_phrase
-        
-        # Default to current conditions if no time reference found
-        return 'now'
-    
     async def process(self, query: str, parameters: Optional[Dict[str, Any]] = None) -> str:
         """
         Process a weather query using the existing weather service.
@@ -223,18 +152,16 @@ class WeatherAgent(Agent):
         Returns:
             Formatted weather response
         """
-        # Extract city and timeframe from query if not provided in parameters
+        # Extract city from query if not provided in parameters
         city = parameters.get('city') if parameters else None
-        timeframe = parameters.get('timeframe') if parameters else None
         
         if not city:
             city = self.extract_city(query)
             if not city:
                 return "I couldn't understand which city you're asking about. Please specify a city name."
         
-        # Extract timeframe if not provided
-        if not timeframe:
-            timeframe = self.extract_timeframe(query)
+        # Always use current conditions
+        timeframe = 'now'
             
         base_url = os.environ.get('NEXT_PUBLIC_BASE_URL', 'http://localhost:3000')
         weather_api_endpoint = f"{base_url}/api/weather"
@@ -274,14 +201,14 @@ class WeatherAgent(Agent):
                             error_msg = error_data['error']
                             if 'find' in error_msg.lower() and 'location' in error_msg.lower():
                                 return f"I couldn't find weather information for '{city}'. Please make sure you've entered a valid US city name."
-                            return f"Sorry, I couldn't get weather information for {city} with timeframe '{timeframe}'. Error: {error_msg}"
+                            return f"Sorry, I couldn't get weather information for {city}. Error: {error_msg}"
                     except json.JSONDecodeError:
                         # If not JSON, try to check the raw response text
                         error_text = response.text
                         if 'Could not find US location' in error_text or 'No location found' in error_text:
                             return f"I couldn't find weather information for '{city}'. Please make sure you've entered a valid US city name."
                         
-                        return f"Sorry, I couldn't get weather information for {city} with timeframe '{timeframe}'. The weather service returned an error."
+                        return f"Sorry, I couldn't get weather information for {city}. The weather service returned an error."
                     
                 response.raise_for_status()
                 data = response.json()
@@ -291,27 +218,8 @@ class WeatherAgent(Agent):
                 
                 weather_data = data['data']
                 
-                # Format the response based on the timeframe requested
-                time_description = ""
-                if timeframe == 'now':
-                    time_description = "current"
-                elif timeframe == 'today':
-                    time_description = "today's"
-                elif timeframe == 'tomorrow':
-                    time_description = "tomorrow's"
-                elif timeframe == 'tonight':
-                    time_description = "tonight's"
-                elif timeframe == 'week' or timeframe == 'next_week':
-                    time_description = "this week's"
-                elif timeframe == 'weekend' or timeframe == 'next_weekend':
-                    time_description = "weekend"
-                else:
-                    # For any other timeframe or unknown values, default to "current"
-                    # This ensures we always have a time descriptor in the response
-                    time_description = timeframe if timeframe else "current"
-                
-                # Format the response using the existing structure with timeframe context
-                return f"""Here's the {time_description} weather for {weather_data['location']}:
+                # Format the response for current conditions
+                return f"""Here's the current weather for {weather_data['location']}:
 🌡️ Temperature: {weather_data['temperature']}°{weather_data['temperatureUnit']}
 {weather_data['shortForecast']}
 

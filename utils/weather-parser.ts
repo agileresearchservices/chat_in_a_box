@@ -9,7 +9,7 @@
  * - Weather response detection
  * - Structured weather data parsing
  * - Error condition handling
- * - Support for different timeframes
+ * - Support for current weather conditions
  * - Temperature and unit parsing
  * 
  * @module WeatherParser
@@ -71,7 +71,6 @@ export function isWeatherResponse(message: string): boolean {
  * 2. Location extraction
  * 3. Temperature and unit parsing
  * 4. Forecast extraction (short and detailed)
- * 5. Timeframe determination
  * 
  * @param {string} message - The weather response message to parse
  * @returns {WeatherData | null} A structured WeatherData object or null if parsing fails
@@ -116,7 +115,6 @@ export function parseWeatherData(message: string): WeatherData | null {
     if (message.includes('Making weather request for city:')) {
       // Parse the city from the request message
       const cityMatch = message.match(/city: '([^']+)'/i);
-      const timeframeMatch = message.match(/timeframe: '([^']+)'/i);
       
       // Extract location from "Here's the ... weather for [location]:" pattern
       const locationMatch = message.match(/weather for ([^:]+):/i);
@@ -145,17 +143,13 @@ export function parseWeatherData(message: string): WeatherData | null {
       const detailedMatch = message.match(/Detailed Forecast:\s*([\s\S]+)$/i);
       const detailedForecast = detailedMatch ? detailedMatch[1].trim() : '';
       
-      // Use extracted timeframe or default to "now"
-      const timeframe = timeframeMatch && timeframeMatch[1] ? 
-        mapTimeframeToKey(timeframeMatch[1].replace(/['"]/g, '')) : 'now';
-      
       return {
         location,
         temperature,
         temperatureUnit,
         shortForecast,
         detailedForecast,
-        timeframe,
+        timeframe: 'now',
         isError: false
       };
     }
@@ -184,40 +178,17 @@ export function parseWeatherData(message: string): WeatherData | null {
       detailedForecast = lines.slice(detailedForecastIndex + 1).join('\n').trim();
     }
     
-    // Parse the timeframe from the description
-    const timeframeMatch = message.match(/Here's the (.*?) weather for/i);
-    const timeframe = timeframeMatch && timeframeMatch[1] ? mapTimeframeToKey(timeframeMatch[1]) : 'now';
-    
     return {
       location,
       temperature,
       temperatureUnit,
       shortForecast,
       detailedForecast,
-      timeframe,
+      timeframe: 'now',
       isError: false
     };
   } catch (error) {
     logger.error('Error parsing weather data:', { error: String(error) });
     return null;
   }
-}
-
-/**
- * Maps the time description to a standardized timeframe key
- * 
- * @param {string} timeDescription - The time description to map
- * @returns {string} The corresponding timeframe key
- */
-function mapTimeframeToKey(timeDescription: string): string {
-  const descriptionLower = timeDescription.toLowerCase();
-  
-  if (descriptionLower === 'current') return 'now';
-  if (descriptionLower.includes('today')) return 'today';
-  if (descriptionLower.includes('tomorrow')) return 'tomorrow';
-  if (descriptionLower.includes('tonight')) return 'tonight';
-  if (descriptionLower.includes('week')) return 'week';
-  if (descriptionLower.includes('weekend')) return 'weekend';
-  
-  return descriptionLower;
 }

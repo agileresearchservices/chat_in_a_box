@@ -46,44 +46,6 @@ const CITY_PATTERNS = [
 ];
 
 /**
- * Regular expressions for extracting time references from weather queries.
- * Used as a fallback when NLP service doesn't identify a time entity.
- * 
- * Examples:
- * - "tomorrow" -> "tomorrow"
- * - "tonight" -> "tonight"
- * - "this evening" -> "evening"
- */
-const TIME_PATTERNS = [
-  /\b(today|now|current(?:ly)?)\b/i,
-  /\b(tomorrow|tmrw)\b/i,
-  /\b(tonight|this evening|evening|later today)\b/i,
-  /\b(next|this) (week|weekend)\b/i,
-  /\b(\d+) days? (from now|ahead|later)\b/i
-];
-
-/**
- * Maps recognized time entities to standardized time tokens that
- * the weather service can understand.
- */
-const TIME_MAPPINGS: Record<string, string> = {
-  'today': 'today',
-  'now': 'now',
-  'currently': 'now',
-  'current': 'now',
-  'tomorrow': 'tomorrow',
-  'tmrw': 'tomorrow',
-  'tonight': 'tonight',
-  'this evening': 'tonight',
-  'evening': 'tonight',
-  'later today': 'tonight',
-  'this week': 'week',
-  'next week': 'next_week',
-  'this weekend': 'weekend',
-  'next weekend': 'next_weekend'
-};
-
-/**
  * Interface defining the structure of weather agent responses.
  * Aligns with the PydanticAI agent response format.
  */
@@ -95,11 +57,11 @@ interface WeatherResponse {
 
 /**
  * Represents the result of entity extraction from a weather query,
- * including both location (city) and time information.
+ * including location (city) information.
  */
 interface EntityExtractionResult {
   city: string | null;
-  timeframe: string | null;
+  timeframe: string;  // Always 'now' since we only support current conditions
 }
 
 /**
@@ -112,7 +74,6 @@ interface EntityExtractionResult {
  * Key Features:
  * - Smart weather query detection using regex patterns
  * - Intelligent city name extraction using NLP service with regex fallback
- * - Time-based query handling for forecasts (today, tomorrow, tonight)
  * - Integration with PydanticAI agent system
  * - Real-time US weather data retrieval
  * - Comprehensive error handling and logging
@@ -139,15 +100,15 @@ export class WeatherAgent {
   }
 
   /**
-   * Extracts both city and time entities from a weather-related query using NLP service.
-   * Falls back to regex patterns if NLP doesn't identify the entities.
+   * Extracts city entity from a weather-related query using NLP service.
+   * Falls back to regex patterns if NLP doesn't identify the entity.
    * 
    * @param input - The user's raw input text
-   * @returns A Promise resolving to an object containing city and timeframe
+   * @returns A Promise resolving to an object containing city and timeframe (always 'now')
    * 
    * @example
-   * Input: "What's the weather like in New York City tomorrow?"
-   * Output: { city: "New York", timeframe: "tomorrow" }
+   * Input: "What's the weather like in New York City?"
+   * Output: { city: "New York", timeframe: "now" }
    * 
    * @private
    */
@@ -164,14 +125,13 @@ export class WeatherAgent {
         input 
       });
       
-      // Extract city and time entities
+      // Extract city entities
       const cityEntities = nlpResult.entities.filter(entity => entity.entity === 'city');
-      const dateEntities = nlpResult.entities.filter(entity => entity.entity === 'date');
       
       // Initialize result
       const result: EntityExtractionResult = {
         city: null,
-        timeframe: null
+        timeframe: 'now'  // Always set to 'now' as we only support current conditions
       };
       
       // Process city entities
@@ -185,22 +145,6 @@ export class WeatherAgent {
       } else {
         // Fall back to regex extraction for city
         result.city = this.extractCityWithRegex(input);
-      }
-      
-      // Process time entities
-      if (dateEntities.length > 0) {
-        const extractedDate = dateEntities[0].value.toLowerCase();
-        // Map the extracted date to a standardized timeframe if possible
-        result.timeframe = this.normalizeTimeframe(extractedDate);
-        
-        logger.info('Time extracted by NLP service', { 
-          input,
-          extractedDate,
-          normalizedTimeframe: result.timeframe
-        });
-      } else {
-        // Fall back to regex extraction for time
-        result.timeframe = this.extractTimeWithRegex(input);
       }
       
       logger.info('Entity extraction complete', { 
@@ -219,36 +163,9 @@ export class WeatherAgent {
       // Fall back to regex extraction on error
       return {
         city: this.extractCityWithRegex(input),
-        timeframe: this.extractTimeWithRegex(input)
+        timeframe: 'now'
       };
     }
-  }
-
-  /**
-   * Normalizes various time expressions to standardized timeframe values.
-   * 
-   * @param timeString - The raw time entity string
-   * @returns A standardized timeframe value or the original string if no mapping exists
-   * 
-   * @private
-   */
-  private normalizeTimeframe(timeString: string): string | null {
-    const lowerTimeString = timeString.toLowerCase();
-    
-    // Check for direct mappings
-    if (lowerTimeString in TIME_MAPPINGS) {
-      return TIME_MAPPINGS[lowerTimeString];
-    }
-    
-    // Check for substring matches
-    for (const [key, value] of Object.entries(TIME_MAPPINGS)) {
-      if (lowerTimeString.includes(key)) {
-        return value;
-      }
-    }
-    
-    // If no mapping found, return the original string
-    return lowerTimeString;
   }
 
   /**
@@ -285,38 +202,6 @@ export class WeatherAgent {
   }
 
   /**
-   * Extracts time references from a weather-related query using regex patterns.
-   * Used as a fallback when NLP service doesn't identify a time entity.
-   * 
-   * @param input - The user's raw input text
-   * @returns The normalized timeframe or null if no time reference is found
-   * 
-   * @private
-   */
-  private extractTimeWithRegex(input: string): string | null {
-    for (const pattern of TIME_PATTERNS) {
-      const match = input.match(pattern);
-      if (match) {
-        const timeMatch = match[0].toLowerCase();
-        const normalizedTime = this.normalizeTimeframe(timeMatch);
-        
-        logger.info('Time reference extracted by regex', { 
-          input, 
-          timeMatch,
-          normalizedTime,
-          pattern: pattern.toString()
-        });
-        
-        return normalizedTime;
-      }
-    }
-    
-    // Default to 'now' if no specific time reference is found
-    logger.info('No explicit time reference found, defaulting to current conditions', { input });
-    return 'now';
-  }
-
-  /**
    * Processes a weather query by extracting the city and executing the PydanticAI agent
    * 
    * @param input - The user's raw input text
@@ -345,14 +230,14 @@ export class WeatherAgent {
       logger.info('Successfully extracted entities for weather query', { 
         input,
         extractedCity: city,
-        timeframe: timeframe || 'now',
+        timeframe: 'now',
         extractionMethod: 'nlp+regex'
       });
 
       // Execute weather query through PydanticAI agent system
       return await agentService.executeAgent(this.agentType, input, {
         city,                           // Extracted city name
-        timeframe: timeframe || 'now',  // Extracted timeframe with fallback to current conditions
+        timeframe: 'now',               // Always use current conditions
         weatherApiEndpoint: '/api/weather',  // Internal API endpoint
         requiresLocation: true,         // Indicates geocoding is needed
         locationService: 'nominatim',   // Service for city->coordinates

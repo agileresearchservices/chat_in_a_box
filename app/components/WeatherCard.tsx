@@ -148,15 +148,10 @@ function getWeatherIcon(data: WeatherData, isNight: boolean): JSX.Element {
  * Weather Card Component
  * 
  * Displays weather information in a visually appealing card format.
- * Supports various weather conditions and provides appropriate icons based on the weather state and time of day.
- * 
- * @param {WeatherCardProps} props - The component props
- * @returns {JSX.Element} The WeatherCard component
  */
 const WeatherCard: React.FC<WeatherCardProps> = ({ data }) => {
-  const { location, temperature, temperatureUnit, shortForecast, detailedForecast, timeframe, isError } = data;
-  const isNight = shortForecast.toLowerCase().includes('night') || 
-                  timeframe === 'tonight';
+  const { location, temperature, temperatureUnit, shortForecast, detailedForecast, isError } = data;
+  const isNight = shortForecast.toLowerCase().includes('night');
 
   // Error state card display
   if (isError) {
@@ -196,14 +191,7 @@ const WeatherCard: React.FC<WeatherCardProps> = ({ data }) => {
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-500 to-cyan-500 p-4 text-white">
         <h2 className="text-xl font-semibold">{location}</h2>
-        <div className="text-sm opacity-90">
-          {timeframe === 'now' ? 'Current Weather' : 
-           timeframe === 'today' ? 'Today\'s Forecast' :
-           timeframe === 'tomorrow' ? 'Tomorrow\'s Forecast' :
-           timeframe === 'week' ? 'Weekly Forecast' :
-           timeframe === 'tonight' ? 'Tonight\'s Forecast' :
-           timeframe ? `${timeframe} Forecast` : 'Weather Forecast'}
-        </div>
+        <div className="text-sm opacity-90">Current Weather</div>
       </div>
       
       {/* Weather Content */}

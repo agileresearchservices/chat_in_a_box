@@ -4,19 +4,15 @@ const { default: fetch } = await import('node-fetch');
 const { execSync } = await import('child_process');
 
 const TEST_QUERIES = [
-  // Time-specific queries - testing the new functionality
-  'What\'s the weather like in New York today?',
-  'What\'s the weather like in Los Angeles tomorrow?',
-  'What\'s the weather like in Chicago tonight?',
-  'What\'s the weather like in Miami this weekend?',
-  'What will the weather be in Boston tomorrow?',
-  'How\'s the weather in Dallas right now?',
-  'Will it rain in Phoenix tonight?',
-  // Original non-time-specific queries
+  // Current weather queries
   'What\'s the weather like in New York?',
   'How\'s the weather in Los Angeles?',
   'Tell me the weather in Chicago',
   'Weather in Miami',
+  'How\'s the weather in Dallas right now?',
+  'What\'s the current temperature in Seattle?',
+  'What\'s the weather like in Boston?',
+  'Is it raining in Portland?',
   // Edge cases
   'What\'s the weather?', // Missing city
   'Weather in InvalidCityName',
@@ -27,23 +23,20 @@ async function testQuery(query) {
   console.log(`Query: "${query}"`);
   
   // Extract entities for logging
-  const cityMatch = query.match(/\b(?:in|at|for|of)\s+([^?.,]*?)(?:\?|$|,|\s+(?:today|now|tomorrow|tonight))/i);
-  const city = cityMatch ? cityMatch[1].trim() : 'unknown';
+  const cityMatch = query.match(/\b(?:in|at|for|of)\s+([^?.,]*?)(?:\s+right\s+now)?(?:\?|$|,)/i);
+  const city = cityMatch ? cityMatch[1].trim().replace(/\?$/, '') : 'unknown';
   
-  const timeMatch = query.match(/\b(?:today|now|tomorrow|tonight|this\s+(?:week|weekend)|next\s+(?:week|weekend)|current(?:ly)?|evening|later\s+today)\b/i);
-  const timeframe = timeMatch ? timeMatch[0].trim() : 'now (default)';
-  
-  console.log(`Entities: City="${city}", Timeframe="${timeframe}"`);
+  console.log(`Entities: City="${city}", Timeframe="now"`);
   
   let success = false;
   
   try {
-    // First, test the weather API directly with city and timeframe
+    // First, test the weather API directly with city
     console.log("Testing direct weather API...");
     const weatherResponse = await fetch('http://localhost:3000/api/weather', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ city, timeframe })
+      body: JSON.stringify({ city, timeframe: 'now' })
     });
     
     if (weatherResponse.ok) {
@@ -54,7 +47,7 @@ async function testQuery(query) {
       console.log(`❌ Weather API Error: ${weatherResponse.status} ${weatherResponse.statusText}`);
     }
     
-    // Now test the agent using fetch instead of curl
+    // Now test the agent
     console.log("\nTesting weather agent...");
     try {
       const agentResponse = await fetch('http://localhost:3000/api/agents', {
@@ -81,10 +74,9 @@ async function testQuery(query) {
             if (lastResponse.message && lastResponse.message.content) {
               console.log(`✓ Agent response: ${truncateResponse(lastResponse.message.content)}`);
               
-              // Check if response contains time reference
-              const timeReference = timeframe === 'now (default)' ? 'current' : timeframe;
-              const containsTimeRef = lastResponse.message.content.toLowerCase().includes(timeReference.toLowerCase());
-              console.log(`${containsTimeRef ? '✓' : '❌'} Response ${containsTimeRef ? 'includes' : 'does not include'} time reference`);
+              // Check if response contains current weather reference
+              const containsCurrentRef = lastResponse.message.content.toLowerCase().includes('current');
+              console.log(`${containsCurrentRef ? '✓' : '❌'} Response ${containsCurrentRef ? 'includes' : 'does not include'} 'current' reference`);
               
               success = true;
             } else {
