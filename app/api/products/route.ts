@@ -7,17 +7,22 @@ import { createSuccessResponse, createErrorResponse } from '@/utils/api-response
  * Product Search API Route
  * 
  * This route handler provides product search functionality using OpenSearch.
- * It supports full-text search across product titles and descriptions,
+ * It supports full-text search across product titles, descriptions, brands, models and categories,
  * along with various filters for refining results.
  * 
  * Key Features:
- * - Full-text search across product titles and descriptions
+ * - Full-text search across product titles, descriptions, brands, models and categories
  * - Price range filtering
  * - Color filtering
  * - Storage capacity filtering
  * - Release year filtering
+ * - Brand and model filtering
+ * - Rating filter (minimum rating)
+ * - Technical specs filtering (processor, RAM, etc.)
+ * - Feature filtering (water resistance, wireless charging, etc.)
+ * - Category and tag filtering
+ * - Sorting options (relevance, price, rating)
  * - Pagination support
- * - Relevance-based sorting with price as secondary sort
  * 
  * Workflow:
  * 1. Receive search query and optional filters via POST request
@@ -31,7 +36,10 @@ import { createSuccessResponse, createErrorResponse } from '@/utils/api-response
  * 
  * @route POST /api/products
  * @param {string} query - The search query
- * @param {object} [filters] - Optional filters (minPrice, maxPrice, color, storage, releaseYear)
+ * @param {object} [filters] - Optional filters (minPrice, maxPrice, color, storage, releaseYear, 
+ *                           brand, model, minRating, processor, ram, waterResistant, 
+ *                           wirelessCharging, fastCharging, fiveGCompatible, category)
+ * @param {string} [sort='relevance'] - Sort order ('relevance', 'price_asc', 'price_desc', 'rating_desc')
  * @param {number} [size=10] - Number of results per page (1-100)
  * @param {number} [page=1] - Page number
  * @returns {NextResponse} JSON response containing product information
@@ -47,6 +55,7 @@ export async function POST(req: Request) {
       filters: query.filters,
       size: query.size,
       page: query.page,
+      sort: query.sort,
     });
 
     // Execute search

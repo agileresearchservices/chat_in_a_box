@@ -6,13 +6,18 @@ info:
     API for searching the product catalog using OpenSearch.
     
     Features:
-    - Full-text search across product titles and descriptions
+    - Full-text search across product titles, descriptions, brands, models, and categories
     - Price range filtering
+    - Brand and model filtering
+    - Rating filter (minimum rating)
     - Color filtering
     - Storage capacity filtering
+    - Technical specs filtering (processor, RAM, etc.)
+    - Feature filtering (water resistance, wireless charging, etc.)
+    - Category and tag filtering
     - Release year filtering
+    - Sorting options (relevance, price, rating)
     - Pagination support
-    - Relevance-based sorting with price as secondary sort
 
 paths:
   /api/products:
@@ -31,7 +36,7 @@ paths:
               properties:
                 query:
                   type: string
-                  description: Search query to match against product titles and descriptions
+                  description: Search query to match against product titles, descriptions, brands, models, and categories
                   example: "XenoPhone 64GB"
                 filters:
                   type: object
@@ -56,6 +61,49 @@ paths:
                       type: number
                       description: Release year filter (exact match)
                       example: 2022
+                    # New e-commerce field filters
+                    brand:
+                      type: string
+                      description: Brand filter (exact match)
+                      example: "XenoPhone"
+                    model:
+                      type: string
+                      description: Model filter (exact match)
+                      example: "Fusion"
+                    minRating:
+                      type: number
+                      description: Minimum rating filter (0-5)
+                      minimum: 0
+                      maximum: 5
+                      example: 4
+                    processor:
+                      type: string
+                      description: Processor type filter (exact match)
+                      example: "A15"
+                    ram:
+                      type: string
+                      description: RAM filter (exact match)
+                      example: "8GB"
+                    waterResistant:
+                      type: boolean
+                      description: Filter for water resistant phones
+                      example: true
+                    wirelessCharging:
+                      type: boolean
+                      description: Filter for phones with wireless charging
+                      example: true
+                    fastCharging:
+                      type: boolean
+                      description: Filter for phones with fast charging
+                      example: true
+                    fiveGCompatible:
+                      type: boolean
+                      description: Filter for 5G compatible phones
+                      example: true
+                    category:
+                      type: string
+                      description: Category filter (exact match)
+                      example: "Smartphone"
                 size:
                   type: number
                   description: Number of results per page (1-100)
@@ -67,6 +115,12 @@ paths:
                   description: Page number for pagination
                   default: 1
                   minimum: 1
+                sort:
+                  type: string
+                  description: Sort order for results
+                  enum: [relevance, price_asc, price_desc, rating_desc]
+                  default: relevance
+                  example: "rating_desc"
       responses:
         '200':
           description: Successful search response
@@ -151,6 +205,95 @@ components:
           type: string
           description: Product color
           example: "Black"
+        # New e-commerce fields
+        brand:
+          type: string
+          description: Product brand
+          example: "XenoPhone"
+        model:
+          type: string
+          description: Product model
+          example: "Fusion"
+        rating:
+          type: number
+          description: Average product rating (0-5)
+          example: 4.7
+        reviewCount:
+          type: number
+          description: Number of product reviews
+          example: 352
+        cameraMP:
+          type: string
+          description: Camera megapixels
+          example: "12MP + 16MP"
+        batteryMah:
+          type: number
+          description: Battery capacity in mAh
+          example: 3200
+        weightG:
+          type: number
+          description: Weight in grams
+          example: 189
+        dimensions:
+          type: string
+          description: Product dimensions
+          example: "145.7 x 70.8 x 8.1 mm"
+        os:
+          type: string
+          description: Operating system
+          example: "XenoOS 15"
+        processor:
+          type: string
+          description: Processor type
+          example: "Xeno A15 Bionic"
+        ram:
+          type: string
+          description: RAM capacity
+          example: "8GB"
+        waterResistant:
+          type: string
+          description: Water resistance status
+          example: "Yes"
+        wirelessCharging:
+          type: string
+          description: Wireless charging capability
+          example: "Yes"
+        fastCharging:
+          type: string
+          description: Fast charging capability
+          example: "Yes"
+        fiveGCompatible:
+          type: string
+          description: 5G compatibility
+          example: "Yes"
+        category:
+          type: string
+          description: Product category
+          example: "Smartphone"
+        tags:
+          type: string
+          description: Product tags (comma separated)
+          example: "premium,flagship,high-end"
+        discountPercentage:
+          type: number
+          description: Discount percentage
+          example: 15
+        originalPrice:
+          type: number
+          description: Original price before discount
+          example: 929.99
+        shippingWeight:
+          type: string
+          description: Shipping weight
+          example: "250g"
+        availability:
+          type: string
+          description: Product availability status
+          example: "In Stock"
+        warranty:
+          type: string
+          description: Product warranty information
+          example: "1 Year Limited Warranty"
     Error:
       type: object
       properties:
