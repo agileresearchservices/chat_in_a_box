@@ -228,7 +228,11 @@ export class WeatherAgent {
       
       if (!city) {
         logger.info('No city found in weather query after NLP and regex extraction', { input });
-        return null;
+        return {
+          message: {
+            content: "I couldn't understand which city you're asking about. Can you please specify a city name?"
+          }
+        };
       }
 
       logger.info('Successfully extracted entities for weather query', { 
@@ -237,20 +241,83 @@ export class WeatherAgent {
         extractionMethod: 'nlp+regex'
       });
 
-      // Execute weather query through PydanticAI agent system
-      const agentResponse = await agentService.executeAgent(this.agentType, input, {
-        city,                           // Extracted city name
-        weatherApiEndpoint: '/api/weather',  // Internal API endpoint
-        requiresLocation: true,         // Indicates geocoding is needed
-        locationService: 'nominatim',   // Service for city->coordinates
-        weatherService: 'nws'           // National Weather Service API
-      });
+      // Format response for weather card
+      let formattedResponse = `Making weather request for city: '${city}'\n\n`;
 
-      const responseData = await agentResponse.json();
+      try {
+        // Execute weather query through PydanticAI agent system
+        const agentResponse = await agentService.executeAgent(this.agentType, input, {
+          city,                           // Extracted city name
+          weatherApiEndpoint: '/api/weather',  // Internal API endpoint
+          requiresLocation: true,         // Indicates geocoding is needed
+          locationService: 'nominatim',   // Service for city->coordinates
+          weatherService: 'nws'           // National Weather Service API
+        });
 
+        const responseData = await agentResponse.json();
+        
+        // Check if the response contains error information
+        if (responseData.message && (
+            responseData.message.includes("I'm sorry") || 
+            responseData.message.includes("couldn't get") || 
+            responseData.message.includes("No weather data"))) {
+          return {
+            message: {
+              content: `Sorry, I couldn't get weather information for ${city}.`
+            }
+          };
+        }
+        
+        if (responseData.message) {
+          // Parse temperature, forecast, and details from the response
+          const tempMatch = responseData.message.match(/temperature of (\d+)°([CF])/i) || 
+                          responseData.message.match(/high of (\d+)°([CF])/i);
+          
+          // Try to extract forecast (text describing weather condition)
+          const forecastMatch = responseData.message.match(/is\s+([^\.]+?)\s+with/i);
+          const forecast = forecastMatch ? forecastMatch[1].trim() : 'partly sunny';
+          
+          // Extract the detailed forecast (everything after the first sentence)
+          const detailedForecast = responseData.message.split('. ').slice(1).join('. ') || '';
+          
+          // Extract location including state if available
+          const locationMatch = responseData.message.match(/in\s+([^\.]+?)\s+is/i);
+          const location = locationMatch ? locationMatch[1].trim() : city;
+          
+          // Temperature value and unit
+          const temp = tempMatch ? tempMatch[1] : '0';
+          const tempUnit = tempMatch ? tempMatch[2] : 'F';
+          
+          formattedResponse += `Here's the weather for ${location}:\n`;
+          formattedResponse += `🌡️ Temperature: ${temp}°${tempUnit} ${forecast}\n`;
+          formattedResponse += `Detailed Forecast: ${detailedForecast}`;
+          
+          logger.info('Successfully formatted weather response for card display', {
+            city,
+            temperature: temp,
+            forecast,
+            formattedResponse
+          });
+        } else {
+          formattedResponse += `Weather information retrieved successfully for ${city}, but no details were available.`;
+        }
+      } catch (apiError) {
+        logger.error('Error executing weather agent', {
+          error: apiError instanceof Error ? apiError.message : String(apiError),
+          city
+        });
+        
+        return {
+          message: {
+            content: `Sorry, I couldn't get weather information for ${city}.`
+          }
+        };
+      }
+
+      // Return the formatted response for weather card display
       return {
         message: {
-          content: responseData.message || 'Weather information retrieved successfully.'
+          content: formattedResponse
         }
       };
 
@@ -263,7 +330,7 @@ export class WeatherAgent {
       // Include city name in the error message
       return {
         message: {
-          content: `Weather information not available for city: ${city || 'unknown'}.`
+          content: `Sorry, I couldn't get weather information for ${city || 'unknown'}.`
         }
       };
     }

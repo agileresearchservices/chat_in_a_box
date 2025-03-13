@@ -223,25 +223,26 @@ class WeatherAgent(Agent):
     
     def format_weather_response(self, weather: WeatherOutput) -> str:
         """
-        Format the weather data into a natural language response.
+        Format the weather data into a natural language response that will trigger
+        the weather card display in the UI.
         
         Args:
             weather: Weather data from the API
             
         Returns:
-            Formatted weather information as a string
+            Formatted weather information as a string with specific patterns
+            that trigger the weather card parser
         """
-        if weather.timeframe == "now":
-            response = f"The current weather in {weather.location} is {weather.shortForecast.lower()} with a temperature of {weather.temperature}°{weather.temperatureUnit}. "
-            response += weather.detailedForecast
-        elif weather.timeframe == "today":
-            response = f"Today's weather in {weather.location} is {weather.shortForecast.lower()} with a high of {weather.temperature}°{weather.temperatureUnit}. "
-            response += weather.detailedForecast
-        elif weather.timeframe == "tomorrow":
-            response = f"Tomorrow's weather in {weather.location} will be {weather.shortForecast.lower()} with a high of {weather.temperature}°{weather.temperatureUnit}. "
-            response += weather.detailedForecast
-        else:  # week
-            response = f"The weather forecast for {weather.location} is {weather.shortForecast.lower()} with temperatures around {weather.temperature}°{weather.temperatureUnit}. "
-            response += f"This week: {weather.detailedForecast}"
+        # Format beginning with the required prefix to match weather card parser
+        response = f"Making weather request for city: '{weather.location.split(',')[0]}'\n\n"
+        
+        # Add the weather information header - required for parser to detect
+        response += f"Here's the weather for {weather.location}:\n"
+        
+        # Add temperature with the required emoji and format
+        response += f"🌡️ Temperature: {weather.temperature}°{weather.temperatureUnit} {weather.shortForecast.lower()}\n"
+        
+        # Add detailed forecast
+        response += f"Detailed Forecast: {weather.detailedForecast}"
             
         return response

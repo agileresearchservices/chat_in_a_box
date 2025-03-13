@@ -38,7 +38,9 @@ import { cn } from '@/utils/tailwind'
 import { parseMessage } from '@/utils/message-parser'
 import logger from '@/utils/logger'
 import { isWeatherResponse, parseWeatherData } from '@/utils/weather-parser'
+import { isStoreLocatorResponse, parseStoreLocatorData } from '@/utils/store-parser'
 import WeatherCard from './components/WeatherCard'
+import StoreCard from './components/StoreCard'
 
 /**
  * Extended Message Type with Enhanced Metadata
@@ -288,9 +290,17 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
   const isWeatherMessage = !isUser && isWeatherResponse(message.content)
   const weatherData = isWeatherMessage ? parseWeatherData(message.content) : null
 
-  // Debug weather data
+  // Check if message contains store locator data
+  const isStoreLocatorMessage = !isUser && isStoreLocatorResponse(message.content)
+  const storeLocatorData = isStoreLocatorMessage ? parseStoreLocatorData(message.content) : null
+
+  // Debug data
   if (weatherData) {
     console.log('Weather data from parser:', weatherData);
+  }
+  
+  if (storeLocatorData) {
+    console.log('Store locator data from parser:', storeLocatorData);
   }
 
   // Debounce content updates for smoother rendering
@@ -322,6 +332,15 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
     return (
       <div className="flex justify-center w-full my-4">
         <WeatherCard data={weatherData} />
+      </div>
+    )
+  }
+  
+  // If this is a store locator message, only show the store card
+  if (isStoreLocatorMessage && storeLocatorData) {
+    return (
+      <div className="flex justify-center w-full my-4">
+        <StoreCard data={storeLocatorData} />
       </div>
     )
   }
@@ -681,6 +700,13 @@ export default function Home() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    // Add debug logging
+    console.log('Submit handler triggered', { 
+      inputValue: input, 
+      inputLength: input.length,
+      isLoading: state.isLoading 
+    });
+    
     // Explicitly reset textarea height
     setInput('');
     if (inputRef.current) {
@@ -881,7 +907,16 @@ export default function Home() {
 
           <div className="border-t bg-white fixed bottom-0 left-0 right-0 z-10">
             <div className="max-w-5xl mx-auto">
-              <form onSubmit={handleSubmit} className="mt-2 sm:mt-4 px-4">
+              <form 
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  console.log('Form submitted');
+                  if (input.trim() && !state.isLoading) {
+                    handleSubmit(e);
+                  }
+                }} 
+                className="mt-2 sm:mt-4 px-4"
+              >
                 <div className="flex items-center space-x-2">
                   <div className="flex items-center space-x-2">
                     <button
@@ -908,7 +943,9 @@ export default function Home() {
                     <textarea
                       ref={inputRef}
                       value={input}
-                      onChange={(e) => setInput(e.target.value)}
+                      onChange={(e) => {
+                        setInput(e.target.value);
+                      }}
                       placeholder="Type your message..."
                       className="w-full p-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-0 resize-none overflow-y-auto"
                       disabled={state.isLoading}
@@ -927,14 +964,23 @@ export default function Home() {
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
                           e.preventDefault();
-                          handleSubmit(e as unknown as React.FormEvent);
+                          console.log('Enter key pressed');
+                          if (input.trim() && !state.isLoading) {
+                            handleSubmit(e as unknown as React.FormEvent);
+                          }
                         }
                       }}
                     />
                   </div>
 
                   <button
-                    type="submit"
+                    type="button"
+                    onClick={(e) => {
+                      console.log('Send button clicked');
+                      if (input.trim() && !state.isLoading) {
+                        handleSubmit(e as unknown as React.FormEvent);
+                      }
+                    }}
                     disabled={!input.trim() || state.isLoading}
                     className={cn(
                       "inline-flex items-center space-x-2 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500",

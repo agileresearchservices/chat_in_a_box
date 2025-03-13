@@ -378,6 +378,9 @@ class StoreLocatorAgent(Agent):
             
             logging.debug(f'Processing store query: {query}')
             
+            # Add a prefix marker for frontend identification
+            response_prefix = f"<store-locator-query>\nSearching for stores based on query: {query}\n"
+            
             # Extract search parameters from the query string
             extracted_params = self.extract_search_params(query)
             logging.debug(f'Sending search parameters to API: {extracted_params}')
@@ -407,15 +410,18 @@ class StoreLocatorAgent(Agent):
                         if stores and len(stores) > 0:
                             logging.debug(f"Found {len(stores)} stores, formatting results")
                             formatted_response = self.format_store_results(stores, total, extracted_params)
-                            return StoreQueryOutput(response=formatted_response) if isinstance(query_input, StoreQueryInput) else formatted_response
+                            final_response = response_prefix + formatted_response + "\n</store-locator-query>"
+                            return StoreQueryOutput(response=final_response) if isinstance(query_input, StoreQueryInput) else final_response
                         else:
                             logging.warning(f"No stores found in API response for params: {extracted_params}")
                             result = f"I couldn't find any stores matching your criteria. Please try a different location or check your spelling."
-                            return StoreQueryOutput(response=result) if isinstance(query_input, StoreQueryInput) else result
+                            final_response = response_prefix + result + "\n</store-locator-query>"
+                            return StoreQueryOutput(response=final_response) if isinstance(query_input, StoreQueryInput) else final_response
                     else:
                         logging.error(f"Unexpected API response structure: {data}")
                         result = f"I couldn't find any stores matching your criteria. Please try a different location or check your spelling."
-                        return StoreQueryOutput(response=result) if isinstance(query_input, StoreQueryInput) else result
+                        final_response = response_prefix + result + "\n</store-locator-query>"
+                        return StoreQueryOutput(response=final_response) if isinstance(query_input, StoreQueryInput) else final_response
                 except Exception as e:
                     logging.error(f"Error processing API response: {str(e)}", exc_info=True)
                     result = f"Error processing store response: {str(e)}"
