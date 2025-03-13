@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "=== OpenSearch Catalog Startup ==="
+echo "=== OpenSearch Enhanced Catalog Startup ==="
 
 # Check if Docker is running
 if ! docker info > /dev/null 2>&1; then
@@ -25,8 +25,10 @@ fi
 
 echo "✓ OpenSearch container started successfully"
 echo ""
-echo "To load data, run:"
+echo "To load the enhanced catalog data with e-commerce fields, run:"
 echo "  ./load-data.sh"
+echo ""
+echo "To load store data:"
 echo "  ./load-stores.sh"
 echo ""
 echo "To access OpenSearch:"
