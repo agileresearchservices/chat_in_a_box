@@ -1,5 +1,6 @@
 from pydantic_ai import Agent
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
+from pydantic import BaseModel, Field
 import httpx
 import json
 import os
@@ -9,6 +10,31 @@ import sys
 
 # Configure logging to write to a file
 logging.basicConfig(filename='logs/app.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+
+class StoreQueryInput(BaseModel):
+    """Model for store location query input."""
+    query: str = Field(..., description="The user's store location query")
+    
+class StoreQueryOutput(BaseModel):
+    """Model for store location query output."""
+    response: str = Field(..., description="The formatted store location response")
+    
+class StoreFilterParams(BaseModel):
+    """Model for store filter parameters extracted from the query."""
+    query: str = Field("", description="Search terms")
+    size: int = Field(5, description="Number of results to return")
+    page: int = Field(1, description="Page number")
+    filters: Dict[str, Any] = Field(default_factory=dict, description="Filter parameters")
+
+class Store(BaseModel):
+    """Model for store data."""
+    storeName: str
+    storeNumber: str
+    address: str
+    city: str
+    state: str
+    zipCode: str
+    phoneNumber: str
 
 class StoreLocatorAgent(Agent):
     """
@@ -28,6 +54,8 @@ class StoreLocatorAgent(Agent):
     
     def __init__(self):
         super().__init__()
+        # Register the process method as a tool
+        self.tools = [self.process]
         
         # More flexible city patterns that handle various cases
         self.city_patterns = [
@@ -57,7 +85,7 @@ class StoreLocatorAgent(Agent):
             'Virginia': 'VA', 'Washington': 'WA', 'West Virginia': 'WV', 'Wisconsin': 'WI', 'Wyoming': 'WY'
         }
 
-    def extract_search_params(self, query: str, keep_original_query: bool = False) -> Dict[str, Any]:
+    def extract_search_params(self, query: str, keep_original_query: bool = False) -> StoreFilterParams:
         """
         Extract search parameters from a natural language query
         
@@ -85,27 +113,27 @@ class StoreLocatorAgent(Agent):
                 logging.debug(f"Extracted ZIP code {zipcode} from 'ZIP code' phrase")
                 
                 # Create search parameters with just the ZIP code
-                search_params = {
-                    'query': '',
-                    'size': 5,
-                    'page': 1,
-                    'filters': {
+                search_params = StoreFilterParams(
+                    query='',
+                    size=5,
+                    page=1,
+                    filters={
                         'zipCode': zipcode
                     }
-                }
+                )
                 return search_params
         
         # Start with base query structure
-        search_params = {
-            'query': '',  # Empty query string for location-only searches
-            'size': 5,    # Limit results for agent response
-            'page': 1,    # Start with first page
-            'filters': {}
-        }
+        search_params = StoreFilterParams(
+            query='',
+            size=5,
+            page=1,
+            filters={}
+        )
         
         # Clean query: remove action verbs like "find" and keep store terms
         clean_query = re.sub(r'^(find|show|get|search for|looking for|give me|i want|i need)\s+', '', query.lower())
-        search_params['query'] = clean_query
+        search_params.query = clean_query
         
         # State abbreviations list for reference
         state_abbrevs_list = [
@@ -239,188 +267,170 @@ class StoreLocatorAgent(Agent):
         # Add extracted parameters to the filters object
         # The Store API expects filters in a nested structure
         if zipcode:
-            search_params['filters']['zipCode'] = zipcode
+            search_params.filters['zipCode'] = zipcode
         if city:
-            search_params['filters']['city'] = city
+            search_params.filters['city'] = city
         if state:
-            search_params['filters']['state'] = state
+            search_params.filters['state'] = state
         
         # Add original query for improved relevance if needed
         if query and not city and not state and not zipcode:
-            search_params['query'] = query
+            search_params.query = query
         
         logging.debug(f'Final search parameters: {search_params}')
         return search_params
 
-    def format_store_results(self, stores: list, total: int, params: Dict[str, Any]) -> str:
+    def format_store_results(self, stores: List[Store], total: int, params: StoreFilterParams) -> str:
         """Format store results into a natural language response."""
         logging.debug(f'Formatting results for {total} stores with params: {params}')
         
-        if not stores:
+        # Create a response list
+        response = []
+        
+        if not stores or len(stores) == 0:
             # Improved no results message with more details about what was searched
             constraints = []
             
-            if params.get('filters', {}).get('city'):
-                city = params['filters']['city']
+            if params.filters.get('city'):
+                city = params.filters['city']
                 constraints.append(f"in {city}")
                 logging.debug(f"No results for city: {city}")
-            elif params.get('city'):
-                city = params['city']
-                constraints.append(f"in {city}")
-                logging.debug(f"No results for city: {city}")
-                
-            if params.get('filters', {}).get('state'):
-                state = params['filters']['state']
-                constraints.append(f"in {state}")
-                logging.debug(f"No results for state: {state}")
-            elif params.get('state'):
-                state = params['state']
+            
+            if params.filters.get('state'):
+                state = params.filters['state']
                 constraints.append(f"in {state}")
                 logging.debug(f"No results for state: {state}")
                 
-            if params.get('filters', {}).get('zipCode'):
-                zip_code = params['filters']['zipCode']
-                constraints.append(f"near ZIP code {zip_code}")
-                logging.debug(f"No results for ZIP: {zip_code}")
-            elif params.get('zipCode'):
-                zip_code = params['zipCode']
+            if params.filters.get('zipCode'):
+                zip_code = params.filters['zipCode']
                 constraints.append(f"near ZIP code {zip_code}")
                 logging.debug(f"No results for ZIP: {zip_code}")
             
-            # Default fallback for when no specific constraints were provided
-            constraint_text = " and ".join(constraints) if constraints else "matching your criteria"
-            return f"I couldn't find any stores {constraint_text}. Please try a different location or check your spelling."
+            # Join constraints for a natural language response
+            constraints_str = " ".join(constraints) if constraints else "matching your criteria"
+            return f"I couldn't find any stores {constraints_str}. Please try a different location or check your spelling."
         
-        # Build response header based on search type
-        header = f"I found {total} {'store' if total == 1 else 'stores'}"
-        
-        # Add location info if filtering by location - check both flat and nested structures
-        location_parts = []
-        
-        # Get city from either filters or flat structure
+        # Get city from filters
         city = None
-        if params.get('filters', {}).get('city'):
-            city = params['filters']['city']
-        elif params.get('city'):
-            city = params['city']
+        if params.filters.get('city'):
+            city = params.filters['city']
             
-        # Get state from either filters or flat structure
+        # Get state from filters
         state = None
-        if params.get('filters', {}).get('state'):
-            state = params['filters']['state']
-        elif params.get('state'):
-            state = params['state']
+        if params.filters.get('state'):
+            state = params.filters['state']
             
-        # Get ZIP from either filters or flat structure
+        # Get ZIP from filters
         zip_code = None
-        if params.get('filters', {}).get('zipCode'):
-            zip_code = params['filters']['zipCode']
-        elif params.get('zipCode'):
-            zip_code = params['zipCode']
+        if params.filters.get('zipCode'):
+            zip_code = params.filters['zipCode']
         
         # Build location parts for the header
         if city and state:
-            location_parts.append(f"in {city}, {state}")
+            location_part = f"in {city}, {state}"
         elif city:
-            location_parts.append(f"in {city}")
+            location_part = f"in {city}"
         elif state:
-            location_parts.append(f"in {state}")
-        
-        if zip_code:
-            location_parts.append(f"near ZIP code {zip_code}")
-        
-        # Add location info to header if available
-        if location_parts:
-            header += f" {' and '.join(location_parts)}"
-        
-        header += ":"
-        response = [header]
+            location_part = f"in {state}"
+        elif zip_code:
+            location_part = f"near ZIP code {zip_code}"
+        else:
+            location_part = ""
+            
+        # Add header with count
+        response.append(f"I found {len(stores)} store{'s' if len(stores) != 1 else ''} {location_part}:")
         
         for i, store in enumerate(stores):
             # Line 1: Store name and store number with emoji
-            store_line = f"\n🏪 {store['storeName']} (Store #{store['storeNumber']})"
+            store_line = f"\n🏪 {store.storeName} (Store #{store.storeNumber})"
             
             # Line 2: Address info
-            address_line = f"📍 {store['address']}, {store['city']}, {store['state']} {store['zipCode']}"
+            address_line = f"📍 {store.address}, {store.city}, {store.state} {store.zipCode}"
             
             # Line 3: Phone info
-            phone_line = f"📞 {store['phoneNumber']}"
+            phone_line = f"📞 {store.phoneNumber}"
             
             # Add all lines to response
             response.append(store_line)
             response.append(address_line)
             response.append(phone_line)
-            
-            # Add an empty line between stores
-            if i < len(stores) - 1:
-                response.append("")
+        
+        # Add a note about more stores if applicable
+        if total > len(stores):
+            response.append(f"\n(Showing {len(stores)} of {total} total stores)")
         
         return "\n".join(response)
     
-    async def process(self, query: str, parameters: Optional[Dict[str, Any]] = None) -> str:
+    async def process(self, query_input, parameters: Optional[Dict[str, Any]] = None) -> StoreQueryOutput:
         """
         Process a store location query using the OpenSearch stores index.
         
         Args:
-            query: The user's store location query
+            query_input: The user's store location query (either string or StoreQueryInput)
             parameters: Additional parameters including base URL
             
         Returns:
-            Formatted store location response
+            Formatted store response in StoreQueryOutput model
         """
         try:
-            # Extract search parameters
+            # Handle both string input and StoreQueryInput for backward compatibility
+            query = query_input.query if isinstance(query_input, StoreQueryInput) else query_input
+            
+            logging.debug(f'Processing store query: {query}')
+            
+            # Extract search parameters from the query string
             extracted_params = self.extract_search_params(query)
-            logging.debug(f'Extracted search parameters: {extracted_params}')
-            
-            # Get base URL from parameters or use default
-            base_url = 'http://localhost:3000'
-            if parameters and 'baseUrl' in parameters:
-                base_url = parameters['baseUrl']
-            
-            # Log final params before sending to API
             logging.debug(f'Sending search parameters to API: {extracted_params}')
             
             # Call the API
-            logging.debug(f"Calling store API with params: {json.dumps(extracted_params)}")
+            logging.debug(f"Calling store API with params: {json.dumps(extracted_params.dict())}")
             
             # Use the dedicated find_stores method to make the API call
             response = await self.find_stores(extracted_params)
-            logging.debug(f'API response: {response}')
             
-            # Check response
+            # Process the API response
             if response.get('success'):
-                data = response.get('data', {})
-                logging.debug(f"API response data structure: {data.keys()}")
-                
-                # Check if the data matches the expected structure
-                if 'data' in data and 'stores' in data['data']:
-                    stores = data['data']['stores']
-                    total = data['data'].get('total', 0)
+                try:
+                    data = response.get('data', {})
+                    logging.debug(f"API response data: {data}")
                     
-                    # Special log for ZIP code 81775
-                    if 'filters' in extracted_params and 'zipCode' in extracted_params['filters'] and extracted_params['filters']['zipCode'] == '81775':
-                        logging.warning(f"ZIP 81775 - Found {total} stores in response")
-                        logging.warning(f"ZIP 81775 - First store data: {stores[0] if stores else 'No stores found'}")
-                    
-                    if stores and len(stores) > 0:
-                        logging.debug(f"Found {len(stores)} stores, formatting results")
-                        return self.format_store_results(stores, total, extracted_params)
+                    # Check if the data matches the expected structure
+                    if 'data' in data and 'stores' in data['data']:
+                        stores = [Store(**store) for store in data['data']['stores']]
+                        total = data['data'].get('total', 0)
+                        
+                        # Special log for ZIP code 81775
+                        if 'filters' in extracted_params.dict() and 'zipCode' in extracted_params.dict()['filters'] and extracted_params.dict()['filters']['zipCode'] == '81775':
+                            logging.warning(f"ZIP 81775 - Found {total} stores in response")
+                            logging.warning(f"ZIP 81775 - First store data: {stores[0].dict() if stores else 'No stores found'}")
+                        
+                        if stores and len(stores) > 0:
+                            logging.debug(f"Found {len(stores)} stores, formatting results")
+                            formatted_response = self.format_store_results(stores, total, extracted_params)
+                            return StoreQueryOutput(response=formatted_response) if isinstance(query_input, StoreQueryInput) else formatted_response
+                        else:
+                            logging.warning(f"No stores found in API response for params: {extracted_params}")
+                            result = f"I couldn't find any stores matching your criteria. Please try a different location or check your spelling."
+                            return StoreQueryOutput(response=result) if isinstance(query_input, StoreQueryInput) else result
                     else:
-                        logging.warning(f"No stores found in API response for params: {extracted_params}")
-                        return f"I couldn't find any stores matching your criteria. Please try a different location or check your spelling."
-                else:
-                    logging.error(f"Unexpected API response structure: {data}")
-                    return f"I couldn't find any stores matching your criteria. Please try a different location or check your spelling."
+                        logging.error(f"Unexpected API response structure: {data}")
+                        result = f"I couldn't find any stores matching your criteria. Please try a different location or check your spelling."
+                        return StoreQueryOutput(response=result) if isinstance(query_input, StoreQueryInput) else result
+                except Exception as e:
+                    logging.error(f"Error processing API response: {str(e)}", exc_info=True)
+                    result = f"Error processing store response: {str(e)}"
+                    return StoreQueryOutput(response=result) if isinstance(query_input, StoreQueryInput) else result
             else:
                 logging.error(f"API error: {response.get('error', 'Unknown error')}")
-                return f"Error searching for stores: {response.get('error', 'Unknown error')}"
+                result = f"Error searching for stores: {response.get('error', 'Unknown error')}"
+                return StoreQueryOutput(response=result) if isinstance(query_input, StoreQueryInput) else result
                     
         except Exception as e:
             logging.error(f"Error processing store query: {str(e)}", exc_info=True)
-            return f"Error processing store location query: {str(e)}"
+            result = f"Error processing store location query: {str(e)}"
+            return StoreQueryOutput(response=result) if isinstance(query_input, StoreQueryInput) else result
 
-    async def find_stores(self, search_params: Dict[str, Any]) -> Dict[str, Any]:
+    async def find_stores(self, search_params: StoreFilterParams) -> Dict[str, Any]:
         """
         Call the store API with the given search parameters
         
@@ -432,11 +442,11 @@ class StoreLocatorAgent(Agent):
         """
         try:
             # Log API call parameters for debugging
-            if 'filters' in search_params and 'zipCode' in search_params['filters'] and search_params['filters']['zipCode'] == '81775':
-                logging.warning(f"Making API call for ZIP 81775 with params: {json.dumps(search_params)}")
+            if 'filters' in search_params.dict() and 'zipCode' in search_params.dict()['filters'] and search_params.dict()['filters']['zipCode'] == '81775':
+                logging.warning(f"Making API call for ZIP 81775 with params: {json.dumps(search_params.dict())}")
             
             # Create a copy of the search params to avoid modifying the original
-            params = {k: v for k, v in search_params.items()}
+            params = {k: v for k, v in search_params.dict().items()}
             
             # Get API URL from parameters or use default
             base_url = os.environ.get('NEXT_PUBLIC_API_BASE_URL', 'http://localhost:3000')

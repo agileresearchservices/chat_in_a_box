@@ -1,249 +1,247 @@
 from pydantic_ai import Agent
-from typing import Optional, Dict, Any
+from pydantic import BaseModel
+from typing import Optional, Dict, Any, List
 from collections.abc import Sequence
 import httpx
 import json
 import os
-import re
-import asyncio
+import logging
+
+# Configure logging to write to a file
+logging.basicConfig(filename='logs/app.log', level=logging.INFO, 
+                    format='%(asctime)s - %(levelname)s - %(message)s')
+
+# Define the input model with proper type annotations
+class WeatherInput(BaseModel):
+    """Input parameters for weather API request"""
+    city: str
+    timeframe: Optional[str] = "now"  # now, today, tomorrow, week
+
+# Define the output model with proper type annotations
+class WeatherOutput(BaseModel):
+    """Output format for weather API response"""
+    location: str  
+    temperature: int
+    temperatureUnit: str
+    shortForecast: str
+    detailedForecast: str
+    timeframe: str
 
 class WeatherAgent(Agent):
     """
-    PydanticAI agent for handling weather queries using the existing weather service.
+    Agent for handling weather queries using the National Weather Service API.
     
-    Features:
-    - Uses existing geocoding via Nominatim API
-    - Real-time weather data from National Weather Service API
-    - US-only location support
-    - Current conditions only
-    - Error handling and logging
+    Capabilities:
+    - Geocoding city names to latitude/longitude
+    - Retrieving current weather conditions
+    - Natural language understanding of location and time (now, today, tomorrow)
+    - Formatter for user-friendly weather responses
     """
-    
+
     def __init__(self):
         super().__init__()
-        
-        # Words that shouldn't be included in city names
-        self.filter_words = [
-            'like', 'about', 'tell', 'how', 'what', 'when', 'where', 'is', 'will', 
-            'would', 'should', 'could', 'can', 'me', 'for', 'the', 'going', 'to', 'be'
-        ]
-        self.filter_words_pattern = r'\b(?:' + '|'.join(self.filter_words) + r')\b'
-        
-        # Phrases before city names that should be removed
-        self.city_prefix_patterns = [
-            r'weather\s+(?:like\s+)?(?:in|at|for|of)\s+',
-            r'temperature\s+(?:like\s+)?(?:in|at|for|of)\s+',
-            r'forecast\s+(?:like\s+)?(?:in|at|for|of)\s+',
-            r'(?:what|how)(?:\'s|\s+is)\s+(?:the\s+)?(?:weather|forecast|temperature)\s+(?:like\s+)?(?:in|at|for|of)\s+',
-            r'(?:what|how)\s+(?:will|is|are)\s+(?:the\s+)?(?:weather|forecast|temperature)\s+(?:like\s+)?(?:in|at|for|of)\s+',
-            r'(?:will|is|are)\s+(?:it|there)\s+(?:going\s+to\s+be)?\s+(?:rain|snow|sunny|cloudy|windy)\s+(?:in|at)\s+'
-        ]
-        
-        # More precise city extraction patterns that exclude common false positives
-        self.city_patterns = [
-            # Match cities after "in", "at", "for", or "of"
-            r'(?:^|\s+)(?:in|at|for|of)\s+([a-zA-Z\s.-]+?)(?:,|\s+(?:and|or|\?|$|today|now|tomorrow|tonight|this|next))',
-            
-            # Match cities in "weather in X" pattern
-            r'(?:weather|forecast|temperature)(?:\s+(?:(?:is|for|in|at|of)))+\s+([a-zA-Z\s.-]+?)(?:,|\s+(?:and|or|\?|$|today|now|tomorrow|tonight|this|next))',
-            
-            # Match cities in question patterns
-            r'(?:what|how)(?:\'s|\s+is)\s+(?:the\s+)?(?:weather|forecast|temperature)\s+(?:like\s+)?(?:in|at|for|of)\s+([a-zA-Z\s.-]+?)(?:,|\s+(?:and|or|\?|$|today|now|tomorrow|tonight|this|next))'
-        ]
+        # Register the get_weather tool
+        self.tools = [self.get_weather]
     
-    def clean_city_name(self, city: str) -> str:
-        """Clean a potential city name by removing common non-city words and patterns."""
-        if not city:
-            return ""
-            
-        # Clean up the city name
-        city = city.strip()
-        city = re.sub(r'[\\\/]+', '', city)  # Remove slashes
-        city = re.sub(r'\s+', ' ', city)  # Normalize spaces
-        city = re.sub(r'^the\s+', '', city, flags=re.IGNORECASE)  # Remove leading "the"
-        city = re.sub(r'\s+city$', '', city, flags=re.IGNORECASE)  # Remove trailing "city"
-        
-        # Remove filter words that shouldn't be part of city names
-        city = re.sub(self.filter_words_pattern, '', city, flags=re.IGNORECASE)
-        
-        # Normalize spaces again after all the replacements
-        city = re.sub(r'\s+', ' ', city).strip()
-            
-        return city
-        
-    def extract_city(self, query: str) -> Optional[str]:
-        """Extract city name from query using regex patterns."""
-        # Special handling for common multi-word city names that were having issues
-        if re.search(r'\bnew\s+york\b', query, re.IGNORECASE):
-            return "New York"
-        if re.search(r'\blos\s+angeles\b', query, re.IGNORECASE):
-            return "Los Angeles"
-        if re.search(r'\bsan\s+francisco\b', query, re.IGNORECASE):
-            return "San Francisco"
-        if re.search(r'\blas\s+vegas\b', query, re.IGNORECASE):
-            return "Las Vegas"
-        
-        # First, try to handle specific common patterns
-        for prefix_pattern in self.city_prefix_patterns:
-            match = re.search(prefix_pattern + r'([a-zA-Z\s.-]{2,25}?)(?:[,\s]|$)', query, re.IGNORECASE)
-            if match and match.group(1):
-                city = self.clean_city_name(match.group(1))
-                if city and len(city) > 1:
-                    return city
-        
-        # Try explicit patterns for city extraction
-        for pattern in self.city_patterns:
-            match = re.search(pattern, query, re.IGNORECASE)
-            if match and match.group(1):
-                city = self.clean_city_name(match.group(1))
-                if city and len(city) > 1:
-                    return city
-                    
-        # Check for multi-word city patterns in a more general way
-        multiword_city_pattern = r'\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)\b'
-        match = re.search(multiword_city_pattern, query)
-        if match and match.group(1):
-            city = self.clean_city_name(match.group(1))
-            if city and len(city) > 1:
-                return city
-        
-        # If all pattern matching failed, try a simpler approach
-        # Look for the first word after "in", "at", or "for"
-        prepositions = ['in', 'at', 'for']
-        for prep in prepositions:
-            prep_match = re.search(r'\b' + prep + r'\s+([a-zA-Z\s.-]{2,25}?)(?:[,\s]|$)', query, re.IGNORECASE)
-            if prep_match and prep_match.group(1):
-                city = self.clean_city_name(prep_match.group(1))
-                if city and len(city) > 1:
-                    return city
-        
-        # Last resort - look for capitalized words that might be city names
-        words = query.split()
-        for word in words:
-            # Check if word is capitalized and not a common word to exclude
-            if (word[0].isupper() if word else False) and len(word) > 2:
-                if not re.search(self.filter_words_pattern, word, re.IGNORECASE):
-                    return word
-                    
-        # Try to find consecutive capitalized words that might be a multi-word city name
-        capitalized_words = []
-        for i, word in enumerate(words):
-            if (word[0].isupper() if word and len(word) > 0 else False) and len(word) > 1:
-                if i > 0 and len(capitalized_words) > 0 and words[i-1] in capitalized_words:
-                    capitalized_words.append(word)
-                elif len(capitalized_words) == 0:
-                    capitalized_words.append(word)
-                    
-        if len(capitalized_words) > 1:
-            potential_city = " ".join(capitalized_words)
-            if not re.search(self.filter_words_pattern, potential_city, re.IGNORECASE):
-                return potential_city
-            
-        return None
-    
-    async def process(self, query: str, parameters: Optional[Dict[str, Any]] = None) -> str:
+    async def get_weather(self, input: WeatherInput) -> WeatherOutput:
         """
-        Process a weather query using the existing weather service.
+        Get weather information for a specific city.
         
         Args:
-            query: The user's weather query
-            parameters: Additional parameters including city name, timeframe, and API endpoints
+            input: WeatherInput containing city and optional timeframe
+            
+        Returns:
+            WeatherOutput with weather data for the specified location
+        """
+        try:
+            base_url = os.environ.get('NEXT_PUBLIC_BASE_URL', 'http://localhost:3000')
+            weather_api_endpoint = f"{base_url}/api/weather"
+            
+            # Prepare the request payload
+            payload = {
+                "city": input.city,
+                "timeframe": input.timeframe
+            }
+            
+            logging.info(f"Calling weather API for {input.city}, timeframe: {input.timeframe}")
+            
+            # Make the API request
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    weather_api_endpoint,
+                    json=payload,
+                    headers={'Content-Type': 'application/json'},
+                    timeout=10.0
+                )
+                
+                # Check if the request was successful
+                if response.status_code != 200:
+                    error_message = f"Weather API request failed with status code {response.status_code}"
+                    logging.error(error_message)
+                    raise Exception(error_message)
+                
+                # Parse the response
+                data = response.json()
+                
+                if not data.get("success"):
+                    error_message = f"Weather API returned error: {data.get('error', 'Unknown error')}"
+                    logging.error(error_message)
+                    raise Exception(error_message)
+                
+                # Extract the weather data
+                weather_data = data.get("data", {})
+                
+                # Create and return the WeatherOutput object
+                return WeatherOutput(
+                    location=weather_data.get("location", "Unknown location"),
+                    temperature=weather_data.get("temperature", 0),
+                    temperatureUnit=weather_data.get("temperatureUnit", "F"),
+                    shortForecast=weather_data.get("shortForecast", ""),
+                    detailedForecast=weather_data.get("detailedForecast", ""),
+                    timeframe=weather_data.get("timeframe", input.timeframe)
+                )
+                
+        except Exception as e:
+            error_message = f"Error retrieving weather data: {str(e)}"
+            logging.error(error_message)
+            raise Exception(error_message)
+
+    async def process(self, query: str, parameters: Optional[Dict[str, Any]] = None) -> str:
+        """
+        Process a weather query using the weather API.
+        
+        Args:
+            query: User's natural language query about weather
+            parameters: Optional additional parameters
             
         Returns:
             Formatted weather response
         """
-        # Extract city from query if not provided in parameters
-        city = parameters.get('city') if parameters else None
-        
-        if not city:
-            city = self.extract_city(query)
-            if not city:
-                return "I couldn't understand which city you're asking about. Please specify a city name."
-        
-        # Always use current conditions
-        timeframe = 'now'
-            
-        base_url = os.environ.get('NEXT_PUBLIC_BASE_URL', 'http://localhost:3000')
-        weather_api_endpoint = f"{base_url}/api/weather"
-        
-        # Only override with parameters if they exist
-        if parameters and 'weatherApiEndpoint' in parameters:
-            weather_api_endpoint = f"{base_url}{parameters.get('weatherApiEndpoint')}"
-        
         try:
-            # Use asynchronous httpx client
-            async with httpx.AsyncClient() as client:
-                # Log the request parameters for debugging
-                print(f"Making weather request for city: '{city}', timeframe: '{timeframe}'")
-                
-                # Send both city and timeframe to the weather API
-                response = await client.post(
-                    weather_api_endpoint,
-                    json={'city': city, 'timeframe': timeframe},
-                    headers={'Content-Type': 'application/json'},
-                    timeout=10.0  # Add timeout for safety
-                )
-                
-                if response.status_code == 404:
-                    return f"I couldn't find weather information for {city}. This service only works for US cities."
-                
-                # Handle other error codes with more details
-                if response.status_code >= 400:
-                    # First, try to parse the response as JSON
-                    try:
-                        error_data = response.json()
-                        
-                        # Check for specific error messages about invalid/not found locations
-                        if 'errorMessage' in error_data and 'Could not find US location' in error_data['errorMessage']:
-                            return f"I couldn't find weather information for '{city}'. Please make sure you've entered a valid US city name."
-                            
-                        if 'error' in error_data:
-                            error_msg = error_data['error']
-                            if 'find' in error_msg.lower() and 'location' in error_msg.lower():
-                                return f"I couldn't find weather information for '{city}'. Please make sure you've entered a valid US city name."
-                            return f"Sorry, I couldn't get weather information for {city}. Error: {error_msg}"
-                    except json.JSONDecodeError:
-                        # If not JSON, try to check the raw response text
-                        error_text = response.text
-                        if 'Could not find US location' in error_text or 'No location found' in error_text:
-                            return f"I couldn't find weather information for '{city}'. Please make sure you've entered a valid US city name."
-                        
-                        return f"Sorry, I couldn't get weather information for {city}. The weather service returned an error."
-                    
-                response.raise_for_status()
-                data = response.json()
-                
-                if not data.get('data'):
-                    return f"Sorry, I couldn't get weather information for {city}. Please try again later."
-                
-                weather_data = data['data']
-                
-                # Format the response for current conditions
-                return f"""Here's the current weather for {weather_data['location']}:
-🌡️ Temperature: {weather_data['temperature']}°{weather_data['temperatureUnit']}
-{weather_data['shortForecast']}
-
-Detailed Forecast:
-{weather_data['detailedForecast']}"""
-                
-        except httpx.HTTPError as e:
-            status_code = None
-            if hasattr(e, 'response') and e.response:
-                status_code = e.response.status_code
-                
-            error_detail = str(e)
-            if 'Could not find US location' in error_detail:
-                return f"I couldn't find weather information for '{city}'. Please make sure you've entered a valid US city name."
+            # Extract the city name from the query
+            city = self.extract_city(query)
             
-            # Provide more specific error messages based on error type
-            if 'Cannot connect' in error_detail or 'Connection refused' in error_detail:
-                return f"Sorry, I can't connect to the weather service right now. Please try again later."
-            elif status_code == 500:
-                return f"Sorry, the weather service is experiencing internal issues. This might be due to an invalid city name or an issue with the National Weather Service API."
-            else:
-                return f"Sorry, I encountered an error getting weather information: {error_detail}"
+            # Extract timeframe from the query (now, today, tomorrow, week)
+            timeframe = self.extract_timeframe(query)
+            
+            # Override with explicit parameters if provided
+            if parameters:
+                if 'city' in parameters:
+                    city = parameters['city']
+                if 'timeframe' in parameters:
+                    timeframe = parameters['timeframe']
+            
+            # Handle case where no city is found
+            if not city or city.lower() == "unknown":
+                return "No weather data available. Please specify a valid city name."
+            
+            logging.info(f"Extracted city: {city}, timeframe: {timeframe}")
+            
+            # Create the input model
+            weather_input = WeatherInput(city=city, timeframe=timeframe)
+            
+            # Get weather data using the tool
+            weather_data = await self.get_weather(weather_input)
+            
+            # Format the response
+            return self.format_weather_response(weather_data)
+            
         except Exception as e:
-            error_msg = str(e)
-            if 'Could not find US location' in error_msg:
-                return f"I couldn't find weather information for '{city}'. Please make sure you've entered a valid US city name."
-            return f"An unexpected error occurred: {error_msg}"
+            logging.error(f"Error in WeatherAgent.process: {str(e)}")
+            return f"I'm sorry, I couldn't get the weather information: {str(e)}"
+    
+    def extract_city(self, query: str) -> str:
+        """
+        Extract city name from the query string.
+        
+        Simple extraction based on common patterns:
+        - "weather in [City]"
+        - "what's the weather like in [City]"
+        - "how's the weather in [City]"
+        
+        Args:
+            query: User's natural language query
+            
+        Returns:
+            Extracted city name or empty string if not found
+        """
+        import re
+        
+        # List of patterns to try for extracting city
+        patterns = [
+            r'(?:weather|temperature|forecast|rain|sunny|cloudy|snow)(?:\s+(?:like|for|in|at|near|of))?\s+(?:in\s+)?([A-Za-z\s]+)(?:\?|$|,|\.|!)',
+            r'(?:in|at|near|for)\s+([A-Za-z\s]+)(?:\?|$|,|\.|!)',
+            r'(?:what\'s|what is|how\'s|how is)(?:\s+the)?\s+(?:weather|temperature|forecast)(?:\s+(?:like|in|at|near))?\s+(?:in\s+)?([A-Za-z\s]+)(?:\?|$|,|\.|!)',
+        ]
+        
+        # Try each pattern
+        for pattern in patterns:
+            match = re.search(pattern, query, re.IGNORECASE)
+            if match:
+                city = match.group(1).strip()
+                # Filter out common non-city words and time-related phrases
+                time_related_words = ['right now', 'now', 'today', 'tomorrow', 'tonight', 'this evening', 'next week', 'right', 'currently']
+                
+                # Clean city name by removing time-related words
+                for word in time_related_words:
+                    if word in city.lower():
+                        city = city.lower().replace(word, '').strip()
+                
+                if city.lower() not in ['like', 'now', 'today', 'tomorrow', 'the', '']:
+                    return city
+        
+        # If no pattern matched, try to extract the last noun phrase
+        words = query.split()
+        if len(words) > 0:
+            # Simple heuristic: return the last word that's not a question mark
+            last_word = words[-1].rstrip('?.,!')
+            if last_word.lower() not in ['like', 'weather', 'now', 'today', 'tomorrow']:
+                return last_word
+        
+        return ""
+    
+    def extract_timeframe(self, query: str) -> str:
+        """
+        Extract timeframe from the query string.
+        
+        Args:
+            query: User's natural language query
+            
+        Returns:
+            Timeframe: "now", "today", "tomorrow", or "week"
+        """
+        query_lower = query.lower()
+        
+        if "tomorrow" in query_lower:
+            return "tomorrow"
+        elif "today" in query_lower:
+            return "today"
+        elif "week" in query_lower or "forecast" in query_lower:
+            return "week"
+        else:
+            return "now"  # Default to current weather
+    
+    def format_weather_response(self, weather: WeatherOutput) -> str:
+        """
+        Format the weather data into a natural language response.
+        
+        Args:
+            weather: Weather data from the API
+            
+        Returns:
+            Formatted weather information as a string
+        """
+        if weather.timeframe == "now":
+            response = f"The current weather in {weather.location} is {weather.shortForecast.lower()} with a temperature of {weather.temperature}°{weather.temperatureUnit}. "
+            response += weather.detailedForecast
+        elif weather.timeframe == "today":
+            response = f"Today's weather in {weather.location} is {weather.shortForecast.lower()} with a high of {weather.temperature}°{weather.temperatureUnit}. "
+            response += weather.detailedForecast
+        elif weather.timeframe == "tomorrow":
+            response = f"Tomorrow's weather in {weather.location} will be {weather.shortForecast.lower()} with a high of {weather.temperature}°{weather.temperatureUnit}. "
+            response += weather.detailedForecast
+        else:  # week
+            response = f"The weather forecast for {weather.location} is {weather.shortForecast.lower()} with temperatures around {weather.temperature}°{weather.temperatureUnit}. "
+            response += f"This week: {weather.detailedForecast}"
+            
+        return response
