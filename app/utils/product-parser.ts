@@ -142,17 +142,21 @@ export function parseProductData(message: string): Product[] {
     
     // If no JSON was found, try text-based parsing
     if (products.length === 0) {
+      logger.debug('Starting emoji-based parsing');
       // Check for the emoji-rich format shown in the screenshot
       // This pattern matches the exact format from the screenshot
-      const emojiProductPattern = /📱\s+(Generic\s+Smartphone)\s+💸\s+\$(\d+\.\d+)\s+⭐+\s+(\d+\.\d+)\/5\s+Storage:\s+(\d+GB)\s+.*?🎨\s+•\s+Color:\s+(\w+).*?🧠\s+•\s+RAM:\s+(\d+GB).*?•\s+Processor:\s+([^•]+).*?📦\s+•\s+Stock:\s+(\d+)/g;
+      const emojiProductPattern = /📱\s+(.*?)\s+💸\s+\$(\d+\.\d+)\s+⭐+\s+(\d+\.\d+)\/5\s+Storage:\s+(\d+GB)\s+💾\s+•\s+Color:\s+(\w+)\s+🎨\s+•\s+RAM:\s+(\d+GB)\s+🧠\s+•\s+Processor:\s+([^•]+)\s+🔄\s+•\s+Stock:\s+(\d+)\s+📦/g;
       
       let emojiMatch;
       let productId = 1;
       
+      logger.debug('Message content for parsing:', { message });
+      
       while ((emojiMatch = emojiProductPattern.exec(message)) !== null) {
+        logger.debug('Found emoji match:', { match: emojiMatch[0] });
         const [_, title, price, rating, storage, color, ram, processor, stock] = emojiMatch;
         
-        products.push({
+        const product = {
           id: `product-${productId++}`,
           title: title.trim(),
           price: parseFloat(price),
@@ -163,18 +167,16 @@ export function parseProductData(message: string): Product[] {
           processor: processor.trim(),
           stock: parseInt(stock, 10),
           image: undefined // Use undefined instead of null
-        });
+        };
         
-        logger.debug('Found product from emoji pattern', { 
-          title: title.trim(),
-          price: parseFloat(price)
-        });
+        products.push(product);
+        logger.debug('Parsed product:', product);
       }
       
       // If the specific emoji pattern didn't match, try a more general pattern
       if (products.length === 0) {
         // Try to match the format in the screenshot with a more flexible pattern
-        const flexibleEmojiPattern = /📱\s+([\w\s]+)\s+💸\s+\$(\d+\.\d+)\s+⭐+\s+(\d+\.\d+)\/5\s+Storage:\s+(\d+GB)[\s\S]*?Color:\s+(\w+)[\s\S]*?RAM:\s+(\d+GB)[\s\S]*?Processor:\s+([^\n•]+)[\s\S]*?Stock:\s+(\d+)/g;
+        const flexibleEmojiPattern = /📱\s+(.*?)\s+💸\s+\$(\d+\.\d+)\s+⭐+\s+(\d+\.\d+)\/5[\s\S]*?Storage:\s+(\d+GB)[\s\S]*?Color:\s+(\w+)[\s\S]*?RAM:\s+(\d+GB)[\s\S]*?Processor:\s+([^•\n]+)[\s\S]*?Stock:\s+(\d+)/g;
         
         let flexMatch;
         let flexProductId = 1;

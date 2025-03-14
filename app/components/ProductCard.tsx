@@ -100,34 +100,70 @@ export default function ProductCard({ product }: ProductCardProps) {
       </div>
       <div className="p-4">
         <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">{productTitle}</h3>
-        <p className="text-gray-600 dark:text-gray-400">${displayPrice.toFixed(2)}</p>
-        <div className="flex items-center my-1">
-          <span className="text-yellow-500">{'⭐'.repeat(fullStars)}</span>
-          {hasHalfStar && <span className="text-yellow-500">⭐</span>}
-          <span className="text-gray-500 ml-1">({product.reviewCount} reviews)</span>
+        
+        {/* Technical Specifications */}
+        <div className="mt-2 space-y-1">
+          {product.storage && (
+            <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+              <span className="mr-2">💾</span>
+              <span>Storage: {product.storage}</span>
+            </div>
+          )}
+          {product.ram && (
+            <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+              <span className="mr-2">🧠</span>
+              <span>RAM: {product.ram}</span>
+            </div>
+          )}
+          {product.processor && (
+            <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+              <span className="mr-2">⚡</span>
+              <span>Processor: {product.processor}</span>
+            </div>
+          )}
+          {product.color && (
+            <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+              <span className="mr-2">🎨</span>
+              <span>Color: {product.color}</span>
+            </div>
+          )}
         </div>
-        <div className="flex flex-wrap gap-2 mb-3">
-          {features.map((feature, index) => (
-            <span 
-              key={index} 
-              className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-            >
-              <span className="mr-1">{feature.icon}</span> {feature.label}
+
+        <div className="mt-3">
+          <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">${displayPrice.toFixed(2)}</p>
+          <div className="flex items-center mt-1">
+            <div className="flex text-yellow-400">
+              {[...Array(5)].map((_, i) => (
+                <StarIconSolid
+                  key={i}
+                  className={`h-5 w-5 ${i < Math.floor(ratingValue) ? 'text-yellow-400' : 'text-gray-300'}`}
+                />
+              ))}
+            </div>
+            <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">
+              {ratingValue}/5
             </span>
-          ))}
+          </div>
         </div>
-        <div className="px-4 pb-4">
-          <button 
-            disabled={!product.stock || product.stock <= 0}
-            className={`w-full py-2 px-4 rounded-md font-medium text-sm transition-colors
-              ${product.stock && product.stock > 0 
-                ? 'bg-blue-600 hover:bg-blue-700 text-white' 
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-400'
-              }`}
-          >
-            {product.stock && product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
-          </button>
-        </div>
+
+        {product.stock !== undefined && (
+          <div className="mt-2 text-sm">
+            <span className={`${product.stock > 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
+            </span>
+          </div>
+        )}
+
+        <button 
+          disabled={!product.stock || product.stock <= 0}
+          className={`mt-4 w-full py-2 px-4 rounded-md font-medium text-sm transition-colors
+            ${product.stock && product.stock > 0 
+              ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+              : 'bg-gray-300 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-400'
+            }`}
+        >
+          {product.stock && product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
+        </button>
       </div>
     </div>
   );
