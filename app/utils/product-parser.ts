@@ -326,7 +326,8 @@ export function parseProductData(message: string): Product[] {
     }
     
     logger.info(`Successfully parsed ${products.length} products from message`);
-    return products;
+    // Limit to 3 products for display
+    return products.slice(0, 3);
   } catch (error) {
     logger.error('Error parsing product data', { error: String(error) });
     return [];
