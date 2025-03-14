@@ -193,7 +193,7 @@ export function parseStoreLocatorData(message: string): StoreResponse | null {
       isError: false
     };
   } catch (error) {
-    logger.error('Error parsing store locator data:', error);
+    logger.error('Error parsing store locator data:', { error: String(error) });
     return null;
   }
 }

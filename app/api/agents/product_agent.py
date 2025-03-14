@@ -181,6 +181,21 @@ class ProductAgent(Agent):
             'filters': {}
         }
         
+        # Extract product type terms first - this is important to capture 
+        # words like "phones", "devices", etc. for the query parameter
+        product_type_patterns = [
+            r'(phones?|devices?|smartphones?|tablets?|laptops?|computers?|gadgets?|electronics?)',
+        ]
+        
+        # Try to find product type in the query
+        product_type = None
+        for pattern in product_type_patterns:
+            match = re.search(pattern, query)
+            if match:
+                product_type = match.group(1)
+                logging.debug(f"Detected product type: {product_type}")
+                break
+                
         # Extract brand
         brands = ["hyperphone", "techpro", "smartdevice", "nexgen", "pixelwave", 
                  "smartcom", "audimax", "visiontech", "vaultphone", "ecotech"]
@@ -190,19 +205,34 @@ class ProductAgent(Agent):
                 logging.debug(f"Detected brand: {brand}")
                 break
                 
-        # Extract colors
-        colors = ["black", "white", "silver", "gold", "blue", "red", "green", 
-                 "purple", "pink", "yellow", "orange", "brown", "gray", "grey"]
-        for color in colors:
-            if color in query:
-                search_params['filters']['color'] = color
-                logging.debug(f"Detected color: {color}")
+        # Extract colors with proper capitalization to match database format
+        color_variations = {
+            "black": "Black",
+            "white": "White", 
+            "silver": "Silver",
+            "gold": "Gold",
+            "blue": "Blue",
+            "navy": "Blue",    # Map navy to Blue
+            "sky blue": "Blue", # Map sky blue to Blue
+            "navy blue": "Blue", # Map navy blue to Blue
+            "royal blue": "Blue", # Map royal blue to Blue
+            "red": "Red",
+            "green": "Green",
+            "purple": "Purple",
+            "pink": "Pink",
+            "yellow": "Yellow",
+            "orange": "Orange",
+            "brown": "Brown",
+            "gray": "Gray",
+            "grey": "Gray"    # Map grey to Gray
+        }
+        
+        # Check for colors in query
+        for color_term, db_color in color_variations.items():
+            if color_term in query.lower():
+                search_params['filters']['color'] = db_color
+                logging.debug(f"Detected color: {color_term} (mapped to {db_color})")
                 break
-                
-        # Check for non-existent colors (for test cases)
-        if "rainbow" in query:
-            search_params['filters']['color'] = "rainbow"
-            logging.debug("Detected non-existent color: rainbow")
                 
         # Extract storage
         storage_pattern = r'(\d+)\s*(gb|gigabyte|g)(?:\s+storage)?'
@@ -344,6 +374,20 @@ class ProductAgent(Agent):
         if not search_params['filters'] and not search_params['query']:
             search_params['query'] = query
             logging.debug(f"Using original query: {query}")
+            
+        # Set product type as the query parameter if found and query is still empty
+        if not search_params['query'] and product_type:
+            search_params['query'] = product_type
+            logging.debug(f"Using product type as query: {product_type}")
+            
+        # Fallback to a default search term if query is still empty
+        if not search_params['query'] and search_params['filters']:
+            # We have filters but no query term, use "phone" as a default
+            search_params['query'] = "phone"
+            logging.debug("Using default 'phone' as query since we have filters but no query term")
+            
+        # Extract the search parameters for logging
+        logging.debug(f"Extracted search parameters: {search_params}")
             
         return search_params
 
@@ -545,16 +589,63 @@ class ProductAgent(Agent):
                 
                 if response.status_code == 200:
                     data = response.json()
-                    logging.debug(f'API response: {data}')
+                    logging.debug(f'API response data structure: {json.dumps(data, indent=2)}')
+                    
                     if data.get('error'):
                         result = f"Error searching products: {data['error']}"
+                        logging.error(result)
                         return ProductQueryOutput(response=result) if isinstance(query_input, ProductQueryInput) else result
-                        
-                    products = data.get('data', {}).get('products', [])
-                    total = data.get('data', {}).get('total', 0)
                     
-                    formatted_response = self.format_product_results(products, total, search_params)
-                    return ProductQueryOutput(response=formatted_response) if isinstance(query_input, ProductQueryInput) else formatted_response
+                    if 'data' in data and 'products' in data['data']:
+                        products = data['data']['products']
+                        total = data['data']['total']
+                        
+                        logging.debug(f'Found {len(products)} products out of {total} total')
+                        
+                        # Normalize product data to ensure consistent field names
+                        normalized_products = []
+                        for product in products:
+                            normalized = {}
+                            # Map API field names to our expected field names
+                            field_mappings = {
+                                'Title': 'title',
+                                'Brand': 'brand',
+                                'Model': 'model',
+                                'Price': 'price',
+                                'Original_Price': 'originalPrice',
+                                'Discount_Percentage': 'discountPercentage',
+                                'Rating': 'rating',
+                                'Review_Count': 'reviewCount',
+                                'Storage': 'storage',
+                                'Color': 'color',
+                                'RAM': 'ram',
+                                'Processor': 'processor',
+                                'Screen_Size': 'screenSize',
+                                'Stock': 'stock',
+                                'Water_Resistant': 'waterResistant',
+                                'Wireless_Charging': 'wirelessCharging',
+                                'Fast_Charging': 'fastCharging',
+                                '5G_Compatible': 'fiveGCompatible'
+                            }
+                            
+                            # Map fields and handle potential missing fields
+                            for api_field, our_field in field_mappings.items():
+                                if api_field in product:
+                                    normalized[our_field] = product[api_field]
+                                    
+                            # Also copy fields that might already use our expected naming
+                            for field in product:
+                                if field.lower() == field and field not in normalized:
+                                    normalized[field] = product[field]
+                                    
+                            normalized_products.append(normalized)
+                        
+                        formatted_response = self.format_product_results(normalized_products, total, search_params)
+                        return ProductQueryOutput(response=formatted_response) if isinstance(query_input, ProductQueryInput) else formatted_response
+                    else:
+                        logging.error(f"Unexpected API response structure: {data}")
+                        result = "Couldn't find any products matching your search."
+                        return ProductQueryOutput(response=result) if isinstance(query_input, ProductQueryInput) else result
                 else:
                     error_message = f"Error searching products: {response.status_code} {response.text}"
                     logging.error(error_message)

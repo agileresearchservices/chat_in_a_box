@@ -39,8 +39,10 @@ import { parseMessage } from '@/utils/message-parser'
 import logger from '@/utils/logger'
 import { isWeatherResponse, parseWeatherData } from '@/utils/weather-parser'
 import { isStoreLocatorResponse, parseStoreLocatorData } from '@/utils/store-parser'
+import { isProductResponse, parseProductData, Product } from './utils/product-parser'
 import WeatherCard from './components/WeatherCard'
 import StoreCard from './components/StoreCard'
+import ProductCard from './components/ProductCard'
 
 /**
  * Extended Message Type with Enhanced Metadata
@@ -294,6 +296,10 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
   const isStoreLocatorMessage = !isUser && isStoreLocatorResponse(message.content)
   const storeLocatorData = isStoreLocatorMessage ? parseStoreLocatorData(message.content) : null
 
+  // Check if message contains product data
+  const isProductMessage = !isUser && isProductResponse(message.content)
+  const productData = isProductMessage ? parseProductData(message.content) : null
+
   // Debug data
   if (weatherData) {
     console.log('Weather data from parser:', weatherData);
@@ -301,6 +307,15 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
   
   if (storeLocatorData) {
     console.log('Store locator data from parser:', storeLocatorData);
+  }
+
+  // Enhanced product debugging
+  console.log('Message content:', message.content);
+  console.log('Is product message?', isProductMessage);
+  if (productData) {
+    console.log('Product data from parser:', productData);
+  } else {
+    console.log('No product data parsed from message');
   }
 
   // Debounce content updates for smoother rendering
@@ -341,6 +356,25 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
     return (
       <div className="flex justify-center w-full my-4">
         <StoreCard data={storeLocatorData} />
+      </div>
+    )
+  }
+
+  // If this is a product message, only show the product card
+  if (isProductMessage && productData && productData.length > 0) {
+    return (
+      <div className="w-full my-4">
+        <div className="mb-4">
+          <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-2">Product Search Results</h2>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Found {productData.length} product{productData.length !== 1 ? 's' : ''} matching your search
+          </p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {productData.map((product: Product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
       </div>
     )
   }

@@ -25,15 +25,24 @@ interface StoreCardProps {
 const StoreCard: React.FC<StoreCardProps> = ({ data }) => {
   if (data.isError) {
     return (
-      <div className="w-full max-w-2xl p-4 bg-red-50 border border-red-200 rounded-lg">
-        <div className="flex items-start">
-          <div className="flex-shrink-0">
-            <BuildingStorefrontIcon className="h-6 w-6 text-red-500" aria-hidden="true" />
-          </div>
-          <div className="ml-3">
-            <h3 className="text-sm font-medium text-red-800">Store Locator</h3>
-            <div className="mt-2 text-sm text-red-700">
-              <p>{data.errorMessage || "No stores found matching your criteria."}</p>
+      <div className="bg-gradient-to-br from-red-50 to-orange-100 rounded-lg shadow-md overflow-hidden max-w-2xl mx-auto">
+        {/* Error Header */}
+        <div className="bg-gradient-to-r from-red-500 to-orange-500 p-4 text-white">
+          <h2 className="text-xl font-semibold">Store Locator</h2>
+          <div className="text-sm opacity-90">Location Search</div>
+        </div>
+        
+        {/* Error Content */}
+        <div className="p-5">
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <BuildingStorefrontIcon className="h-10 w-10 text-orange-500" aria-hidden="true" />
+            </div>
+            <div className="ml-3">
+              <div className="text-lg font-medium text-red-700">Unable to Find Stores</div>
+              <div className="mt-2 text-sm text-gray-600">
+                <p>{data.errorMessage || "No stores found matching your criteria."}</p>
+              </div>
             </div>
           </div>
         </div>
@@ -42,40 +51,51 @@ const StoreCard: React.FC<StoreCardProps> = ({ data }) => {
   }
 
   return (
-    <div className="w-full max-w-2xl p-4 bg-white shadow-md rounded-lg overflow-hidden">
-      <div className="border-b pb-3 mb-3">
-        <h3 className="text-lg font-medium text-gray-900">
-          <BuildingStorefrontIcon className="inline h-5 w-5 mr-2 text-blue-500" />
-          Stores {data.location ? `in ${data.location}` : ''} ({data.total} found)
-        </h3>
+    <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-lg shadow-md overflow-hidden max-w-2xl mx-auto">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-500 p-4 text-white">
+        <h2 className="text-xl font-semibold flex items-center">
+          <BuildingStorefrontIcon className="inline h-5 w-5 mr-2" />
+          {data.location ? `Stores in ${data.location}` : 'Store Locations'}
+        </h2>
+        <div className="text-sm opacity-90">{data.total} locations found</div>
       </div>
       
-      <div className="overflow-y-auto max-h-[400px]">
-        {data.stores.map((store, index) => (
-          <div key={index} className={`pb-3 ${index !== data.stores.length - 1 ? 'border-b mb-3' : ''}`}>
-            <h4 className="text-md font-semibold">{store.storeName}</h4>
-            <p className="text-xs text-gray-500">Store #{store.storeNumber}</p>
-            
-            <div className="mt-2 flex items-start">
-              <MapPinIcon className="h-5 w-5 text-gray-500 mr-1 flex-shrink-0" />
-              <p className="text-sm">
-                {store.address}, {store.city}, {store.state} {store.zipCode}
-              </p>
+      {/* Store Content */}
+      <div className="p-5">
+        <div className="overflow-y-auto max-h-[400px]">
+          {data.stores.map((store, index) => (
+            <div key={index} className={`p-3 ${index !== data.stores.length - 1 ? 'border-b mb-3' : ''}`}>
+              <div className="flex justify-between items-start">
+                <div>
+                  <h4 className="text-md font-semibold text-indigo-800">{store.storeName}</h4>
+                  <p className="text-xs text-gray-500">Store #{store.storeNumber}</p>
+                </div>
+              </div>
+              
+              <div className="mt-3 p-2 bg-white bg-opacity-60 rounded-lg">
+                <div className="flex items-start mb-2">
+                  <MapPinIcon className="h-5 w-5 text-indigo-500 mr-1 flex-shrink-0" />
+                  <p className="text-sm text-gray-700">
+                    {store.address}, {store.city}, {store.state} {store.zipCode}
+                  </p>
+                </div>
+                
+                <div className="flex items-center">
+                  <PhoneIcon className="h-5 w-5 text-indigo-500 mr-1" />
+                  <p className="text-sm text-gray-700">{store.phoneNumber}</p>
+                </div>
+              </div>
             </div>
-            
-            <div className="mt-1 flex items-center">
-              <PhoneIcon className="h-5 w-5 text-gray-500 mr-1" />
-              <p className="text-sm">{store.phoneNumber}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-      
-      {data.total > data.stores.length && (
-        <div className="mt-3 pt-3 border-t text-sm text-gray-500 text-center">
-          Showing {data.stores.length} of {data.total} total stores
+          ))}
         </div>
-      )}
+        
+        {data.total > data.stores.length && (
+          <div className="mt-3 pt-3 border-t text-sm text-gray-500 text-center">
+            Showing {data.stores.length} of {data.total} total stores
+          </div>
+        )}
+      </div>
     </div>
   );
 };

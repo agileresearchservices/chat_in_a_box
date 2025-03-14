@@ -205,7 +205,10 @@ export class AgentService {
         /(stores?|locations?|shops?|outlets?) (in|near|around|close to)/i,          // Geographic queries
         /locate (a )?(stores?|locations?|shops?|outlets?)/i,                        // Locate requests
         /nearest (stores?|locations?|shops?|outlets?)/i,                            // Proximity queries
-        /(stores?|locations?|shops?|outlets?).+(city|state|zip|postal)/i            // Specific location queries
+        /(stores?|locations?|shops?|outlets?).+(city|state|zip|postal)/i,           // Specific location queries
+        /what (stores?|locations?|shops?|outlets?) are (in|near|around|at|available in)/i, // "What stores are in" pattern
+        /list (all )?(the )?(stores?|locations?|shops?|outlets?) (in|near|around|at)/i, // List stores pattern
+        /tell me about (stores?|locations?|shops?|outlets?) (in|near|around|at)/i   // Tell me about stores pattern
       ]
     };
 

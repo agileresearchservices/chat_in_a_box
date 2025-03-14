@@ -1,902 +1,715 @@
-2025-03-13 14:03:39,129 - INFO - Extracted city: Boston, timeframe: now
-2025-03-13 14:03:39,129 - INFO - Calling weather API for Boston, timeframe: now
-2025-03-13 14:03:39,947 - INFO - HTTP Request: POST http://localhost:3000/api/weather "HTTP/1.1 200 OK"
-2025-03-13 14:09:51,267 - DEBUG - Processing store query: Find stores in Port Ericmouth
-2025-03-13 14:09:51,268 - DEBUG - Skipping potential state 'IN' as it appears to be a preposition
-2025-03-13 14:09:51,268 - DEBUG - Found city with context: Port Ericmouth
-2025-03-13 14:09:51,268 - DEBUG - Final search parameters: query='stores in port ericmouth' size=5 page=1 filters={'city': 'Port Ericmouth'}
-2025-03-13 14:09:51,268 - DEBUG - Sending search parameters to API: query='stores in port ericmouth' size=5 page=1 filters={'city': 'Port Ericmouth'}
-2025-03-13 14:09:51,268 - DEBUG - Calling store API with params: {"query": "stores in port ericmouth", "size": 5, "page": 1, "filters": {"city": "Port Ericmouth"}}
-2025-03-13 14:09:51,268 - DEBUG - API call to: http://localhost:3000/api/stores
-2025-03-13 14:09:51,268 - DEBUG - Request params: {'query': 'stores in port ericmouth', 'size': 5, 'page': 1, 'filters': {'city': 'Port Ericmouth'}}
-2025-03-13 14:09:51,271 - DEBUG - load_ssl_context verify=True cert=None trust_env=True http2=False
-2025-03-13 14:09:51,271 - DEBUG - load_verify_locations cafile='/Users/kevin/github/chat_in_a_box/.venv/lib/python3.11/site-packages/certifi/cacert.pem'
-2025-03-13 14:09:51,276 - DEBUG - connect_tcp.started host='localhost' port=3000 local_address=None timeout=5.0 socket_options=None
-2025-03-13 14:09:51,277 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x116222610>
-2025-03-13 14:09:51,277 - DEBUG - send_request_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:51,277 - DEBUG - send_request_headers.complete
-2025-03-13 14:09:51,277 - DEBUG - send_request_body.started request=<Request [b'POST']>
-2025-03-13 14:09:51,277 - DEBUG - send_request_body.complete
-2025-03-13 14:09:51,277 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:51,290 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'vary', b'RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch'), (b'content-type', b'application/json'), (b'Date', b'Thu, 13 Mar 2025 18:09:51 GMT'), (b'Connection', b'keep-alive'), (b'Keep-Alive', b'timeout=5'), (b'Transfer-Encoding', b'chunked')])
-2025-03-13 14:09:51,290 - INFO - HTTP Request: POST http://localhost:3000/api/stores "HTTP/1.1 200 OK"
-2025-03-13 14:09:51,290 - DEBUG - receive_response_body.started request=<Request [b'POST']>
-2025-03-13 14:09:51,290 - DEBUG - receive_response_body.complete
-2025-03-13 14:09:51,290 - DEBUG - response_closed.started
-2025-03-13 14:09:51,291 - DEBUG - response_closed.complete
-2025-03-13 14:09:51,291 - DEBUG - API response: {"data":{"stores":[{"storeNumber":"1","storeName":"Rosales Group Electronics","address":"994 Tyler Square","city":"Port Ericmouth","state":"NM","zipCode":"42056","phoneNumber":"020.533.1899"}],"total"
-2025-03-13 14:09:51,291 - DEBUG - close.started
-2025-03-13 14:09:51,291 - DEBUG - close.complete
-2025-03-13 14:09:51,291 - DEBUG - API response data: {'data': {'stores': [{'storeNumber': '1', 'storeName': 'Rosales Group Electronics', 'address': '994 Tyler Square', 'city': 'Port Ericmouth', 'state': 'NM', 'zipCode': '42056', 'phoneNumber': '020.533.1899'}], 'total': 1}, 'success': True}
-2025-03-13 14:09:51,291 - DEBUG - Found 1 stores, formatting results
-2025-03-13 14:09:51,291 - DEBUG - Formatting results for 1 stores with params: query='stores in port ericmouth' size=5 page=1 filters={'city': 'Port Ericmouth'}
-2025-03-13 14:09:51,567 - DEBUG - Processing store query: Show me stores in South Bruce
-2025-03-13 14:09:51,568 - DEBUG - Found state abbreviation: ME
-2025-03-13 14:09:51,568 - DEBUG - Found city with context: South Bruce
-2025-03-13 14:09:51,568 - DEBUG - Final search parameters: query='me stores in south bruce' size=5 page=1 filters={'city': 'South Bruce', 'state': 'ME'}
-2025-03-13 14:09:51,568 - DEBUG - Sending search parameters to API: query='me stores in south bruce' size=5 page=1 filters={'city': 'South Bruce', 'state': 'ME'}
-2025-03-13 14:09:51,568 - DEBUG - Calling store API with params: {"query": "me stores in south bruce", "size": 5, "page": 1, "filters": {"city": "South Bruce", "state": "ME"}}
-2025-03-13 14:09:51,568 - DEBUG - API call to: http://localhost:3000/api/stores
-2025-03-13 14:09:51,568 - DEBUG - Request params: {'query': 'me stores in south bruce', 'size': 5, 'page': 1, 'filters': {'city': 'South Bruce', 'state': 'ME'}}
-2025-03-13 14:09:51,571 - DEBUG - load_ssl_context verify=True cert=None trust_env=True http2=False
-2025-03-13 14:09:51,571 - DEBUG - load_verify_locations cafile='/Users/kevin/github/chat_in_a_box/.venv/lib/python3.11/site-packages/certifi/cacert.pem'
-2025-03-13 14:09:51,576 - DEBUG - connect_tcp.started host='localhost' port=3000 local_address=None timeout=5.0 socket_options=None
-2025-03-13 14:09:51,577 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x1038f28d0>
-2025-03-13 14:09:51,578 - DEBUG - send_request_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:51,578 - DEBUG - send_request_headers.complete
-2025-03-13 14:09:51,578 - DEBUG - send_request_body.started request=<Request [b'POST']>
-2025-03-13 14:09:51,578 - DEBUG - send_request_body.complete
-2025-03-13 14:09:51,578 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:51,585 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'vary', b'RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch'), (b'content-type', b'application/json'), (b'Date', b'Thu, 13 Mar 2025 18:09:51 GMT'), (b'Connection', b'keep-alive'), (b'Keep-Alive', b'timeout=5'), (b'Transfer-Encoding', b'chunked')])
-2025-03-13 14:09:51,585 - INFO - HTTP Request: POST http://localhost:3000/api/stores "HTTP/1.1 200 OK"
-2025-03-13 14:09:51,585 - DEBUG - receive_response_body.started request=<Request [b'POST']>
-2025-03-13 14:09:51,585 - DEBUG - receive_response_body.complete
-2025-03-13 14:09:51,585 - DEBUG - response_closed.started
-2025-03-13 14:09:51,585 - DEBUG - response_closed.complete
-2025-03-13 14:09:51,585 - DEBUG - API response: {"data":{"stores":[],"total":0},"success":true}
-2025-03-13 14:09:51,585 - DEBUG - close.started
-2025-03-13 14:09:51,585 - DEBUG - close.complete
-2025-03-13 14:09:51,585 - DEBUG - API response data: {'data': {'stores': [], 'total': 0}, 'success': True}
-2025-03-13 14:09:51,585 - WARNING - No stores found in API response for params: query='me stores in south bruce' size=5 page=1 filters={'city': 'South Bruce', 'state': 'ME'}
-2025-03-13 14:09:51,867 - DEBUG - Processing store query: Where are your stores in Thomasfort
-2025-03-13 14:09:51,868 - DEBUG - Skipping potential state 'IN' as it appears to be a preposition
-2025-03-13 14:09:51,868 - DEBUG - Found city with context: Thomasfort
-2025-03-13 14:09:51,868 - DEBUG - Final search parameters: query='where are your stores in thomasfort' size=5 page=1 filters={'city': 'Thomasfort'}
-2025-03-13 14:09:51,869 - DEBUG - Sending search parameters to API: query='where are your stores in thomasfort' size=5 page=1 filters={'city': 'Thomasfort'}
-2025-03-13 14:09:51,869 - DEBUG - Calling store API with params: {"query": "where are your stores in thomasfort", "size": 5, "page": 1, "filters": {"city": "Thomasfort"}}
-2025-03-13 14:09:51,869 - DEBUG - API call to: http://localhost:3000/api/stores
-2025-03-13 14:09:51,869 - DEBUG - Request params: {'query': 'where are your stores in thomasfort', 'size': 5, 'page': 1, 'filters': {'city': 'Thomasfort'}}
-2025-03-13 14:09:51,871 - DEBUG - load_ssl_context verify=True cert=None trust_env=True http2=False
-2025-03-13 14:09:51,871 - DEBUG - load_verify_locations cafile='/Users/kevin/github/chat_in_a_box/.venv/lib/python3.11/site-packages/certifi/cacert.pem'
-2025-03-13 14:09:51,876 - DEBUG - connect_tcp.started host='localhost' port=3000 local_address=None timeout=5.0 socket_options=None
-2025-03-13 14:09:51,877 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x10a85abd0>
-2025-03-13 14:09:51,878 - DEBUG - send_request_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:51,878 - DEBUG - send_request_headers.complete
-2025-03-13 14:09:51,878 - DEBUG - send_request_body.started request=<Request [b'POST']>
-2025-03-13 14:09:51,878 - DEBUG - send_request_body.complete
-2025-03-13 14:09:51,878 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:51,885 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'vary', b'RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch'), (b'content-type', b'application/json'), (b'Date', b'Thu, 13 Mar 2025 18:09:51 GMT'), (b'Connection', b'keep-alive'), (b'Keep-Alive', b'timeout=5'), (b'Transfer-Encoding', b'chunked')])
-2025-03-13 14:09:51,886 - INFO - HTTP Request: POST http://localhost:3000/api/stores "HTTP/1.1 200 OK"
-2025-03-13 14:09:51,886 - DEBUG - receive_response_body.started request=<Request [b'POST']>
-2025-03-13 14:09:51,886 - DEBUG - receive_response_body.complete
-2025-03-13 14:09:51,886 - DEBUG - response_closed.started
-2025-03-13 14:09:51,886 - DEBUG - response_closed.complete
-2025-03-13 14:09:51,886 - DEBUG - API response: {"data":{"stores":[{"storeNumber":"12","storeName":"Burns Ltd Electronics","address":"5907 Ball Causeway","city":"Thomasfort","state":"FL","zipCode":"52089","phoneNumber":"209.292.4887"}],"total":1},"
-2025-03-13 14:09:51,886 - DEBUG - close.started
-2025-03-13 14:09:51,886 - DEBUG - close.complete
-2025-03-13 14:09:51,886 - DEBUG - API response data: {'data': {'stores': [{'storeNumber': '12', 'storeName': 'Burns Ltd Electronics', 'address': '5907 Ball Causeway', 'city': 'Thomasfort', 'state': 'FL', 'zipCode': '52089', 'phoneNumber': '209.292.4887'}], 'total': 1}, 'success': True}
-2025-03-13 14:09:51,886 - DEBUG - Found 1 stores, formatting results
-2025-03-13 14:09:51,886 - DEBUG - Formatting results for 1 stores with params: query='where are your stores in thomasfort' size=5 page=1 filters={'city': 'Thomasfort'}
-2025-03-13 14:09:52,161 - DEBUG - Processing store query: Stores in East David
-2025-03-13 14:09:52,162 - DEBUG - Skipping potential state 'IN' as it appears to be a preposition
-2025-03-13 14:09:52,162 - DEBUG - Found city with context: East David
-2025-03-13 14:09:52,162 - DEBUG - Final search parameters: query='stores in east david' size=5 page=1 filters={'city': 'East David'}
-2025-03-13 14:09:52,162 - DEBUG - Sending search parameters to API: query='stores in east david' size=5 page=1 filters={'city': 'East David'}
-2025-03-13 14:09:52,162 - DEBUG - Calling store API with params: {"query": "stores in east david", "size": 5, "page": 1, "filters": {"city": "East David"}}
-2025-03-13 14:09:52,162 - DEBUG - API call to: http://localhost:3000/api/stores
-2025-03-13 14:09:52,162 - DEBUG - Request params: {'query': 'stores in east david', 'size': 5, 'page': 1, 'filters': {'city': 'East David'}}
-2025-03-13 14:09:52,165 - DEBUG - load_ssl_context verify=True cert=None trust_env=True http2=False
-2025-03-13 14:09:52,166 - DEBUG - load_verify_locations cafile='/Users/kevin/github/chat_in_a_box/.venv/lib/python3.11/site-packages/certifi/cacert.pem'
-2025-03-13 14:09:52,170 - DEBUG - connect_tcp.started host='localhost' port=3000 local_address=None timeout=5.0 socket_options=None
-2025-03-13 14:09:52,171 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x110556990>
-2025-03-13 14:09:52,171 - DEBUG - send_request_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:52,172 - DEBUG - send_request_headers.complete
-2025-03-13 14:09:52,172 - DEBUG - send_request_body.started request=<Request [b'POST']>
-2025-03-13 14:09:52,172 - DEBUG - send_request_body.complete
-2025-03-13 14:09:52,172 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:52,179 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'vary', b'RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch'), (b'content-type', b'application/json'), (b'Date', b'Thu, 13 Mar 2025 18:09:52 GMT'), (b'Connection', b'keep-alive'), (b'Keep-Alive', b'timeout=5'), (b'Transfer-Encoding', b'chunked')])
-2025-03-13 14:09:52,180 - INFO - HTTP Request: POST http://localhost:3000/api/stores "HTTP/1.1 200 OK"
-2025-03-13 14:09:52,180 - DEBUG - receive_response_body.started request=<Request [b'POST']>
-2025-03-13 14:09:52,180 - DEBUG - receive_response_body.complete
-2025-03-13 14:09:52,180 - DEBUG - response_closed.started
-2025-03-13 14:09:52,180 - DEBUG - response_closed.complete
-2025-03-13 14:09:52,180 - DEBUG - API response: {"data":{"stores":[{"storeNumber":"10","storeName":"Brown-Barker Electronics","address":"796 Berry Corners","city":"East David","state":"WY","zipCode":"16570","phoneNumber":"231.052.0175x792"},{"store
-2025-03-13 14:09:52,180 - DEBUG - close.started
-2025-03-13 14:09:52,180 - DEBUG - close.complete
-2025-03-13 14:09:52,180 - DEBUG - API response data: {'data': {'stores': [{'storeNumber': '10', 'storeName': 'Brown-Barker Electronics', 'address': '796 Berry Corners', 'city': 'East David', 'state': 'WY', 'zipCode': '16570', 'phoneNumber': '231.052.0175x792'}, {'storeNumber': '359', 'storeName': 'Bridges Ltd Electronics', 'address': '3878 Johnson Mission', 'city': 'East Davidmouth', 'state': 'VA', 'zipCode': '46462', 'phoneNumber': '(219)599-5455'}], 'total': 2}, 'success': True}
-2025-03-13 14:09:52,180 - DEBUG - Found 2 stores, formatting results
-2025-03-13 14:09:52,180 - DEBUG - Formatting results for 2 stores with params: query='stores in east david' size=5 page=1 filters={'city': 'East David'}
-2025-03-13 14:09:52,454 - DEBUG - Processing store query: Find stores in Parkville
-2025-03-13 14:09:52,455 - DEBUG - Skipping potential state 'IN' as it appears to be a preposition
-2025-03-13 14:09:52,455 - DEBUG - Found city with context: Parkville
-2025-03-13 14:09:52,456 - DEBUG - Final search parameters: query='stores in parkville' size=5 page=1 filters={'city': 'Parkville'}
-2025-03-13 14:09:52,456 - DEBUG - Sending search parameters to API: query='stores in parkville' size=5 page=1 filters={'city': 'Parkville'}
-2025-03-13 14:09:52,456 - DEBUG - Calling store API with params: {"query": "stores in parkville", "size": 5, "page": 1, "filters": {"city": "Parkville"}}
-2025-03-13 14:09:52,456 - DEBUG - API call to: http://localhost:3000/api/stores
-2025-03-13 14:09:52,456 - DEBUG - Request params: {'query': 'stores in parkville', 'size': 5, 'page': 1, 'filters': {'city': 'Parkville'}}
-2025-03-13 14:09:52,459 - DEBUG - load_ssl_context verify=True cert=None trust_env=True http2=False
-2025-03-13 14:09:52,459 - DEBUG - load_verify_locations cafile='/Users/kevin/github/chat_in_a_box/.venv/lib/python3.11/site-packages/certifi/cacert.pem'
-2025-03-13 14:09:52,464 - DEBUG - connect_tcp.started host='localhost' port=3000 local_address=None timeout=5.0 socket_options=None
-2025-03-13 14:09:52,465 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x105c569d0>
-2025-03-13 14:09:52,465 - DEBUG - send_request_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:52,465 - DEBUG - send_request_headers.complete
-2025-03-13 14:09:52,465 - DEBUG - send_request_body.started request=<Request [b'POST']>
-2025-03-13 14:09:52,465 - DEBUG - send_request_body.complete
-2025-03-13 14:09:52,465 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:52,472 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'vary', b'RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch'), (b'content-type', b'application/json'), (b'Date', b'Thu, 13 Mar 2025 18:09:52 GMT'), (b'Connection', b'keep-alive'), (b'Keep-Alive', b'timeout=5'), (b'Transfer-Encoding', b'chunked')])
-2025-03-13 14:09:52,472 - INFO - HTTP Request: POST http://localhost:3000/api/stores "HTTP/1.1 200 OK"
-2025-03-13 14:09:52,472 - DEBUG - receive_response_body.started request=<Request [b'POST']>
-2025-03-13 14:09:52,473 - DEBUG - receive_response_body.complete
-2025-03-13 14:09:52,473 - DEBUG - response_closed.started
-2025-03-13 14:09:52,473 - DEBUG - response_closed.complete
-2025-03-13 14:09:52,473 - DEBUG - API response: {"data":{"stores":[{"storeNumber":"15","storeName":"Cox-Williams Electronics","address":"395 Garcia Keys","city":"Parkville","state":"HI","zipCode":"68039","phoneNumber":"476-407-6366x7306"}],"total":
-2025-03-13 14:09:52,473 - DEBUG - close.started
-2025-03-13 14:09:52,473 - DEBUG - close.complete
-2025-03-13 14:09:52,473 - DEBUG - API response data: {'data': {'stores': [{'storeNumber': '15', 'storeName': 'Cox-Williams Electronics', 'address': '395 Garcia Keys', 'city': 'Parkville', 'state': 'HI', 'zipCode': '68039', 'phoneNumber': '476-407-6366x7306'}], 'total': 1}, 'success': True}
-2025-03-13 14:09:52,473 - DEBUG - Found 1 stores, formatting results
-2025-03-13 14:09:52,473 - DEBUG - Formatting results for 1 stores with params: query='stores in parkville' size=5 page=1 filters={'city': 'Parkville'}
-2025-03-13 14:09:52,741 - DEBUG - Processing store query: Locate stores in Johnport
-2025-03-13 14:09:52,742 - DEBUG - Skipping potential state 'IN' as it appears to be a preposition
-2025-03-13 14:09:52,742 - DEBUG - Found city with context: Johnport
-2025-03-13 14:09:52,742 - DEBUG - Final search parameters: query='locate stores in johnport' size=5 page=1 filters={'city': 'Johnport'}
-2025-03-13 14:09:52,742 - DEBUG - Sending search parameters to API: query='locate stores in johnport' size=5 page=1 filters={'city': 'Johnport'}
-2025-03-13 14:09:52,742 - DEBUG - Calling store API with params: {"query": "locate stores in johnport", "size": 5, "page": 1, "filters": {"city": "Johnport"}}
-2025-03-13 14:09:52,742 - DEBUG - API call to: http://localhost:3000/api/stores
-2025-03-13 14:09:52,742 - DEBUG - Request params: {'query': 'locate stores in johnport', 'size': 5, 'page': 1, 'filters': {'city': 'Johnport'}}
-2025-03-13 14:09:52,745 - DEBUG - load_ssl_context verify=True cert=None trust_env=True http2=False
-2025-03-13 14:09:52,745 - DEBUG - load_verify_locations cafile='/Users/kevin/github/chat_in_a_box/.venv/lib/python3.11/site-packages/certifi/cacert.pem'
-2025-03-13 14:09:52,750 - DEBUG - connect_tcp.started host='localhost' port=3000 local_address=None timeout=5.0 socket_options=None
-2025-03-13 14:09:52,751 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x106556a90>
-2025-03-13 14:09:52,751 - DEBUG - send_request_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:52,751 - DEBUG - send_request_headers.complete
-2025-03-13 14:09:52,751 - DEBUG - send_request_body.started request=<Request [b'POST']>
-2025-03-13 14:09:52,751 - DEBUG - send_request_body.complete
-2025-03-13 14:09:52,751 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:52,758 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'vary', b'RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch'), (b'content-type', b'application/json'), (b'Date', b'Thu, 13 Mar 2025 18:09:52 GMT'), (b'Connection', b'keep-alive'), (b'Keep-Alive', b'timeout=5'), (b'Transfer-Encoding', b'chunked')])
-2025-03-13 14:09:52,758 - INFO - HTTP Request: POST http://localhost:3000/api/stores "HTTP/1.1 200 OK"
-2025-03-13 14:09:52,758 - DEBUG - receive_response_body.started request=<Request [b'POST']>
-2025-03-13 14:09:52,758 - DEBUG - receive_response_body.complete
-2025-03-13 14:09:52,758 - DEBUG - response_closed.started
-2025-03-13 14:09:52,759 - DEBUG - response_closed.complete
-2025-03-13 14:09:52,759 - DEBUG - API response: {"data":{"stores":[{"storeNumber":"21","storeName":"Baker-Melendez Electronics","address":"0363 Holmes Flat Apt. 354","city":"Johnport","state":"IL","zipCode":"28879","phoneNumber":"001-956-311-9073x0
-2025-03-13 14:09:52,759 - DEBUG - close.started
-2025-03-13 14:09:52,759 - DEBUG - close.complete
-2025-03-13 14:09:52,759 - DEBUG - API response data: {'data': {'stores': [{'storeNumber': '21', 'storeName': 'Baker-Melendez Electronics', 'address': '0363 Holmes Flat Apt. 354', 'city': 'Johnport', 'state': 'IL', 'zipCode': '28879', 'phoneNumber': '001-956-311-9073x0486'}], 'total': 1}, 'success': True}
-2025-03-13 14:09:52,759 - DEBUG - Found 1 stores, formatting results
-2025-03-13 14:09:52,759 - DEBUG - Formatting results for 1 stores with params: query='locate stores in johnport' size=5 page=1 filters={'city': 'Johnport'}
-2025-03-13 14:09:53,027 - DEBUG - Processing store query: Find stores in FL
-2025-03-13 14:09:53,027 - DEBUG - Found state abbreviation: FL
-2025-03-13 14:09:53,029 - DEBUG - Final search parameters: query='stores in fl' size=5 page=1 filters={'state': 'FL'}
-2025-03-13 14:09:53,029 - DEBUG - Sending search parameters to API: query='stores in fl' size=5 page=1 filters={'state': 'FL'}
-2025-03-13 14:09:53,029 - DEBUG - Calling store API with params: {"query": "stores in fl", "size": 5, "page": 1, "filters": {"state": "FL"}}
-2025-03-13 14:09:53,029 - DEBUG - API call to: http://localhost:3000/api/stores
-2025-03-13 14:09:53,029 - DEBUG - Request params: {'query': 'stores in fl', 'size': 5, 'page': 1, 'filters': {'state': 'FL'}}
-2025-03-13 14:09:53,032 - DEBUG - load_ssl_context verify=True cert=None trust_env=True http2=False
-2025-03-13 14:09:53,032 - DEBUG - load_verify_locations cafile='/Users/kevin/github/chat_in_a_box/.venv/lib/python3.11/site-packages/certifi/cacert.pem'
-2025-03-13 14:09:53,037 - DEBUG - connect_tcp.started host='localhost' port=3000 local_address=None timeout=5.0 socket_options=None
-2025-03-13 14:09:53,038 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x10496ee10>
-2025-03-13 14:09:53,038 - DEBUG - send_request_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:53,038 - DEBUG - send_request_headers.complete
-2025-03-13 14:09:53,038 - DEBUG - send_request_body.started request=<Request [b'POST']>
-2025-03-13 14:09:53,038 - DEBUG - send_request_body.complete
-2025-03-13 14:09:53,038 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:53,046 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'vary', b'RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch'), (b'content-type', b'application/json'), (b'Date', b'Thu, 13 Mar 2025 18:09:53 GMT'), (b'Connection', b'keep-alive'), (b'Keep-Alive', b'timeout=5'), (b'Transfer-Encoding', b'chunked')])
-2025-03-13 14:09:53,046 - INFO - HTTP Request: POST http://localhost:3000/api/stores "HTTP/1.1 200 OK"
-2025-03-13 14:09:53,046 - DEBUG - receive_response_body.started request=<Request [b'POST']>
-2025-03-13 14:09:53,046 - DEBUG - receive_response_body.complete
-2025-03-13 14:09:53,046 - DEBUG - response_closed.started
-2025-03-13 14:09:53,046 - DEBUG - response_closed.complete
-2025-03-13 14:09:53,046 - DEBUG - API response: {"data":{"stores":[{"storeNumber":"12","storeName":"Burns Ltd Electronics","address":"5907 Ball Causeway","city":"Thomasfort","state":"FL","zipCode":"52089","phoneNumber":"209.292.4887"},{"storeNumber
-2025-03-13 14:09:53,046 - DEBUG - close.started
-2025-03-13 14:09:53,046 - DEBUG - close.complete
-2025-03-13 14:09:53,046 - DEBUG - API response data: {'data': {'stores': [{'storeNumber': '12', 'storeName': 'Burns Ltd Electronics', 'address': '5907 Ball Causeway', 'city': 'Thomasfort', 'state': 'FL', 'zipCode': '52089', 'phoneNumber': '209.292.4887'}, {'storeNumber': '98', 'storeName': 'Chavez Inc Electronics', 'address': '24872 Melanie Vista Suite 546', 'city': 'Ginamouth', 'state': 'FL', 'zipCode': '06750', 'phoneNumber': '+1-883-992-0955'}, {'storeNumber': '106', 'storeName': 'Myers Ltd Electronics', 'address': '1197 Jamie Prairie Suite 891', 'city': 'Katrinabury', 'state': 'FL', 'zipCode': '37791', 'phoneNumber': '278-602-5493'}, {'storeNumber': '131', 'storeName': 'Williams-Molina Electronics', 'address': '80466 Robert Street Apt. 676', 'city': 'Mortonborough', 'state': 'FL', 'zipCode': '01948', 'phoneNumber': '(625)484-6698'}, {'storeNumber': '163', 'storeName': 'Glass, Tucker and Stone Electronics', 'address': '138 Torres Trafficway', 'city': 'South Danielborough', 'state': 'FL', 'zipCode': '17321', 'phoneNumber': '3931733325'}], 'total': 17}, 'success': True}
-2025-03-13 14:09:53,046 - DEBUG - Found 5 stores, formatting results
-2025-03-13 14:09:53,046 - DEBUG - Formatting results for 17 stores with params: query='stores in fl' size=5 page=1 filters={'state': 'FL'}
-2025-03-13 14:09:53,319 - DEBUG - Processing store query: Show me stores in CA
-2025-03-13 14:09:53,319 - DEBUG - Found state abbreviation: CA
-2025-03-13 14:09:53,321 - DEBUG - Final search parameters: query='me stores in ca' size=5 page=1 filters={'state': 'CA'}
-2025-03-13 14:09:53,321 - DEBUG - Sending search parameters to API: query='me stores in ca' size=5 page=1 filters={'state': 'CA'}
-2025-03-13 14:09:53,321 - DEBUG - Calling store API with params: {"query": "me stores in ca", "size": 5, "page": 1, "filters": {"state": "CA"}}
-2025-03-13 14:09:53,321 - DEBUG - API call to: http://localhost:3000/api/stores
-2025-03-13 14:09:53,321 - DEBUG - Request params: {'query': 'me stores in ca', 'size': 5, 'page': 1, 'filters': {'state': 'CA'}}
-2025-03-13 14:09:53,324 - DEBUG - load_ssl_context verify=True cert=None trust_env=True http2=False
-2025-03-13 14:09:53,324 - DEBUG - load_verify_locations cafile='/Users/kevin/github/chat_in_a_box/.venv/lib/python3.11/site-packages/certifi/cacert.pem'
-2025-03-13 14:09:53,329 - DEBUG - connect_tcp.started host='localhost' port=3000 local_address=None timeout=5.0 socket_options=None
-2025-03-13 14:09:53,330 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x105eae3d0>
-2025-03-13 14:09:53,330 - DEBUG - send_request_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:53,330 - DEBUG - send_request_headers.complete
-2025-03-13 14:09:53,330 - DEBUG - send_request_body.started request=<Request [b'POST']>
-2025-03-13 14:09:53,330 - DEBUG - send_request_body.complete
-2025-03-13 14:09:53,330 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:53,337 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'vary', b'RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch'), (b'content-type', b'application/json'), (b'Date', b'Thu, 13 Mar 2025 18:09:53 GMT'), (b'Connection', b'keep-alive'), (b'Keep-Alive', b'timeout=5'), (b'Transfer-Encoding', b'chunked')])
-2025-03-13 14:09:53,338 - INFO - HTTP Request: POST http://localhost:3000/api/stores "HTTP/1.1 200 OK"
-2025-03-13 14:09:53,338 - DEBUG - receive_response_body.started request=<Request [b'POST']>
-2025-03-13 14:09:53,338 - DEBUG - receive_response_body.complete
-2025-03-13 14:09:53,338 - DEBUG - response_closed.started
-2025-03-13 14:09:53,338 - DEBUG - response_closed.complete
-2025-03-13 14:09:53,338 - DEBUG - API response: {"data":{"stores":[{"storeNumber":"52","storeName":"Reese, Allison and Hill Electronics","address":"0314 Michael River","city":"Carrollmouth","state":"CA","zipCode":"86287","phoneNumber":"106.616.4106
-2025-03-13 14:09:53,338 - DEBUG - close.started
-2025-03-13 14:09:53,338 - DEBUG - close.complete
-2025-03-13 14:09:53,338 - DEBUG - API response data: {'data': {'stores': [{'storeNumber': '52', 'storeName': 'Reese, Allison and Hill Electronics', 'address': '0314 Michael River', 'city': 'Carrollmouth', 'state': 'CA', 'zipCode': '86287', 'phoneNumber': '106.616.4106x668'}, {'storeNumber': '73', 'storeName': 'Cook Inc Electronics', 'address': '7058 Michael Club', 'city': 'Port Cynthiaburgh', 'state': 'CA', 'zipCode': '17919', 'phoneNumber': '717.431.9686'}, {'storeNumber': '135', 'storeName': 'Garcia PLC Electronics', 'address': '174 Bradley Fall', 'city': 'Patrickmouth', 'state': 'CA', 'zipCode': '87961', 'phoneNumber': '1097923094'}, {'storeNumber': '139', 'storeName': 'Bradshaw Ltd Electronics', 'address': '87472 Ware Springs', 'city': 'Munozchester', 'state': 'CA', 'zipCode': '73021', 'phoneNumber': '288.792.0738x3929'}, {'storeNumber': '158', 'storeName': 'Garcia Group Electronics', 'address': '40534 Young Cove Apt. 216', 'city': 'Lake Johnton', 'state': 'CA', 'zipCode': '82806', 'phoneNumber': '(284)096-2342x97664'}], 'total': 20}, 'success': True}
-2025-03-13 14:09:53,338 - DEBUG - Found 5 stores, formatting results
-2025-03-13 14:09:53,338 - DEBUG - Formatting results for 20 stores with params: query='me stores in ca' size=5 page=1 filters={'state': 'CA'}
-2025-03-13 14:09:53,607 - DEBUG - Processing store query: Stores in NY
-2025-03-13 14:09:53,607 - DEBUG - Found state abbreviation: NY
-2025-03-13 14:09:53,609 - DEBUG - Final search parameters: query='stores in ny' size=5 page=1 filters={'state': 'NY'}
-2025-03-13 14:09:53,609 - DEBUG - Sending search parameters to API: query='stores in ny' size=5 page=1 filters={'state': 'NY'}
-2025-03-13 14:09:53,609 - DEBUG - Calling store API with params: {"query": "stores in ny", "size": 5, "page": 1, "filters": {"state": "NY"}}
-2025-03-13 14:09:53,609 - DEBUG - API call to: http://localhost:3000/api/stores
-2025-03-13 14:09:53,609 - DEBUG - Request params: {'query': 'stores in ny', 'size': 5, 'page': 1, 'filters': {'state': 'NY'}}
-2025-03-13 14:09:53,612 - DEBUG - load_ssl_context verify=True cert=None trust_env=True http2=False
-2025-03-13 14:09:53,612 - DEBUG - load_verify_locations cafile='/Users/kevin/github/chat_in_a_box/.venv/lib/python3.11/site-packages/certifi/cacert.pem'
-2025-03-13 14:09:53,617 - DEBUG - connect_tcp.started host='localhost' port=3000 local_address=None timeout=5.0 socket_options=None
-2025-03-13 14:09:53,618 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x1063cb350>
-2025-03-13 14:09:53,618 - DEBUG - send_request_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:53,618 - DEBUG - send_request_headers.complete
-2025-03-13 14:09:53,618 - DEBUG - send_request_body.started request=<Request [b'POST']>
-2025-03-13 14:09:53,619 - DEBUG - send_request_body.complete
-2025-03-13 14:09:53,619 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:53,626 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'vary', b'RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch'), (b'content-type', b'application/json'), (b'Date', b'Thu, 13 Mar 2025 18:09:53 GMT'), (b'Connection', b'keep-alive'), (b'Keep-Alive', b'timeout=5'), (b'Transfer-Encoding', b'chunked')])
-2025-03-13 14:09:53,626 - INFO - HTTP Request: POST http://localhost:3000/api/stores "HTTP/1.1 200 OK"
-2025-03-13 14:09:53,626 - DEBUG - receive_response_body.started request=<Request [b'POST']>
-2025-03-13 14:09:53,626 - DEBUG - receive_response_body.complete
-2025-03-13 14:09:53,627 - DEBUG - response_closed.started
-2025-03-13 14:09:53,627 - DEBUG - response_closed.complete
-2025-03-13 14:09:53,627 - DEBUG - API response: {"data":{"stores":[{"storeNumber":"46","storeName":"Gray-Wagner Electronics","address":"372 Ray Divide","city":"Lake Gabrielberg","state":"NY","zipCode":"53193","phoneNumber":"635.699.4123"},{"storeNu
-2025-03-13 14:09:53,627 - DEBUG - close.started
-2025-03-13 14:09:53,627 - DEBUG - close.complete
-2025-03-13 14:09:53,627 - DEBUG - API response data: {'data': {'stores': [{'storeNumber': '46', 'storeName': 'Gray-Wagner Electronics', 'address': '372 Ray Divide', 'city': 'Lake Gabrielberg', 'state': 'NY', 'zipCode': '53193', 'phoneNumber': '635.699.4123'}, {'storeNumber': '140', 'storeName': 'Velasquez, Paul and Thomas Electronics', 'address': '3167 Mcclain Crest', 'city': 'South Elizabeth', 'state': 'NY', 'zipCode': '33348', 'phoneNumber': '415.491.9218x928'}, {'storeNumber': '193', 'storeName': 'Garcia and Sons Electronics', 'address': '1688 Martinez Wall Apt. 045', 'city': 'Williamfurt', 'state': 'NY', 'zipCode': '22635', 'phoneNumber': '(074)702-2890x4420'}, {'storeNumber': '196', 'storeName': 'Johnson-West Electronics', 'address': '105 Benjamin Road', 'city': 'New Douglasville', 'state': 'NY', 'zipCode': '01496', 'phoneNumber': '904-082-6809x191'}, {'storeNumber': '309', 'storeName': 'Dunn-Garcia Electronics', 'address': '5164 Smith Manor', 'city': 'South Jennifer', 'state': 'NY', 'zipCode': '38752', 'phoneNumber': '4327339029'}], 'total': 21}, 'success': True}
-2025-03-13 14:09:53,627 - DEBUG - Found 5 stores, formatting results
-2025-03-13 14:09:53,627 - DEBUG - Formatting results for 21 stores with params: query='stores in ny' size=5 page=1 filters={'state': 'NY'}
-2025-03-13 14:09:53,893 - DEBUG - Processing store query: Find stores in HI
-2025-03-13 14:09:53,893 - DEBUG - Found state abbreviation: HI
-2025-03-13 14:09:53,895 - DEBUG - Final search parameters: query='stores in hi' size=5 page=1 filters={'state': 'HI'}
-2025-03-13 14:09:53,895 - DEBUG - Sending search parameters to API: query='stores in hi' size=5 page=1 filters={'state': 'HI'}
-2025-03-13 14:09:53,895 - DEBUG - Calling store API with params: {"query": "stores in hi", "size": 5, "page": 1, "filters": {"state": "HI"}}
-2025-03-13 14:09:53,895 - DEBUG - API call to: http://localhost:3000/api/stores
-2025-03-13 14:09:53,895 - DEBUG - Request params: {'query': 'stores in hi', 'size': 5, 'page': 1, 'filters': {'state': 'HI'}}
-2025-03-13 14:09:53,898 - DEBUG - load_ssl_context verify=True cert=None trust_env=True http2=False
-2025-03-13 14:09:53,899 - DEBUG - load_verify_locations cafile='/Users/kevin/github/chat_in_a_box/.venv/lib/python3.11/site-packages/certifi/cacert.pem'
-2025-03-13 14:09:53,903 - DEBUG - connect_tcp.started host='localhost' port=3000 local_address=None timeout=5.0 socket_options=None
-2025-03-13 14:09:53,904 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x105b57c90>
-2025-03-13 14:09:53,905 - DEBUG - send_request_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:53,905 - DEBUG - send_request_headers.complete
-2025-03-13 14:09:53,905 - DEBUG - send_request_body.started request=<Request [b'POST']>
-2025-03-13 14:09:53,905 - DEBUG - send_request_body.complete
-2025-03-13 14:09:53,905 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:53,912 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'vary', b'RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch'), (b'content-type', b'application/json'), (b'Date', b'Thu, 13 Mar 2025 18:09:53 GMT'), (b'Connection', b'keep-alive'), (b'Keep-Alive', b'timeout=5'), (b'Transfer-Encoding', b'chunked')])
-2025-03-13 14:09:53,913 - INFO - HTTP Request: POST http://localhost:3000/api/stores "HTTP/1.1 200 OK"
-2025-03-13 14:09:53,913 - DEBUG - receive_response_body.started request=<Request [b'POST']>
-2025-03-13 14:09:53,913 - DEBUG - receive_response_body.complete
-2025-03-13 14:09:53,913 - DEBUG - response_closed.started
-2025-03-13 14:09:53,913 - DEBUG - response_closed.complete
-2025-03-13 14:09:53,913 - DEBUG - API response: {"data":{"stores":[{"storeNumber":"15","storeName":"Cox-Williams Electronics","address":"395 Garcia Keys","city":"Parkville","state":"HI","zipCode":"68039","phoneNumber":"476-407-6366x7306"},{"storeNu
-2025-03-13 14:09:53,913 - DEBUG - close.started
-2025-03-13 14:09:53,913 - DEBUG - close.complete
-2025-03-13 14:09:53,913 - DEBUG - API response data: {'data': {'stores': [{'storeNumber': '15', 'storeName': 'Cox-Williams Electronics', 'address': '395 Garcia Keys', 'city': 'Parkville', 'state': 'HI', 'zipCode': '68039', 'phoneNumber': '476-407-6366x7306'}, {'storeNumber': '16', 'storeName': 'Dominguez-Duke Electronics', 'address': '82943 Tony Alley Apt. 585', 'city': 'North Markfurt', 'state': 'HI', 'zipCode': '24164', 'phoneNumber': '(806)621-2007x628'}, {'storeNumber': '71', 'storeName': 'Wallace PLC Electronics', 'address': '894 Fischer Field', 'city': 'Hollandborough', 'state': 'HI', 'zipCode': '22497', 'phoneNumber': '361-864-8872x758'}, {'storeNumber': '74', 'storeName': 'Miles-Smith Electronics', 'address': '984 Stacey Manors', 'city': 'Kleinfort', 'state': 'HI', 'zipCode': '02770', 'phoneNumber': '001-090-450-2799x64744'}, {'storeNumber': '112', 'storeName': 'Waters-Prince Electronics', 'address': '495 Kelly Turnpike', 'city': 'East Deborah', 'state': 'HI', 'zipCode': '24700', 'phoneNumber': '451.400.5632x3732'}], 'total': 21}, 'success': True}
-2025-03-13 14:09:53,913 - DEBUG - Found 5 stores, formatting results
-2025-03-13 14:09:53,913 - DEBUG - Formatting results for 21 stores with params: query='stores in hi' size=5 page=1 filters={'state': 'HI'}
-2025-03-13 14:09:54,181 - DEBUG - Processing store query: List all stores in IL
-2025-03-13 14:09:54,181 - DEBUG - Found state abbreviation: IL
-2025-03-13 14:09:54,183 - DEBUG - Final search parameters: query='list all stores in il' size=5 page=1 filters={'state': 'IL'}
-2025-03-13 14:09:54,183 - DEBUG - Sending search parameters to API: query='list all stores in il' size=5 page=1 filters={'state': 'IL'}
-2025-03-13 14:09:54,183 - DEBUG - Calling store API with params: {"query": "list all stores in il", "size": 5, "page": 1, "filters": {"state": "IL"}}
-2025-03-13 14:09:54,183 - DEBUG - API call to: http://localhost:3000/api/stores
-2025-03-13 14:09:54,183 - DEBUG - Request params: {'query': 'list all stores in il', 'size': 5, 'page': 1, 'filters': {'state': 'IL'}}
-2025-03-13 14:09:54,186 - DEBUG - load_ssl_context verify=True cert=None trust_env=True http2=False
-2025-03-13 14:09:54,186 - DEBUG - load_verify_locations cafile='/Users/kevin/github/chat_in_a_box/.venv/lib/python3.11/site-packages/certifi/cacert.pem'
-2025-03-13 14:09:54,191 - DEBUG - connect_tcp.started host='localhost' port=3000 local_address=None timeout=5.0 socket_options=None
-2025-03-13 14:09:54,192 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x107b66510>
-2025-03-13 14:09:54,192 - DEBUG - send_request_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:54,192 - DEBUG - send_request_headers.complete
-2025-03-13 14:09:54,192 - DEBUG - send_request_body.started request=<Request [b'POST']>
-2025-03-13 14:09:54,192 - DEBUG - send_request_body.complete
-2025-03-13 14:09:54,192 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:54,198 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'vary', b'RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch'), (b'content-type', b'application/json'), (b'Date', b'Thu, 13 Mar 2025 18:09:54 GMT'), (b'Connection', b'keep-alive'), (b'Keep-Alive', b'timeout=5'), (b'Transfer-Encoding', b'chunked')])
-2025-03-13 14:09:54,198 - INFO - HTTP Request: POST http://localhost:3000/api/stores "HTTP/1.1 200 OK"
-2025-03-13 14:09:54,198 - DEBUG - receive_response_body.started request=<Request [b'POST']>
-2025-03-13 14:09:54,198 - DEBUG - receive_response_body.complete
-2025-03-13 14:09:54,198 - DEBUG - response_closed.started
-2025-03-13 14:09:54,198 - DEBUG - response_closed.complete
-2025-03-13 14:09:54,198 - DEBUG - API response: {"data":{"stores":[{"storeNumber":"7","storeName":"Hernandez Group Electronics","address":"580 Kimberly Rest","city":"East Isabelport","state":"IL","zipCode":"57537","phoneNumber":"236.695.9445"},{"st
-2025-03-13 14:09:54,198 - DEBUG - close.started
-2025-03-13 14:09:54,198 - DEBUG - close.complete
-2025-03-13 14:09:54,198 - DEBUG - API response data: {'data': {'stores': [{'storeNumber': '7', 'storeName': 'Hernandez Group Electronics', 'address': '580 Kimberly Rest', 'city': 'East Isabelport', 'state': 'IL', 'zipCode': '57537', 'phoneNumber': '236.695.9445'}, {'storeNumber': '21', 'storeName': 'Baker-Melendez Electronics', 'address': '0363 Holmes Flat Apt. 354', 'city': 'Johnport', 'state': 'IL', 'zipCode': '28879', 'phoneNumber': '001-956-311-9073x0486'}, {'storeNumber': '22', 'storeName': 'Fitzgerald-Jacobson Electronics', 'address': '59951 Megan Lane', 'city': 'Willishaven', 'state': 'IL', 'zipCode': '49217', 'phoneNumber': '508-873-8644x6339'}, {'storeNumber': '31', 'storeName': 'Maldonado PLC Electronics', 'address': '10726 Jones Plains Apt. 382', 'city': 'Garciaberg', 'state': 'IL', 'zipCode': '69242', 'phoneNumber': '703.714.3619'}, {'storeNumber': '83', 'storeName': 'Brock Group Electronics', 'address': '72799 Patrick Course Suite 972', 'city': 'Cruzmouth', 'state': 'IL', 'zipCode': '96264', 'phoneNumber': '7042619714'}], 'total': 25}, 'success': True}
-2025-03-13 14:09:54,198 - DEBUG - Found 5 stores, formatting results
-2025-03-13 14:09:54,198 - DEBUG - Formatting results for 25 stores with params: query='list all stores in il' size=5 page=1 filters={'state': 'IL'}
-2025-03-13 14:09:54,470 - DEBUG - Processing store query: Find stores near 42056
-2025-03-13 14:09:54,471 - DEBUG - Extracted ZIP code: 42056
-2025-03-13 14:09:54,471 - DEBUG - Modified query without ZIP: Find stores near 
-2025-03-13 14:09:54,473 - DEBUG - Final search parameters: query='stores near 42056' size=5 page=1 filters={'zipCode': '42056'}
-2025-03-13 14:09:54,473 - DEBUG - Sending search parameters to API: query='stores near 42056' size=5 page=1 filters={'zipCode': '42056'}
-2025-03-13 14:09:54,473 - DEBUG - Calling store API with params: {"query": "stores near 42056", "size": 5, "page": 1, "filters": {"zipCode": "42056"}}
-2025-03-13 14:09:54,473 - DEBUG - API call to: http://localhost:3000/api/stores
-2025-03-13 14:09:54,473 - DEBUG - Request params: {'query': 'stores near 42056', 'size': 5, 'page': 1, 'filters': {'zipCode': '42056'}}
-2025-03-13 14:09:54,476 - DEBUG - load_ssl_context verify=True cert=None trust_env=True http2=False
-2025-03-13 14:09:54,476 - DEBUG - load_verify_locations cafile='/Users/kevin/github/chat_in_a_box/.venv/lib/python3.11/site-packages/certifi/cacert.pem'
-2025-03-13 14:09:54,481 - DEBUG - connect_tcp.started host='localhost' port=3000 local_address=None timeout=5.0 socket_options=None
-2025-03-13 14:09:54,483 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x103647e90>
-2025-03-13 14:09:54,483 - DEBUG - send_request_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:54,483 - DEBUG - send_request_headers.complete
-2025-03-13 14:09:54,483 - DEBUG - send_request_body.started request=<Request [b'POST']>
-2025-03-13 14:09:54,483 - DEBUG - send_request_body.complete
-2025-03-13 14:09:54,483 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:54,488 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'vary', b'RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch'), (b'content-type', b'application/json'), (b'Date', b'Thu, 13 Mar 2025 18:09:54 GMT'), (b'Connection', b'keep-alive'), (b'Keep-Alive', b'timeout=5'), (b'Transfer-Encoding', b'chunked')])
-2025-03-13 14:09:54,489 - INFO - HTTP Request: POST http://localhost:3000/api/stores "HTTP/1.1 200 OK"
-2025-03-13 14:09:54,489 - DEBUG - receive_response_body.started request=<Request [b'POST']>
-2025-03-13 14:09:54,489 - DEBUG - receive_response_body.complete
-2025-03-13 14:09:54,489 - DEBUG - response_closed.started
-2025-03-13 14:09:54,489 - DEBUG - response_closed.complete
-2025-03-13 14:09:54,489 - DEBUG - API response: {"data":{"stores":[{"storeNumber":"1","storeName":"Rosales Group Electronics","address":"994 Tyler Square","city":"Port Ericmouth","state":"NM","zipCode":"42056","phoneNumber":"020.533.1899"}],"total"
-2025-03-13 14:09:54,489 - DEBUG - close.started
-2025-03-13 14:09:54,489 - DEBUG - close.complete
-2025-03-13 14:09:54,489 - DEBUG - API response data: {'data': {'stores': [{'storeNumber': '1', 'storeName': 'Rosales Group Electronics', 'address': '994 Tyler Square', 'city': 'Port Ericmouth', 'state': 'NM', 'zipCode': '42056', 'phoneNumber': '020.533.1899'}], 'total': 1}, 'success': True}
-2025-03-13 14:09:54,489 - DEBUG - Found 1 stores, formatting results
-2025-03-13 14:09:54,489 - DEBUG - Formatting results for 1 stores with params: query='stores near 42056' size=5 page=1 filters={'zipCode': '42056'}
-2025-03-13 14:09:54,768 - DEBUG - Processing store query: Show me stores in ZIP 76610
-2025-03-13 14:09:54,769 - DEBUG - Extracted ZIP code: 76610
-2025-03-13 14:09:54,769 - DEBUG - Modified query without ZIP: Show me stores in ZIP 
-2025-03-13 14:09:54,769 - DEBUG - Found state abbreviation: ME
-2025-03-13 14:09:54,769 - DEBUG - Found city with context: ZIP
-2025-03-13 14:09:54,769 - DEBUG - Final search parameters: query='me stores in zip 76610' size=5 page=1 filters={'zipCode': '76610', 'city': 'ZIP', 'state': 'ME'}
-2025-03-13 14:09:54,769 - DEBUG - Sending search parameters to API: query='me stores in zip 76610' size=5 page=1 filters={'zipCode': '76610', 'city': 'ZIP', 'state': 'ME'}
-2025-03-13 14:09:54,770 - DEBUG - Calling store API with params: {"query": "me stores in zip 76610", "size": 5, "page": 1, "filters": {"zipCode": "76610", "city": "ZIP", "state": "ME"}}
-2025-03-13 14:09:54,770 - DEBUG - API call to: http://localhost:3000/api/stores
-2025-03-13 14:09:54,770 - DEBUG - Request params: {'query': 'me stores in zip 76610', 'size': 5, 'page': 1, 'filters': {'zipCode': '76610', 'city': 'ZIP', 'state': 'ME'}}
-2025-03-13 14:09:54,772 - DEBUG - load_ssl_context verify=True cert=None trust_env=True http2=False
-2025-03-13 14:09:54,773 - DEBUG - load_verify_locations cafile='/Users/kevin/github/chat_in_a_box/.venv/lib/python3.11/site-packages/certifi/cacert.pem'
-2025-03-13 14:09:54,777 - DEBUG - connect_tcp.started host='localhost' port=3000 local_address=None timeout=5.0 socket_options=None
-2025-03-13 14:09:54,778 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x105c22310>
-2025-03-13 14:09:54,779 - DEBUG - send_request_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:54,779 - DEBUG - send_request_headers.complete
-2025-03-13 14:09:54,779 - DEBUG - send_request_body.started request=<Request [b'POST']>
-2025-03-13 14:09:54,779 - DEBUG - send_request_body.complete
-2025-03-13 14:09:54,779 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:54,785 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'vary', b'RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch'), (b'content-type', b'application/json'), (b'Date', b'Thu, 13 Mar 2025 18:09:54 GMT'), (b'Connection', b'keep-alive'), (b'Keep-Alive', b'timeout=5'), (b'Transfer-Encoding', b'chunked')])
-2025-03-13 14:09:54,785 - INFO - HTTP Request: POST http://localhost:3000/api/stores "HTTP/1.1 200 OK"
-2025-03-13 14:09:54,785 - DEBUG - receive_response_body.started request=<Request [b'POST']>
-2025-03-13 14:09:54,785 - DEBUG - receive_response_body.complete
-2025-03-13 14:09:54,785 - DEBUG - response_closed.started
-2025-03-13 14:09:54,786 - DEBUG - response_closed.complete
-2025-03-13 14:09:54,786 - DEBUG - API response: {"data":{"stores":[],"total":0},"success":true}
-2025-03-13 14:09:54,786 - DEBUG - close.started
-2025-03-13 14:09:54,786 - DEBUG - close.complete
-2025-03-13 14:09:54,786 - DEBUG - API response data: {'data': {'stores': [], 'total': 0}, 'success': True}
-2025-03-13 14:09:54,786 - WARNING - No stores found in API response for params: query='me stores in zip 76610' size=5 page=1 filters={'zipCode': '76610', 'city': 'ZIP', 'state': 'ME'}
-2025-03-13 14:09:55,055 - DEBUG - Processing store query: Stores in 52089 area
-2025-03-13 14:09:55,055 - DEBUG - Extracted ZIP code: 52089
-2025-03-13 14:09:55,055 - DEBUG - Modified query without ZIP: Stores in  area
-2025-03-13 14:09:55,056 - DEBUG - Skipping potential state 'IN' as it appears to be a preposition
-2025-03-13 14:09:55,056 - DEBUG - Found city with context: area
-2025-03-13 14:09:55,056 - DEBUG - Final search parameters: query='stores in 52089 area' size=5 page=1 filters={'zipCode': '52089', 'city': 'area'}
-2025-03-13 14:09:55,056 - DEBUG - Sending search parameters to API: query='stores in 52089 area' size=5 page=1 filters={'zipCode': '52089', 'city': 'area'}
-2025-03-13 14:09:55,056 - DEBUG - Calling store API with params: {"query": "stores in 52089 area", "size": 5, "page": 1, "filters": {"zipCode": "52089", "city": "area"}}
-2025-03-13 14:09:55,056 - DEBUG - API call to: http://localhost:3000/api/stores
-2025-03-13 14:09:55,056 - DEBUG - Request params: {'query': 'stores in 52089 area', 'size': 5, 'page': 1, 'filters': {'zipCode': '52089', 'city': 'area'}}
-2025-03-13 14:09:55,059 - DEBUG - load_ssl_context verify=True cert=None trust_env=True http2=False
-2025-03-13 14:09:55,059 - DEBUG - load_verify_locations cafile='/Users/kevin/github/chat_in_a_box/.venv/lib/python3.11/site-packages/certifi/cacert.pem'
-2025-03-13 14:09:55,064 - DEBUG - connect_tcp.started host='localhost' port=3000 local_address=None timeout=5.0 socket_options=None
-2025-03-13 14:09:55,065 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x107d7a8d0>
-2025-03-13 14:09:55,065 - DEBUG - send_request_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:55,065 - DEBUG - send_request_headers.complete
-2025-03-13 14:09:55,065 - DEBUG - send_request_body.started request=<Request [b'POST']>
-2025-03-13 14:09:55,065 - DEBUG - send_request_body.complete
-2025-03-13 14:09:55,065 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:55,072 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'vary', b'RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch'), (b'content-type', b'application/json'), (b'Date', b'Thu, 13 Mar 2025 18:09:55 GMT'), (b'Connection', b'keep-alive'), (b'Keep-Alive', b'timeout=5'), (b'Transfer-Encoding', b'chunked')])
-2025-03-13 14:09:55,072 - INFO - HTTP Request: POST http://localhost:3000/api/stores "HTTP/1.1 200 OK"
-2025-03-13 14:09:55,072 - DEBUG - receive_response_body.started request=<Request [b'POST']>
-2025-03-13 14:09:55,072 - DEBUG - receive_response_body.complete
-2025-03-13 14:09:55,072 - DEBUG - response_closed.started
-2025-03-13 14:09:55,072 - DEBUG - response_closed.complete
-2025-03-13 14:09:55,072 - DEBUG - API response: {"data":{"stores":[],"total":0},"success":true}
-2025-03-13 14:09:55,072 - DEBUG - close.started
-2025-03-13 14:09:55,072 - DEBUG - close.complete
-2025-03-13 14:09:55,072 - DEBUG - API response data: {'data': {'stores': [], 'total': 0}, 'success': True}
-2025-03-13 14:09:55,072 - WARNING - No stores found in API response for params: query='stores in 52089 area' size=5 page=1 filters={'zipCode': '52089', 'city': 'area'}
-2025-03-13 14:09:55,341 - DEBUG - Processing store query: Find stores in 80612 ZIP code
-2025-03-13 14:09:55,341 - DEBUG - Detected 'ZIP code' phrase in query, using special handling
-2025-03-13 14:09:55,341 - DEBUG - Extracted ZIP code: 80612
-2025-03-13 14:09:55,341 - DEBUG - Modified query without ZIP: Find stores in  ZIP code
-2025-03-13 14:09:55,342 - DEBUG - Skipping potential state 'IN' as it appears to be a preposition
-2025-03-13 14:09:55,342 - DEBUG - Found city with context: ZIP code
-2025-03-13 14:09:55,342 - DEBUG - Final search parameters: query='stores in 80612 zip code' size=5 page=1 filters={'zipCode': '80612', 'city': 'ZIP code'}
-2025-03-13 14:09:55,342 - DEBUG - Sending search parameters to API: query='stores in 80612 zip code' size=5 page=1 filters={'zipCode': '80612', 'city': 'ZIP code'}
-2025-03-13 14:09:55,342 - DEBUG - Calling store API with params: {"query": "stores in 80612 zip code", "size": 5, "page": 1, "filters": {"zipCode": "80612", "city": "ZIP code"}}
-2025-03-13 14:09:55,342 - DEBUG - API call to: http://localhost:3000/api/stores
-2025-03-13 14:09:55,342 - DEBUG - Request params: {'query': 'stores in 80612 zip code', 'size': 5, 'page': 1, 'filters': {'zipCode': '80612', 'city': 'ZIP code'}}
-2025-03-13 14:09:55,345 - DEBUG - load_ssl_context verify=True cert=None trust_env=True http2=False
-2025-03-13 14:09:55,345 - DEBUG - load_verify_locations cafile='/Users/kevin/github/chat_in_a_box/.venv/lib/python3.11/site-packages/certifi/cacert.pem'
-2025-03-13 14:09:55,350 - DEBUG - connect_tcp.started host='localhost' port=3000 local_address=None timeout=5.0 socket_options=None
-2025-03-13 14:09:55,351 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x108376a10>
-2025-03-13 14:09:55,351 - DEBUG - send_request_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:55,351 - DEBUG - send_request_headers.complete
-2025-03-13 14:09:55,351 - DEBUG - send_request_body.started request=<Request [b'POST']>
-2025-03-13 14:09:55,351 - DEBUG - send_request_body.complete
-2025-03-13 14:09:55,351 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:55,358 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'vary', b'RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch'), (b'content-type', b'application/json'), (b'Date', b'Thu, 13 Mar 2025 18:09:55 GMT'), (b'Connection', b'keep-alive'), (b'Keep-Alive', b'timeout=5'), (b'Transfer-Encoding', b'chunked')])
-2025-03-13 14:09:55,358 - INFO - HTTP Request: POST http://localhost:3000/api/stores "HTTP/1.1 200 OK"
-2025-03-13 14:09:55,358 - DEBUG - receive_response_body.started request=<Request [b'POST']>
-2025-03-13 14:09:55,358 - DEBUG - receive_response_body.complete
-2025-03-13 14:09:55,358 - DEBUG - response_closed.started
-2025-03-13 14:09:55,359 - DEBUG - response_closed.complete
-2025-03-13 14:09:55,359 - DEBUG - API response: {"data":{"stores":[],"total":0},"success":true}
-2025-03-13 14:09:55,359 - DEBUG - close.started
-2025-03-13 14:09:55,359 - DEBUG - close.complete
-2025-03-13 14:09:55,359 - DEBUG - API response data: {'data': {'stores': [], 'total': 0}, 'success': True}
-2025-03-13 14:09:55,359 - WARNING - No stores found in API response for params: query='stores in 80612 zip code' size=5 page=1 filters={'zipCode': '80612', 'city': 'ZIP code'}
-2025-03-13 14:09:55,635 - DEBUG - Processing store query: Find stores in 81775
-2025-03-13 14:09:55,636 - DEBUG - Extracted ZIP code: 81775
-2025-03-13 14:09:55,636 - DEBUG - Modified query without ZIP: Find stores in 
-2025-03-13 14:09:55,636 - DEBUG - Skipping potential state 'IN' as it appears to be a preposition
-2025-03-13 14:09:55,638 - DEBUG - Final search parameters: query='stores in 81775' size=5 page=1 filters={'zipCode': '81775'}
-2025-03-13 14:09:55,638 - DEBUG - Sending search parameters to API: query='stores in 81775' size=5 page=1 filters={'zipCode': '81775'}
-2025-03-13 14:09:55,638 - DEBUG - Calling store API with params: {"query": "stores in 81775", "size": 5, "page": 1, "filters": {"zipCode": "81775"}}
-2025-03-13 14:09:55,638 - WARNING - Making API call for ZIP 81775 with params: {"query": "stores in 81775", "size": 5, "page": 1, "filters": {"zipCode": "81775"}}
-2025-03-13 14:09:55,638 - DEBUG - API call to: http://localhost:3000/api/stores
-2025-03-13 14:09:55,638 - DEBUG - Request params: {'query': 'stores in 81775', 'size': 5, 'page': 1, 'filters': {'zipCode': '81775'}}
-2025-03-13 14:09:55,641 - DEBUG - load_ssl_context verify=True cert=None trust_env=True http2=False
-2025-03-13 14:09:55,641 - DEBUG - load_verify_locations cafile='/Users/kevin/github/chat_in_a_box/.venv/lib/python3.11/site-packages/certifi/cacert.pem'
-2025-03-13 14:09:55,646 - DEBUG - connect_tcp.started host='localhost' port=3000 local_address=None timeout=5.0 socket_options=None
-2025-03-13 14:09:55,647 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x104f575d0>
-2025-03-13 14:09:55,647 - DEBUG - send_request_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:55,647 - DEBUG - send_request_headers.complete
-2025-03-13 14:09:55,647 - DEBUG - send_request_body.started request=<Request [b'POST']>
-2025-03-13 14:09:55,647 - DEBUG - send_request_body.complete
-2025-03-13 14:09:55,647 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:55,654 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'vary', b'RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch'), (b'content-type', b'application/json'), (b'Date', b'Thu, 13 Mar 2025 18:09:55 GMT'), (b'Connection', b'keep-alive'), (b'Keep-Alive', b'timeout=5'), (b'Transfer-Encoding', b'chunked')])
-2025-03-13 14:09:55,654 - INFO - HTTP Request: POST http://localhost:3000/api/stores "HTTP/1.1 200 OK"
-2025-03-13 14:09:55,654 - DEBUG - receive_response_body.started request=<Request [b'POST']>
-2025-03-13 14:09:55,654 - DEBUG - receive_response_body.complete
-2025-03-13 14:09:55,654 - DEBUG - response_closed.started
-2025-03-13 14:09:55,654 - DEBUG - response_closed.complete
-2025-03-13 14:09:55,654 - DEBUG - API response: {"data":{"stores":[{"storeNumber":"43","storeName":"Clark, White and Barrera Electronics","address":"742 Caldwell Extension Apt. 123","city":"East Caseyport","state":"NM","zipCode":"81775","phoneNumbe
-2025-03-13 14:09:55,654 - DEBUG - close.started
-2025-03-13 14:09:55,654 - DEBUG - close.complete
-2025-03-13 14:09:55,655 - DEBUG - API response data: {'data': {'stores': [{'storeNumber': '43', 'storeName': 'Clark, White and Barrera Electronics', 'address': '742 Caldwell Extension Apt. 123', 'city': 'East Caseyport', 'state': 'NM', 'zipCode': '81775', 'phoneNumber': '+1-631-668-4590'}], 'total': 1}, 'success': True}
-2025-03-13 14:09:55,655 - WARNING - ZIP 81775 - Found 1 stores in response
-2025-03-13 14:09:55,655 - WARNING - ZIP 81775 - First store data: {'storeName': 'Clark, White and Barrera Electronics', 'storeNumber': '43', 'address': '742 Caldwell Extension Apt. 123', 'city': 'East Caseyport', 'state': 'NM', 'zipCode': '81775', 'phoneNumber': '+1-631-668-4590'}
-2025-03-13 14:09:55,655 - DEBUG - Found 1 stores, formatting results
-2025-03-13 14:09:55,655 - DEBUG - Formatting results for 1 stores with params: query='stores in 81775' size=5 page=1 filters={'zipCode': '81775'}
-2025-03-13 14:09:55,922 - DEBUG - Processing store query: Find stores in Thomasfort, FL
-2025-03-13 14:09:55,922 - DEBUG - Found state abbreviation: FL
-2025-03-13 14:09:55,923 - DEBUG - Found city with context: Thomasfort
-2025-03-13 14:09:55,923 - DEBUG - Final search parameters: query='stores in thomasfort, fl' size=5 page=1 filters={'city': 'Thomasfort', 'state': 'FL'}
-2025-03-13 14:09:55,923 - DEBUG - Sending search parameters to API: query='stores in thomasfort, fl' size=5 page=1 filters={'city': 'Thomasfort', 'state': 'FL'}
-2025-03-13 14:09:55,923 - DEBUG - Calling store API with params: {"query": "stores in thomasfort, fl", "size": 5, "page": 1, "filters": {"city": "Thomasfort", "state": "FL"}}
-2025-03-13 14:09:55,923 - DEBUG - API call to: http://localhost:3000/api/stores
-2025-03-13 14:09:55,923 - DEBUG - Request params: {'query': 'stores in thomasfort, fl', 'size': 5, 'page': 1, 'filters': {'city': 'Thomasfort', 'state': 'FL'}}
-2025-03-13 14:09:55,926 - DEBUG - load_ssl_context verify=True cert=None trust_env=True http2=False
-2025-03-13 14:09:55,926 - DEBUG - load_verify_locations cafile='/Users/kevin/github/chat_in_a_box/.venv/lib/python3.11/site-packages/certifi/cacert.pem'
-2025-03-13 14:09:55,931 - DEBUG - connect_tcp.started host='localhost' port=3000 local_address=None timeout=5.0 socket_options=None
-2025-03-13 14:09:55,932 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x107b829d0>
-2025-03-13 14:09:55,932 - DEBUG - send_request_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:55,932 - DEBUG - send_request_headers.complete
-2025-03-13 14:09:55,932 - DEBUG - send_request_body.started request=<Request [b'POST']>
-2025-03-13 14:09:55,932 - DEBUG - send_request_body.complete
-2025-03-13 14:09:55,932 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:55,939 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'vary', b'RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch'), (b'content-type', b'application/json'), (b'Date', b'Thu, 13 Mar 2025 18:09:55 GMT'), (b'Connection', b'keep-alive'), (b'Keep-Alive', b'timeout=5'), (b'Transfer-Encoding', b'chunked')])
-2025-03-13 14:09:55,939 - INFO - HTTP Request: POST http://localhost:3000/api/stores "HTTP/1.1 200 OK"
-2025-03-13 14:09:55,939 - DEBUG - receive_response_body.started request=<Request [b'POST']>
-2025-03-13 14:09:55,940 - DEBUG - receive_response_body.complete
-2025-03-13 14:09:55,940 - DEBUG - response_closed.started
-2025-03-13 14:09:55,940 - DEBUG - response_closed.complete
-2025-03-13 14:09:55,940 - DEBUG - API response: {"data":{"stores":[{"storeNumber":"12","storeName":"Burns Ltd Electronics","address":"5907 Ball Causeway","city":"Thomasfort","state":"FL","zipCode":"52089","phoneNumber":"209.292.4887"}],"total":1},"
-2025-03-13 14:09:55,940 - DEBUG - close.started
-2025-03-13 14:09:55,940 - DEBUG - close.complete
-2025-03-13 14:09:55,940 - DEBUG - API response data: {'data': {'stores': [{'storeNumber': '12', 'storeName': 'Burns Ltd Electronics', 'address': '5907 Ball Causeway', 'city': 'Thomasfort', 'state': 'FL', 'zipCode': '52089', 'phoneNumber': '209.292.4887'}], 'total': 1}, 'success': True}
-2025-03-13 14:09:55,940 - DEBUG - Found 1 stores, formatting results
-2025-03-13 14:09:55,940 - DEBUG - Formatting results for 1 stores with params: query='stores in thomasfort, fl' size=5 page=1 filters={'city': 'Thomasfort', 'state': 'FL'}
-2025-03-13 14:09:56,209 - DEBUG - Processing store query: Show me stores in Carrollmouth, CA
-2025-03-13 14:09:56,209 - DEBUG - Found state abbreviation: CA
-2025-03-13 14:09:56,210 - DEBUG - Found city with context: Carrollmouth
-2025-03-13 14:09:56,210 - DEBUG - Final search parameters: query='me stores in carrollmouth, ca' size=5 page=1 filters={'city': 'Carrollmouth', 'state': 'CA'}
-2025-03-13 14:09:56,210 - DEBUG - Sending search parameters to API: query='me stores in carrollmouth, ca' size=5 page=1 filters={'city': 'Carrollmouth', 'state': 'CA'}
-2025-03-13 14:09:56,210 - DEBUG - Calling store API with params: {"query": "me stores in carrollmouth, ca", "size": 5, "page": 1, "filters": {"city": "Carrollmouth", "state": "CA"}}
-2025-03-13 14:09:56,210 - DEBUG - API call to: http://localhost:3000/api/stores
-2025-03-13 14:09:56,210 - DEBUG - Request params: {'query': 'me stores in carrollmouth, ca', 'size': 5, 'page': 1, 'filters': {'city': 'Carrollmouth', 'state': 'CA'}}
-2025-03-13 14:09:56,212 - DEBUG - load_ssl_context verify=True cert=None trust_env=True http2=False
-2025-03-13 14:09:56,213 - DEBUG - load_verify_locations cafile='/Users/kevin/github/chat_in_a_box/.venv/lib/python3.11/site-packages/certifi/cacert.pem'
-2025-03-13 14:09:56,217 - DEBUG - connect_tcp.started host='localhost' port=3000 local_address=None timeout=5.0 socket_options=None
-2025-03-13 14:09:56,218 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x110756950>
-2025-03-13 14:09:56,218 - DEBUG - send_request_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:56,218 - DEBUG - send_request_headers.complete
-2025-03-13 14:09:56,218 - DEBUG - send_request_body.started request=<Request [b'POST']>
-2025-03-13 14:09:56,219 - DEBUG - send_request_body.complete
-2025-03-13 14:09:56,219 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:56,226 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'vary', b'RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch'), (b'content-type', b'application/json'), (b'Date', b'Thu, 13 Mar 2025 18:09:56 GMT'), (b'Connection', b'keep-alive'), (b'Keep-Alive', b'timeout=5'), (b'Transfer-Encoding', b'chunked')])
-2025-03-13 14:09:56,226 - INFO - HTTP Request: POST http://localhost:3000/api/stores "HTTP/1.1 200 OK"
-2025-03-13 14:09:56,226 - DEBUG - receive_response_body.started request=<Request [b'POST']>
-2025-03-13 14:09:56,226 - DEBUG - receive_response_body.complete
-2025-03-13 14:09:56,226 - DEBUG - response_closed.started
-2025-03-13 14:09:56,226 - DEBUG - response_closed.complete
-2025-03-13 14:09:56,226 - DEBUG - API response: {"data":{"stores":[{"storeNumber":"52","storeName":"Reese, Allison and Hill Electronics","address":"0314 Michael River","city":"Carrollmouth","state":"CA","zipCode":"86287","phoneNumber":"106.616.4106
-2025-03-13 14:09:56,226 - DEBUG - close.started
-2025-03-13 14:09:56,226 - DEBUG - close.complete
-2025-03-13 14:09:56,226 - DEBUG - API response data: {'data': {'stores': [{'storeNumber': '52', 'storeName': 'Reese, Allison and Hill Electronics', 'address': '0314 Michael River', 'city': 'Carrollmouth', 'state': 'CA', 'zipCode': '86287', 'phoneNumber': '106.616.4106x668'}], 'total': 1}, 'success': True}
-2025-03-13 14:09:56,226 - DEBUG - Found 1 stores, formatting results
-2025-03-13 14:09:56,226 - DEBUG - Formatting results for 1 stores with params: query='me stores in carrollmouth, ca' size=5 page=1 filters={'city': 'Carrollmouth', 'state': 'CA'}
-2025-03-13 14:09:56,495 - DEBUG - Processing store query: Stores in Port Cynthiaburgh, CA 17919
-2025-03-13 14:09:56,495 - DEBUG - Extracted ZIP code: 17919
-2025-03-13 14:09:56,495 - DEBUG - Modified query without ZIP: Stores in Port Cynthiaburgh, CA 
-2025-03-13 14:09:56,495 - DEBUG - Found state abbreviation: CA
-2025-03-13 14:09:56,496 - DEBUG - Found city with context: Port Cynthiaburgh
-2025-03-13 14:09:56,496 - DEBUG - Final search parameters: query='stores in port cynthiaburgh, ca 17919' size=5 page=1 filters={'zipCode': '17919', 'city': 'Port Cynthiaburgh', 'state': 'CA'}
-2025-03-13 14:09:56,496 - DEBUG - Sending search parameters to API: query='stores in port cynthiaburgh, ca 17919' size=5 page=1 filters={'zipCode': '17919', 'city': 'Port Cynthiaburgh', 'state': 'CA'}
-2025-03-13 14:09:56,496 - DEBUG - Calling store API with params: {"query": "stores in port cynthiaburgh, ca 17919", "size": 5, "page": 1, "filters": {"zipCode": "17919", "city": "Port Cynthiaburgh", "state": "CA"}}
-2025-03-13 14:09:56,496 - DEBUG - API call to: http://localhost:3000/api/stores
-2025-03-13 14:09:56,496 - DEBUG - Request params: {'query': 'stores in port cynthiaburgh, ca 17919', 'size': 5, 'page': 1, 'filters': {'zipCode': '17919', 'city': 'Port Cynthiaburgh', 'state': 'CA'}}
-2025-03-13 14:09:56,498 - DEBUG - load_ssl_context verify=True cert=None trust_env=True http2=False
-2025-03-13 14:09:56,499 - DEBUG - load_verify_locations cafile='/Users/kevin/github/chat_in_a_box/.venv/lib/python3.11/site-packages/certifi/cacert.pem'
-2025-03-13 14:09:56,503 - DEBUG - connect_tcp.started host='localhost' port=3000 local_address=None timeout=5.0 socket_options=None
-2025-03-13 14:09:56,505 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x108356a90>
-2025-03-13 14:09:56,505 - DEBUG - send_request_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:56,505 - DEBUG - send_request_headers.complete
-2025-03-13 14:09:56,505 - DEBUG - send_request_body.started request=<Request [b'POST']>
-2025-03-13 14:09:56,505 - DEBUG - send_request_body.complete
-2025-03-13 14:09:56,505 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:56,513 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'vary', b'RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch'), (b'content-type', b'application/json'), (b'Date', b'Thu, 13 Mar 2025 18:09:56 GMT'), (b'Connection', b'keep-alive'), (b'Keep-Alive', b'timeout=5'), (b'Transfer-Encoding', b'chunked')])
-2025-03-13 14:09:56,513 - INFO - HTTP Request: POST http://localhost:3000/api/stores "HTTP/1.1 200 OK"
-2025-03-13 14:09:56,513 - DEBUG - receive_response_body.started request=<Request [b'POST']>
-2025-03-13 14:09:56,513 - DEBUG - receive_response_body.complete
-2025-03-13 14:09:56,513 - DEBUG - response_closed.started
-2025-03-13 14:09:56,513 - DEBUG - response_closed.complete
-2025-03-13 14:09:56,513 - DEBUG - API response: {"data":{"stores":[{"storeNumber":"73","storeName":"Cook Inc Electronics","address":"7058 Michael Club","city":"Port Cynthiaburgh","state":"CA","zipCode":"17919","phoneNumber":"717.431.9686"}],"total"
-2025-03-13 14:09:56,514 - DEBUG - close.started
-2025-03-13 14:09:56,514 - DEBUG - close.complete
-2025-03-13 14:09:56,514 - DEBUG - API response data: {'data': {'stores': [{'storeNumber': '73', 'storeName': 'Cook Inc Electronics', 'address': '7058 Michael Club', 'city': 'Port Cynthiaburgh', 'state': 'CA', 'zipCode': '17919', 'phoneNumber': '717.431.9686'}], 'total': 1}, 'success': True}
-2025-03-13 14:09:56,514 - DEBUG - Found 1 stores, formatting results
-2025-03-13 14:09:56,514 - DEBUG - Formatting results for 1 stores with params: query='stores in port cynthiaburgh, ca 17919' size=5 page=1 filters={'zipCode': '17919', 'city': 'Port Cynthiaburgh', 'state': 'CA'}
-2025-03-13 14:09:56,790 - DEBUG - Processing store query: Stores in Port Eric
-2025-03-13 14:09:56,791 - DEBUG - Skipping potential state 'IN' as it appears to be a preposition
-2025-03-13 14:09:56,791 - DEBUG - Found city with context: Port Eric
-2025-03-13 14:09:56,791 - DEBUG - Final search parameters: query='stores in port eric' size=5 page=1 filters={'city': 'Port Eric'}
-2025-03-13 14:09:56,791 - DEBUG - Sending search parameters to API: query='stores in port eric' size=5 page=1 filters={'city': 'Port Eric'}
-2025-03-13 14:09:56,791 - DEBUG - Calling store API with params: {"query": "stores in port eric", "size": 5, "page": 1, "filters": {"city": "Port Eric"}}
-2025-03-13 14:09:56,791 - DEBUG - API call to: http://localhost:3000/api/stores
-2025-03-13 14:09:56,791 - DEBUG - Request params: {'query': 'stores in port eric', 'size': 5, 'page': 1, 'filters': {'city': 'Port Eric'}}
-2025-03-13 14:09:56,794 - DEBUG - load_ssl_context verify=True cert=None trust_env=True http2=False
-2025-03-13 14:09:56,794 - DEBUG - load_verify_locations cafile='/Users/kevin/github/chat_in_a_box/.venv/lib/python3.11/site-packages/certifi/cacert.pem'
-2025-03-13 14:09:56,799 - DEBUG - connect_tcp.started host='localhost' port=3000 local_address=None timeout=5.0 socket_options=None
-2025-03-13 14:09:56,800 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x105c626d0>
-2025-03-13 14:09:56,800 - DEBUG - send_request_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:56,800 - DEBUG - send_request_headers.complete
-2025-03-13 14:09:56,800 - DEBUG - send_request_body.started request=<Request [b'POST']>
-2025-03-13 14:09:56,800 - DEBUG - send_request_body.complete
-2025-03-13 14:09:56,800 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:56,807 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'vary', b'RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch'), (b'content-type', b'application/json'), (b'Date', b'Thu, 13 Mar 2025 18:09:56 GMT'), (b'Connection', b'keep-alive'), (b'Keep-Alive', b'timeout=5'), (b'Transfer-Encoding', b'chunked')])
-2025-03-13 14:09:56,807 - INFO - HTTP Request: POST http://localhost:3000/api/stores "HTTP/1.1 200 OK"
-2025-03-13 14:09:56,807 - DEBUG - receive_response_body.started request=<Request [b'POST']>
-2025-03-13 14:09:56,808 - DEBUG - receive_response_body.complete
-2025-03-13 14:09:56,808 - DEBUG - response_closed.started
-2025-03-13 14:09:56,808 - DEBUG - response_closed.complete
-2025-03-13 14:09:56,808 - DEBUG - API response: {"data":{"stores":[{"storeNumber":"1","storeName":"Rosales Group Electronics","address":"994 Tyler Square","city":"Port Ericmouth","state":"NM","zipCode":"42056","phoneNumber":"020.533.1899"},{"storeN
-2025-03-13 14:09:56,808 - DEBUG - close.started
-2025-03-13 14:09:56,808 - DEBUG - close.complete
-2025-03-13 14:09:56,808 - DEBUG - API response data: {'data': {'stores': [{'storeNumber': '1', 'storeName': 'Rosales Group Electronics', 'address': '994 Tyler Square', 'city': 'Port Ericmouth', 'state': 'NM', 'zipCode': '42056', 'phoneNumber': '020.533.1899'}, {'storeNumber': '810', 'storeName': 'Holland, Ortiz and Young Electronics', 'address': '3712 Nichols Freeway', 'city': 'Port Erica', 'state': 'NC', 'zipCode': '77179', 'phoneNumber': '201-669-4827'}], 'total': 2}, 'success': True}
-2025-03-13 14:09:56,808 - DEBUG - Found 2 stores, formatting results
-2025-03-13 14:09:56,808 - DEBUG - Formatting results for 2 stores with params: query='stores in port eric' size=5 page=1 filters={'city': 'Port Eric'}
-2025-03-13 14:09:57,077 - DEBUG - Processing store query: Find stores in Thomas
-2025-03-13 14:09:57,078 - DEBUG - Skipping potential state 'IN' as it appears to be a preposition
-2025-03-13 14:09:57,078 - DEBUG - Found city with context: Thomas
-2025-03-13 14:09:57,078 - DEBUG - Final search parameters: query='stores in thomas' size=5 page=1 filters={'city': 'Thomas'}
-2025-03-13 14:09:57,078 - DEBUG - Sending search parameters to API: query='stores in thomas' size=5 page=1 filters={'city': 'Thomas'}
-2025-03-13 14:09:57,078 - DEBUG - Calling store API with params: {"query": "stores in thomas", "size": 5, "page": 1, "filters": {"city": "Thomas"}}
-2025-03-13 14:09:57,078 - DEBUG - API call to: http://localhost:3000/api/stores
-2025-03-13 14:09:57,078 - DEBUG - Request params: {'query': 'stores in thomas', 'size': 5, 'page': 1, 'filters': {'city': 'Thomas'}}
-2025-03-13 14:09:57,081 - DEBUG - load_ssl_context verify=True cert=None trust_env=True http2=False
-2025-03-13 14:09:57,081 - DEBUG - load_verify_locations cafile='/Users/kevin/github/chat_in_a_box/.venv/lib/python3.11/site-packages/certifi/cacert.pem'
-2025-03-13 14:09:57,086 - DEBUG - connect_tcp.started host='localhost' port=3000 local_address=None timeout=5.0 socket_options=None
-2025-03-13 14:09:57,087 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x106356750>
-2025-03-13 14:09:57,087 - DEBUG - send_request_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:57,088 - DEBUG - send_request_headers.complete
-2025-03-13 14:09:57,088 - DEBUG - send_request_body.started request=<Request [b'POST']>
-2025-03-13 14:09:57,088 - DEBUG - send_request_body.complete
-2025-03-13 14:09:57,088 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:57,095 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'vary', b'RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch'), (b'content-type', b'application/json'), (b'Date', b'Thu, 13 Mar 2025 18:09:57 GMT'), (b'Connection', b'keep-alive'), (b'Keep-Alive', b'timeout=5'), (b'Transfer-Encoding', b'chunked')])
-2025-03-13 14:09:57,095 - INFO - HTTP Request: POST http://localhost:3000/api/stores "HTTP/1.1 200 OK"
-2025-03-13 14:09:57,095 - DEBUG - receive_response_body.started request=<Request [b'POST']>
-2025-03-13 14:09:57,095 - DEBUG - receive_response_body.complete
-2025-03-13 14:09:57,095 - DEBUG - response_closed.started
-2025-03-13 14:09:57,095 - DEBUG - response_closed.complete
-2025-03-13 14:09:57,095 - DEBUG - API response: {"data":{"stores":[{"storeNumber":"12","storeName":"Burns Ltd Electronics","address":"5907 Ball Causeway","city":"Thomasfort","state":"FL","zipCode":"52089","phoneNumber":"209.292.4887"},{"storeNumber
-2025-03-13 14:09:57,095 - DEBUG - close.started
-2025-03-13 14:09:57,095 - DEBUG - close.complete
-2025-03-13 14:09:57,095 - DEBUG - API response data: {'data': {'stores': [{'storeNumber': '12', 'storeName': 'Burns Ltd Electronics', 'address': '5907 Ball Causeway', 'city': 'Thomasfort', 'state': 'FL', 'zipCode': '52089', 'phoneNumber': '209.292.4887'}, {'storeNumber': '70', 'storeName': 'Cooper Group Electronics', 'address': '7381 Jennifer Ramp', 'city': 'Thomasview', 'state': 'MT', 'zipCode': '73723', 'phoneNumber': '119.650.9149'}, {'storeNumber': '99', 'storeName': 'Brewer LLC Electronics', 'address': '97843 Kathleen Ways Suite 346', 'city': 'Thomasburgh', 'state': 'DC', 'zipCode': '71913', 'phoneNumber': '(624)794-3368'}], 'total': 3}, 'success': True}
-2025-03-13 14:09:57,095 - DEBUG - Found 3 stores, formatting results
-2025-03-13 14:09:57,095 - DEBUG - Formatting results for 3 stores with params: query='stores in thomas' size=5 page=1 filters={'city': 'Thomas'}
-2025-03-13 14:09:57,364 - DEBUG - Processing store query: Find stores in 420
-2025-03-13 14:09:57,365 - DEBUG - Skipping potential state 'IN' as it appears to be a preposition
-2025-03-13 14:09:57,365 - DEBUG - Found city with context: 420
-2025-03-13 14:09:57,365 - DEBUG - Final search parameters: query='stores in 420' size=5 page=1 filters={'city': '420'}
-2025-03-13 14:09:57,365 - DEBUG - Sending search parameters to API: query='stores in 420' size=5 page=1 filters={'city': '420'}
-2025-03-13 14:09:57,366 - DEBUG - Calling store API with params: {"query": "stores in 420", "size": 5, "page": 1, "filters": {"city": "420"}}
-2025-03-13 14:09:57,366 - DEBUG - API call to: http://localhost:3000/api/stores
-2025-03-13 14:09:57,366 - DEBUG - Request params: {'query': 'stores in 420', 'size': 5, 'page': 1, 'filters': {'city': '420'}}
-2025-03-13 14:09:57,368 - DEBUG - load_ssl_context verify=True cert=None trust_env=True http2=False
-2025-03-13 14:09:57,369 - DEBUG - load_verify_locations cafile='/Users/kevin/github/chat_in_a_box/.venv/lib/python3.11/site-packages/certifi/cacert.pem'
-2025-03-13 14:09:57,373 - DEBUG - connect_tcp.started host='localhost' port=3000 local_address=None timeout=5.0 socket_options=None
-2025-03-13 14:09:57,374 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x105aca5d0>
-2025-03-13 14:09:57,374 - DEBUG - send_request_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:57,374 - DEBUG - send_request_headers.complete
-2025-03-13 14:09:57,374 - DEBUG - send_request_body.started request=<Request [b'POST']>
-2025-03-13 14:09:57,375 - DEBUG - send_request_body.complete
-2025-03-13 14:09:57,375 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:57,382 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'vary', b'RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch'), (b'content-type', b'application/json'), (b'Date', b'Thu, 13 Mar 2025 18:09:57 GMT'), (b'Connection', b'keep-alive'), (b'Keep-Alive', b'timeout=5'), (b'Transfer-Encoding', b'chunked')])
-2025-03-13 14:09:57,382 - INFO - HTTP Request: POST http://localhost:3000/api/stores "HTTP/1.1 200 OK"
-2025-03-13 14:09:57,382 - DEBUG - receive_response_body.started request=<Request [b'POST']>
-2025-03-13 14:09:57,382 - DEBUG - receive_response_body.complete
-2025-03-13 14:09:57,382 - DEBUG - response_closed.started
-2025-03-13 14:09:57,382 - DEBUG - response_closed.complete
-2025-03-13 14:09:57,382 - DEBUG - API response: {"data":{"stores":[],"total":0},"success":true}
-2025-03-13 14:09:57,382 - DEBUG - close.started
-2025-03-13 14:09:57,382 - DEBUG - close.complete
-2025-03-13 14:09:57,382 - DEBUG - API response data: {'data': {'stores': [], 'total': 0}, 'success': True}
-2025-03-13 14:09:57,382 - WARNING - No stores found in API response for params: query='stores in 420' size=5 page=1 filters={'city': '420'}
-2025-03-13 14:09:57,653 - DEBUG - Processing store query: Find stores
-2025-03-13 14:09:57,656 - DEBUG - Final search parameters: query='Find stores' size=5 page=1 filters={}
-2025-03-13 14:09:57,656 - DEBUG - Sending search parameters to API: query='Find stores' size=5 page=1 filters={}
-2025-03-13 14:09:57,656 - DEBUG - Calling store API with params: {"query": "Find stores", "size": 5, "page": 1, "filters": {}}
-2025-03-13 14:09:57,656 - DEBUG - API call to: http://localhost:3000/api/stores
-2025-03-13 14:09:57,656 - DEBUG - Request params: {'query': 'Find stores', 'size': 5, 'page': 1, 'filters': {}}
-2025-03-13 14:09:57,659 - DEBUG - load_ssl_context verify=True cert=None trust_env=True http2=False
-2025-03-13 14:09:57,659 - DEBUG - load_verify_locations cafile='/Users/kevin/github/chat_in_a_box/.venv/lib/python3.11/site-packages/certifi/cacert.pem'
-2025-03-13 14:09:57,664 - DEBUG - connect_tcp.started host='localhost' port=3000 local_address=None timeout=5.0 socket_options=None
-2025-03-13 14:09:57,665 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x107eabb90>
-2025-03-13 14:09:57,665 - DEBUG - send_request_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:57,665 - DEBUG - send_request_headers.complete
-2025-03-13 14:09:57,665 - DEBUG - send_request_body.started request=<Request [b'POST']>
-2025-03-13 14:09:57,665 - DEBUG - send_request_body.complete
-2025-03-13 14:09:57,665 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:57,672 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'vary', b'RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch'), (b'content-type', b'application/json'), (b'Date', b'Thu, 13 Mar 2025 18:09:57 GMT'), (b'Connection', b'keep-alive'), (b'Keep-Alive', b'timeout=5'), (b'Transfer-Encoding', b'chunked')])
-2025-03-13 14:09:57,672 - INFO - HTTP Request: POST http://localhost:3000/api/stores "HTTP/1.1 200 OK"
-2025-03-13 14:09:57,672 - DEBUG - receive_response_body.started request=<Request [b'POST']>
-2025-03-13 14:09:57,672 - DEBUG - receive_response_body.complete
-2025-03-13 14:09:57,672 - DEBUG - response_closed.started
-2025-03-13 14:09:57,672 - DEBUG - response_closed.complete
-2025-03-13 14:09:57,672 - DEBUG - API response: {"data":{"stores":[{"storeNumber":"1","storeName":"Rosales Group Electronics","address":"994 Tyler Square","city":"Port Ericmouth","state":"NM","zipCode":"42056","phoneNumber":"020.533.1899"},{"storeN
-2025-03-13 14:09:57,672 - DEBUG - close.started
-2025-03-13 14:09:57,672 - DEBUG - close.complete
-2025-03-13 14:09:57,672 - DEBUG - API response data: {'data': {'stores': [{'storeNumber': '1', 'storeName': 'Rosales Group Electronics', 'address': '994 Tyler Square', 'city': 'Port Ericmouth', 'state': 'NM', 'zipCode': '42056', 'phoneNumber': '020.533.1899'}, {'storeNumber': '2', 'storeName': 'Davis LLC Electronics', 'address': '84307 Keith Shores Suite 653', 'city': 'South Bruce', 'state': 'OR', 'zipCode': '76610', 'phoneNumber': '(963)380-9416x92497'}, {'storeNumber': '3', 'storeName': 'Long PLC Electronics', 'address': '894 Anna Ford Apt. 065', 'city': 'New Christopher', 'state': 'MI', 'zipCode': '84071', 'phoneNumber': '322.239.6462x899'}, {'storeNumber': '4', 'storeName': 'Mccormick and Sons Electronics', 'address': '137 Russell Extension', 'city': 'East Andreamouth', 'state': 'WA', 'zipCode': '96608', 'phoneNumber': '001-419-683-9289'}, {'storeNumber': '5', 'storeName': 'Lucas-Nunez Electronics', 'address': '75538 Taylor Walk Apt. 509', 'city': 'South Nicole', 'state': 'DE', 'zipCode': '78003', 'phoneNumber': '(299)427-3209x90696'}], 'total': 1000}, 'success': True}
-2025-03-13 14:09:57,672 - DEBUG - Found 5 stores, formatting results
-2025-03-13 14:09:57,672 - DEBUG - Formatting results for 1000 stores with params: query='Find stores' size=5 page=1 filters={}
-2025-03-13 14:09:57,937 - DEBUG - Processing store query: Show me all stores
-2025-03-13 14:09:57,938 - DEBUG - Found state abbreviation: ME
-2025-03-13 14:09:57,940 - DEBUG - Final search parameters: query='me all stores' size=5 page=1 filters={'state': 'ME'}
-2025-03-13 14:09:57,940 - DEBUG - Sending search parameters to API: query='me all stores' size=5 page=1 filters={'state': 'ME'}
-2025-03-13 14:09:57,940 - DEBUG - Calling store API with params: {"query": "me all stores", "size": 5, "page": 1, "filters": {"state": "ME"}}
-2025-03-13 14:09:57,940 - DEBUG - API call to: http://localhost:3000/api/stores
-2025-03-13 14:09:57,940 - DEBUG - Request params: {'query': 'me all stores', 'size': 5, 'page': 1, 'filters': {'state': 'ME'}}
-2025-03-13 14:09:57,943 - DEBUG - load_ssl_context verify=True cert=None trust_env=True http2=False
-2025-03-13 14:09:57,943 - DEBUG - load_verify_locations cafile='/Users/kevin/github/chat_in_a_box/.venv/lib/python3.11/site-packages/certifi/cacert.pem'
-2025-03-13 14:09:57,948 - DEBUG - connect_tcp.started host='localhost' port=3000 local_address=None timeout=5.0 socket_options=None
-2025-03-13 14:09:57,949 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x103d21c10>
-2025-03-13 14:09:57,949 - DEBUG - send_request_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:57,949 - DEBUG - send_request_headers.complete
-2025-03-13 14:09:57,949 - DEBUG - send_request_body.started request=<Request [b'POST']>
-2025-03-13 14:09:57,949 - DEBUG - send_request_body.complete
-2025-03-13 14:09:57,949 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:57,956 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'vary', b'RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch'), (b'content-type', b'application/json'), (b'Date', b'Thu, 13 Mar 2025 18:09:57 GMT'), (b'Connection', b'keep-alive'), (b'Keep-Alive', b'timeout=5'), (b'Transfer-Encoding', b'chunked')])
-2025-03-13 14:09:57,957 - INFO - HTTP Request: POST http://localhost:3000/api/stores "HTTP/1.1 200 OK"
-2025-03-13 14:09:57,957 - DEBUG - receive_response_body.started request=<Request [b'POST']>
-2025-03-13 14:09:57,957 - DEBUG - receive_response_body.complete
-2025-03-13 14:09:57,957 - DEBUG - response_closed.started
-2025-03-13 14:09:57,957 - DEBUG - response_closed.complete
-2025-03-13 14:09:57,957 - DEBUG - API response: {"data":{"stores":[{"storeNumber":"9","storeName":"Crawford, Weeks and Roberts Electronics","address":"807 Hall Glens Suite 440","city":"Lisaburgh","state":"ME","zipCode":"77105","phoneNumber":"813.78
-2025-03-13 14:09:57,957 - DEBUG - close.started
-2025-03-13 14:09:57,957 - DEBUG - close.complete
-2025-03-13 14:09:57,957 - DEBUG - API response data: {'data': {'stores': [{'storeNumber': '9', 'storeName': 'Crawford, Weeks and Roberts Electronics', 'address': '807 Hall Glens Suite 440', 'city': 'Lisaburgh', 'state': 'ME', 'zipCode': '77105', 'phoneNumber': '813.786.4714x472'}, {'storeNumber': '62', 'storeName': 'White Group Electronics', 'address': '6394 Burns Island Apt. 885', 'city': 'West Aaron', 'state': 'ME', 'zipCode': '08044', 'phoneNumber': '001-660-420-9785x6854'}, {'storeNumber': '88', 'storeName': 'Singleton, Ramirez and Christensen Electronics', 'address': '07576 Timothy Plain Apt. 660', 'city': 'Lake Nancystad', 'state': 'ME', 'zipCode': '64912', 'phoneNumber': '+1-775-852-1333x6089'}, {'storeNumber': '93', 'storeName': 'Palmer PLC Electronics', 'address': '54245 Grimes Hollow Apt. 489', 'city': 'Lake Sandramouth', 'state': 'ME', 'zipCode': '49299', 'phoneNumber': '668-066-8648x35650'}, {'storeNumber': '128', 'storeName': 'Sparks, Dudley and Price Electronics', 'address': '073 Cooper Views Apt. 575', 'city': 'Ryanview', 'state': 'ME', 'zipCode': '21831', 'phoneNumber': '903-113-5563'}], 'total': 15}, 'success': True}
-2025-03-13 14:09:57,957 - DEBUG - Found 5 stores, formatting results
-2025-03-13 14:09:57,957 - DEBUG - Formatting results for 15 stores with params: query='me all stores' size=5 page=1 filters={'state': 'ME'}
-2025-03-13 14:09:58,225 - DEBUG - Processing store query: Stores nearest to me
-2025-03-13 14:09:58,226 - DEBUG - Found state abbreviation: ME
-2025-03-13 14:09:58,228 - DEBUG - Final search parameters: query='stores nearest to me' size=5 page=1 filters={'state': 'ME'}
-2025-03-13 14:09:58,228 - DEBUG - Sending search parameters to API: query='stores nearest to me' size=5 page=1 filters={'state': 'ME'}
-2025-03-13 14:09:58,228 - DEBUG - Calling store API with params: {"query": "stores nearest to me", "size": 5, "page": 1, "filters": {"state": "ME"}}
-2025-03-13 14:09:58,228 - DEBUG - API call to: http://localhost:3000/api/stores
-2025-03-13 14:09:58,228 - DEBUG - Request params: {'query': 'stores nearest to me', 'size': 5, 'page': 1, 'filters': {'state': 'ME'}}
-2025-03-13 14:09:58,231 - DEBUG - load_ssl_context verify=True cert=None trust_env=True http2=False
-2025-03-13 14:09:58,231 - DEBUG - load_verify_locations cafile='/Users/kevin/github/chat_in_a_box/.venv/lib/python3.11/site-packages/certifi/cacert.pem'
-2025-03-13 14:09:58,236 - DEBUG - connect_tcp.started host='localhost' port=3000 local_address=None timeout=5.0 socket_options=None
-2025-03-13 14:09:58,237 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x105debf50>
-2025-03-13 14:09:58,237 - DEBUG - send_request_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:58,237 - DEBUG - send_request_headers.complete
-2025-03-13 14:09:58,237 - DEBUG - send_request_body.started request=<Request [b'POST']>
-2025-03-13 14:09:58,237 - DEBUG - send_request_body.complete
-2025-03-13 14:09:58,237 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:58,244 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'vary', b'RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch'), (b'content-type', b'application/json'), (b'Date', b'Thu, 13 Mar 2025 18:09:58 GMT'), (b'Connection', b'keep-alive'), (b'Keep-Alive', b'timeout=5'), (b'Transfer-Encoding', b'chunked')])
-2025-03-13 14:09:58,244 - INFO - HTTP Request: POST http://localhost:3000/api/stores "HTTP/1.1 200 OK"
-2025-03-13 14:09:58,244 - DEBUG - receive_response_body.started request=<Request [b'POST']>
-2025-03-13 14:09:58,244 - DEBUG - receive_response_body.complete
-2025-03-13 14:09:58,244 - DEBUG - response_closed.started
-2025-03-13 14:09:58,244 - DEBUG - response_closed.complete
-2025-03-13 14:09:58,244 - DEBUG - API response: {"data":{"stores":[{"storeNumber":"9","storeName":"Crawford, Weeks and Roberts Electronics","address":"807 Hall Glens Suite 440","city":"Lisaburgh","state":"ME","zipCode":"77105","phoneNumber":"813.78
-2025-03-13 14:09:58,244 - DEBUG - close.started
-2025-03-13 14:09:58,244 - DEBUG - close.complete
-2025-03-13 14:09:58,245 - DEBUG - API response data: {'data': {'stores': [{'storeNumber': '9', 'storeName': 'Crawford, Weeks and Roberts Electronics', 'address': '807 Hall Glens Suite 440', 'city': 'Lisaburgh', 'state': 'ME', 'zipCode': '77105', 'phoneNumber': '813.786.4714x472'}, {'storeNumber': '62', 'storeName': 'White Group Electronics', 'address': '6394 Burns Island Apt. 885', 'city': 'West Aaron', 'state': 'ME', 'zipCode': '08044', 'phoneNumber': '001-660-420-9785x6854'}, {'storeNumber': '88', 'storeName': 'Singleton, Ramirez and Christensen Electronics', 'address': '07576 Timothy Plain Apt. 660', 'city': 'Lake Nancystad', 'state': 'ME', 'zipCode': '64912', 'phoneNumber': '+1-775-852-1333x6089'}, {'storeNumber': '93', 'storeName': 'Palmer PLC Electronics', 'address': '54245 Grimes Hollow Apt. 489', 'city': 'Lake Sandramouth', 'state': 'ME', 'zipCode': '49299', 'phoneNumber': '668-066-8648x35650'}, {'storeNumber': '128', 'storeName': 'Sparks, Dudley and Price Electronics', 'address': '073 Cooper Views Apt. 575', 'city': 'Ryanview', 'state': 'ME', 'zipCode': '21831', 'phoneNumber': '903-113-5563'}], 'total': 15}, 'success': True}
-2025-03-13 14:09:58,245 - DEBUG - Found 5 stores, formatting results
-2025-03-13 14:09:58,245 - DEBUG - Formatting results for 15 stores with params: query='stores nearest to me' size=5 page=1 filters={'state': 'ME'}
-2025-03-13 14:09:58,512 - DEBUG - Processing store query: Find stores in InvalidCity
-2025-03-13 14:09:58,513 - DEBUG - Skipping potential state 'IN' as it appears to be a preposition
-2025-03-13 14:09:58,513 - DEBUG - Found city with context: InvalidCity
-2025-03-13 14:09:58,513 - DEBUG - Final search parameters: query='stores in invalidcity' size=5 page=1 filters={'city': 'InvalidCity'}
-2025-03-13 14:09:58,513 - DEBUG - Sending search parameters to API: query='stores in invalidcity' size=5 page=1 filters={'city': 'InvalidCity'}
-2025-03-13 14:09:58,513 - DEBUG - Calling store API with params: {"query": "stores in invalidcity", "size": 5, "page": 1, "filters": {"city": "InvalidCity"}}
-2025-03-13 14:09:58,513 - DEBUG - API call to: http://localhost:3000/api/stores
-2025-03-13 14:09:58,513 - DEBUG - Request params: {'query': 'stores in invalidcity', 'size': 5, 'page': 1, 'filters': {'city': 'InvalidCity'}}
-2025-03-13 14:09:58,516 - DEBUG - load_ssl_context verify=True cert=None trust_env=True http2=False
-2025-03-13 14:09:58,516 - DEBUG - load_verify_locations cafile='/Users/kevin/github/chat_in_a_box/.venv/lib/python3.11/site-packages/certifi/cacert.pem'
-2025-03-13 14:09:58,521 - DEBUG - connect_tcp.started host='localhost' port=3000 local_address=None timeout=5.0 socket_options=None
-2025-03-13 14:09:58,522 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x10781ebd0>
-2025-03-13 14:09:58,522 - DEBUG - send_request_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:58,522 - DEBUG - send_request_headers.complete
-2025-03-13 14:09:58,522 - DEBUG - send_request_body.started request=<Request [b'POST']>
-2025-03-13 14:09:58,522 - DEBUG - send_request_body.complete
-2025-03-13 14:09:58,522 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:58,529 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'vary', b'RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch'), (b'content-type', b'application/json'), (b'Date', b'Thu, 13 Mar 2025 18:09:58 GMT'), (b'Connection', b'keep-alive'), (b'Keep-Alive', b'timeout=5'), (b'Transfer-Encoding', b'chunked')])
-2025-03-13 14:09:58,529 - INFO - HTTP Request: POST http://localhost:3000/api/stores "HTTP/1.1 200 OK"
-2025-03-13 14:09:58,529 - DEBUG - receive_response_body.started request=<Request [b'POST']>
-2025-03-13 14:09:58,529 - DEBUG - receive_response_body.complete
-2025-03-13 14:09:58,529 - DEBUG - response_closed.started
-2025-03-13 14:09:58,529 - DEBUG - response_closed.complete
-2025-03-13 14:09:58,529 - DEBUG - API response: {"data":{"stores":[],"total":0},"success":true}
-2025-03-13 14:09:58,529 - DEBUG - close.started
-2025-03-13 14:09:58,529 - DEBUG - close.complete
-2025-03-13 14:09:58,529 - DEBUG - API response data: {'data': {'stores': [], 'total': 0}, 'success': True}
-2025-03-13 14:09:58,529 - WARNING - No stores found in API response for params: query='stores in invalidcity' size=5 page=1 filters={'city': 'InvalidCity'}
-2025-03-13 14:09:58,794 - DEBUG - Processing store query: Show me stores in ZZ
-2025-03-13 14:09:58,795 - DEBUG - Found state abbreviation: ME
-2025-03-13 14:09:58,795 - DEBUG - Found city with context: ZZ
-2025-03-13 14:09:58,795 - DEBUG - Final search parameters: query='me stores in zz' size=5 page=1 filters={'city': 'ZZ', 'state': 'ME'}
-2025-03-13 14:09:58,795 - DEBUG - Sending search parameters to API: query='me stores in zz' size=5 page=1 filters={'city': 'ZZ', 'state': 'ME'}
-2025-03-13 14:09:58,795 - DEBUG - Calling store API with params: {"query": "me stores in zz", "size": 5, "page": 1, "filters": {"city": "ZZ", "state": "ME"}}
-2025-03-13 14:09:58,795 - DEBUG - API call to: http://localhost:3000/api/stores
-2025-03-13 14:09:58,795 - DEBUG - Request params: {'query': 'me stores in zz', 'size': 5, 'page': 1, 'filters': {'city': 'ZZ', 'state': 'ME'}}
-2025-03-13 14:09:58,798 - DEBUG - load_ssl_context verify=True cert=None trust_env=True http2=False
-2025-03-13 14:09:58,798 - DEBUG - load_verify_locations cafile='/Users/kevin/github/chat_in_a_box/.venv/lib/python3.11/site-packages/certifi/cacert.pem'
-2025-03-13 14:09:58,802 - DEBUG - connect_tcp.started host='localhost' port=3000 local_address=None timeout=5.0 socket_options=None
-2025-03-13 14:09:58,804 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x106376910>
-2025-03-13 14:09:58,804 - DEBUG - send_request_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:58,804 - DEBUG - send_request_headers.complete
-2025-03-13 14:09:58,804 - DEBUG - send_request_body.started request=<Request [b'POST']>
-2025-03-13 14:09:58,804 - DEBUG - send_request_body.complete
-2025-03-13 14:09:58,804 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:58,811 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'vary', b'RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch'), (b'content-type', b'application/json'), (b'Date', b'Thu, 13 Mar 2025 18:09:58 GMT'), (b'Connection', b'keep-alive'), (b'Keep-Alive', b'timeout=5'), (b'Transfer-Encoding', b'chunked')])
-2025-03-13 14:09:58,811 - INFO - HTTP Request: POST http://localhost:3000/api/stores "HTTP/1.1 200 OK"
-2025-03-13 14:09:58,811 - DEBUG - receive_response_body.started request=<Request [b'POST']>
-2025-03-13 14:09:58,811 - DEBUG - receive_response_body.complete
-2025-03-13 14:09:58,811 - DEBUG - response_closed.started
-2025-03-13 14:09:58,811 - DEBUG - response_closed.complete
-2025-03-13 14:09:58,812 - DEBUG - API response: {"data":{"stores":[],"total":0},"success":true}
-2025-03-13 14:09:58,812 - DEBUG - close.started
-2025-03-13 14:09:58,812 - DEBUG - close.complete
-2025-03-13 14:09:58,812 - DEBUG - API response data: {'data': {'stores': [], 'total': 0}, 'success': True}
-2025-03-13 14:09:58,812 - WARNING - No stores found in API response for params: query='me stores in zz' size=5 page=1 filters={'city': 'ZZ', 'state': 'ME'}
-2025-03-13 14:09:59,082 - DEBUG - Processing store query: Stores in 00000
-2025-03-13 14:09:59,082 - DEBUG - Extracted ZIP code: 00000
-2025-03-13 14:09:59,082 - DEBUG - Modified query without ZIP: Stores in 
-2025-03-13 14:09:59,082 - DEBUG - Skipping potential state 'IN' as it appears to be a preposition
-2025-03-13 14:09:59,085 - DEBUG - Final search parameters: query='stores in 00000' size=5 page=1 filters={'zipCode': '00000'}
-2025-03-13 14:09:59,085 - DEBUG - Sending search parameters to API: query='stores in 00000' size=5 page=1 filters={'zipCode': '00000'}
-2025-03-13 14:09:59,085 - DEBUG - Calling store API with params: {"query": "stores in 00000", "size": 5, "page": 1, "filters": {"zipCode": "00000"}}
-2025-03-13 14:09:59,085 - DEBUG - API call to: http://localhost:3000/api/stores
-2025-03-13 14:09:59,085 - DEBUG - Request params: {'query': 'stores in 00000', 'size': 5, 'page': 1, 'filters': {'zipCode': '00000'}}
-2025-03-13 14:09:59,087 - DEBUG - load_ssl_context verify=True cert=None trust_env=True http2=False
-2025-03-13 14:09:59,087 - DEBUG - load_verify_locations cafile='/Users/kevin/github/chat_in_a_box/.venv/lib/python3.11/site-packages/certifi/cacert.pem'
-2025-03-13 14:09:59,092 - DEBUG - connect_tcp.started host='localhost' port=3000 local_address=None timeout=5.0 socket_options=None
-2025-03-13 14:09:59,093 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x105757290>
-2025-03-13 14:09:59,093 - DEBUG - send_request_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:59,093 - DEBUG - send_request_headers.complete
-2025-03-13 14:09:59,093 - DEBUG - send_request_body.started request=<Request [b'POST']>
-2025-03-13 14:09:59,093 - DEBUG - send_request_body.complete
-2025-03-13 14:09:59,093 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:59,099 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'vary', b'RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch'), (b'content-type', b'application/json'), (b'Date', b'Thu, 13 Mar 2025 18:09:59 GMT'), (b'Connection', b'keep-alive'), (b'Keep-Alive', b'timeout=5'), (b'Transfer-Encoding', b'chunked')])
-2025-03-13 14:09:59,099 - INFO - HTTP Request: POST http://localhost:3000/api/stores "HTTP/1.1 200 OK"
-2025-03-13 14:09:59,099 - DEBUG - receive_response_body.started request=<Request [b'POST']>
-2025-03-13 14:09:59,099 - DEBUG - receive_response_body.complete
-2025-03-13 14:09:59,099 - DEBUG - response_closed.started
-2025-03-13 14:09:59,099 - DEBUG - response_closed.complete
-2025-03-13 14:09:59,100 - DEBUG - API response: {"data":{"stores":[],"total":0},"success":true}
-2025-03-13 14:09:59,100 - DEBUG - close.started
-2025-03-13 14:09:59,100 - DEBUG - close.complete
-2025-03-13 14:09:59,100 - DEBUG - API response data: {'data': {'stores': [], 'total': 0}, 'success': True}
-2025-03-13 14:09:59,100 - WARNING - No stores found in API response for params: query='stores in 00000' size=5 page=1 filters={'zipCode': '00000'}
-2025-03-13 14:09:59,369 - DEBUG - Processing store query: Where is your closest store
-2025-03-13 14:09:59,371 - DEBUG - Final search parameters: query='Where is your closest store' size=5 page=1 filters={}
-2025-03-13 14:09:59,371 - DEBUG - Sending search parameters to API: query='Where is your closest store' size=5 page=1 filters={}
-2025-03-13 14:09:59,371 - DEBUG - Calling store API with params: {"query": "Where is your closest store", "size": 5, "page": 1, "filters": {}}
-2025-03-13 14:09:59,371 - DEBUG - API call to: http://localhost:3000/api/stores
-2025-03-13 14:09:59,371 - DEBUG - Request params: {'query': 'Where is your closest store', 'size': 5, 'page': 1, 'filters': {}}
-2025-03-13 14:09:59,374 - DEBUG - load_ssl_context verify=True cert=None trust_env=True http2=False
-2025-03-13 14:09:59,374 - DEBUG - load_verify_locations cafile='/Users/kevin/github/chat_in_a_box/.venv/lib/python3.11/site-packages/certifi/cacert.pem'
-2025-03-13 14:09:59,379 - DEBUG - connect_tcp.started host='localhost' port=3000 local_address=None timeout=5.0 socket_options=None
-2025-03-13 14:09:59,380 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x10705d290>
-2025-03-13 14:09:59,380 - DEBUG - send_request_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:59,380 - DEBUG - send_request_headers.complete
-2025-03-13 14:09:59,380 - DEBUG - send_request_body.started request=<Request [b'POST']>
-2025-03-13 14:09:59,380 - DEBUG - send_request_body.complete
-2025-03-13 14:09:59,380 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:59,387 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'vary', b'RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch'), (b'content-type', b'application/json'), (b'Date', b'Thu, 13 Mar 2025 18:09:59 GMT'), (b'Connection', b'keep-alive'), (b'Keep-Alive', b'timeout=5'), (b'Transfer-Encoding', b'chunked')])
-2025-03-13 14:09:59,387 - INFO - HTTP Request: POST http://localhost:3000/api/stores "HTTP/1.1 200 OK"
-2025-03-13 14:09:59,387 - DEBUG - receive_response_body.started request=<Request [b'POST']>
-2025-03-13 14:09:59,387 - DEBUG - receive_response_body.complete
-2025-03-13 14:09:59,388 - DEBUG - response_closed.started
-2025-03-13 14:09:59,388 - DEBUG - response_closed.complete
-2025-03-13 14:09:59,388 - DEBUG - API response: {"data":{"stores":[],"total":0},"success":true}
-2025-03-13 14:09:59,388 - DEBUG - close.started
-2025-03-13 14:09:59,388 - DEBUG - close.complete
-2025-03-13 14:09:59,388 - DEBUG - API response data: {'data': {'stores': [], 'total': 0}, 'success': True}
-2025-03-13 14:09:59,388 - WARNING - No stores found in API response for params: query='Where is your closest store' size=5 page=1 filters={}
-2025-03-13 14:09:59,664 - DEBUG - Processing store query: Find stores in ZIP code 81775
-2025-03-13 14:09:59,664 - DEBUG - Detected 'ZIP code' phrase in query, using special handling
-2025-03-13 14:09:59,664 - DEBUG - Extracted ZIP code 81775 from 'ZIP code' phrase
-2025-03-13 14:09:59,664 - DEBUG - Sending search parameters to API: query='' size=5 page=1 filters={'zipCode': '81775'}
-2025-03-13 14:09:59,664 - DEBUG - Calling store API with params: {"query": "", "size": 5, "page": 1, "filters": {"zipCode": "81775"}}
-2025-03-13 14:09:59,664 - WARNING - Making API call for ZIP 81775 with params: {"query": "", "size": 5, "page": 1, "filters": {"zipCode": "81775"}}
-2025-03-13 14:09:59,664 - DEBUG - API call to: http://localhost:3000/api/stores
-2025-03-13 14:09:59,664 - DEBUG - Request params: {'query': '', 'size': 5, 'page': 1, 'filters': {'zipCode': '81775'}}
-2025-03-13 14:09:59,667 - DEBUG - load_ssl_context verify=True cert=None trust_env=True http2=False
-2025-03-13 14:09:59,667 - DEBUG - load_verify_locations cafile='/Users/kevin/github/chat_in_a_box/.venv/lib/python3.11/site-packages/certifi/cacert.pem'
-2025-03-13 14:09:59,672 - DEBUG - connect_tcp.started host='localhost' port=3000 local_address=None timeout=5.0 socket_options=None
-2025-03-13 14:09:59,673 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x105ac6c10>
-2025-03-13 14:09:59,673 - DEBUG - send_request_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:59,673 - DEBUG - send_request_headers.complete
-2025-03-13 14:09:59,673 - DEBUG - send_request_body.started request=<Request [b'POST']>
-2025-03-13 14:09:59,673 - DEBUG - send_request_body.complete
-2025-03-13 14:09:59,673 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:59,681 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'vary', b'RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch'), (b'content-type', b'application/json'), (b'Date', b'Thu, 13 Mar 2025 18:09:59 GMT'), (b'Connection', b'keep-alive'), (b'Keep-Alive', b'timeout=5'), (b'Transfer-Encoding', b'chunked')])
-2025-03-13 14:09:59,681 - INFO - HTTP Request: POST http://localhost:3000/api/stores "HTTP/1.1 200 OK"
-2025-03-13 14:09:59,681 - DEBUG - receive_response_body.started request=<Request [b'POST']>
-2025-03-13 14:09:59,681 - DEBUG - receive_response_body.complete
-2025-03-13 14:09:59,681 - DEBUG - response_closed.started
-2025-03-13 14:09:59,681 - DEBUG - response_closed.complete
-2025-03-13 14:09:59,681 - DEBUG - API response: {"data":{"stores":[{"storeNumber":"43","storeName":"Clark, White and Barrera Electronics","address":"742 Caldwell Extension Apt. 123","city":"East Caseyport","state":"NM","zipCode":"81775","phoneNumbe
-2025-03-13 14:09:59,681 - DEBUG - close.started
-2025-03-13 14:09:59,681 - DEBUG - close.complete
-2025-03-13 14:09:59,681 - DEBUG - API response data: {'data': {'stores': [{'storeNumber': '43', 'storeName': 'Clark, White and Barrera Electronics', 'address': '742 Caldwell Extension Apt. 123', 'city': 'East Caseyport', 'state': 'NM', 'zipCode': '81775', 'phoneNumber': '+1-631-668-4590'}], 'total': 1}, 'success': True}
-2025-03-13 14:09:59,681 - WARNING - ZIP 81775 - Found 1 stores in response
-2025-03-13 14:09:59,681 - WARNING - ZIP 81775 - First store data: {'storeName': 'Clark, White and Barrera Electronics', 'storeNumber': '43', 'address': '742 Caldwell Extension Apt. 123', 'city': 'East Caseyport', 'state': 'NM', 'zipCode': '81775', 'phoneNumber': '+1-631-668-4590'}
-2025-03-13 14:09:59,681 - DEBUG - Found 1 stores, formatting results
-2025-03-13 14:09:59,681 - DEBUG - Formatting results for 1 stores with params: query='' size=5 page=1 filters={'zipCode': '81775'}
-2025-03-13 14:09:59,952 - DEBUG - Processing store query: Find stores in 81775
-2025-03-13 14:09:59,953 - DEBUG - Extracted ZIP code: 81775
-2025-03-13 14:09:59,953 - DEBUG - Modified query without ZIP: Find stores in 
-2025-03-13 14:09:59,953 - DEBUG - Skipping potential state 'IN' as it appears to be a preposition
-2025-03-13 14:09:59,955 - DEBUG - Final search parameters: query='stores in 81775' size=5 page=1 filters={'zipCode': '81775'}
-2025-03-13 14:09:59,955 - DEBUG - Sending search parameters to API: query='stores in 81775' size=5 page=1 filters={'zipCode': '81775'}
-2025-03-13 14:09:59,955 - DEBUG - Calling store API with params: {"query": "stores in 81775", "size": 5, "page": 1, "filters": {"zipCode": "81775"}}
-2025-03-13 14:09:59,955 - WARNING - Making API call for ZIP 81775 with params: {"query": "stores in 81775", "size": 5, "page": 1, "filters": {"zipCode": "81775"}}
-2025-03-13 14:09:59,955 - DEBUG - API call to: http://localhost:3000/api/stores
-2025-03-13 14:09:59,955 - DEBUG - Request params: {'query': 'stores in 81775', 'size': 5, 'page': 1, 'filters': {'zipCode': '81775'}}
-2025-03-13 14:09:59,958 - DEBUG - load_ssl_context verify=True cert=None trust_env=True http2=False
-2025-03-13 14:09:59,958 - DEBUG - load_verify_locations cafile='/Users/kevin/github/chat_in_a_box/.venv/lib/python3.11/site-packages/certifi/cacert.pem'
-2025-03-13 14:09:59,963 - DEBUG - connect_tcp.started host='localhost' port=3000 local_address=None timeout=5.0 socket_options=None
-2025-03-13 14:09:59,964 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x105fa93d0>
-2025-03-13 14:09:59,964 - DEBUG - send_request_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:59,964 - DEBUG - send_request_headers.complete
-2025-03-13 14:09:59,964 - DEBUG - send_request_body.started request=<Request [b'POST']>
-2025-03-13 14:09:59,964 - DEBUG - send_request_body.complete
-2025-03-13 14:09:59,964 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
-2025-03-13 14:09:59,971 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'vary', b'RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch'), (b'content-type', b'application/json'), (b'Date', b'Thu, 13 Mar 2025 18:09:59 GMT'), (b'Connection', b'keep-alive'), (b'Keep-Alive', b'timeout=5'), (b'Transfer-Encoding', b'chunked')])
-2025-03-13 14:09:59,971 - INFO - HTTP Request: POST http://localhost:3000/api/stores "HTTP/1.1 200 OK"
-2025-03-13 14:09:59,971 - DEBUG - receive_response_body.started request=<Request [b'POST']>
-2025-03-13 14:09:59,971 - DEBUG - receive_response_body.complete
-2025-03-13 14:09:59,971 - DEBUG - response_closed.started
-2025-03-13 14:09:59,971 - DEBUG - response_closed.complete
-2025-03-13 14:09:59,971 - DEBUG - API response: {"data":{"stores":[{"storeNumber":"43","storeName":"Clark, White and Barrera Electronics","address":"742 Caldwell Extension Apt. 123","city":"East Caseyport","state":"NM","zipCode":"81775","phoneNumbe
-2025-03-13 14:09:59,971 - DEBUG - close.started
-2025-03-13 14:09:59,971 - DEBUG - close.complete
-2025-03-13 14:09:59,971 - DEBUG - API response data: {'data': {'stores': [{'storeNumber': '43', 'storeName': 'Clark, White and Barrera Electronics', 'address': '742 Caldwell Extension Apt. 123', 'city': 'East Caseyport', 'state': 'NM', 'zipCode': '81775', 'phoneNumber': '+1-631-668-4590'}], 'total': 1}, 'success': True}
-2025-03-13 14:09:59,971 - WARNING - ZIP 81775 - Found 1 stores in response
-2025-03-13 14:09:59,971 - WARNING - ZIP 81775 - First store data: {'storeName': 'Clark, White and Barrera Electronics', 'storeNumber': '43', 'address': '742 Caldwell Extension Apt. 123', 'city': 'East Caseyport', 'state': 'NM', 'zipCode': '81775', 'phoneNumber': '+1-631-668-4590'}
-2025-03-13 14:09:59,971 - DEBUG - Found 1 stores, formatting results
-2025-03-13 14:09:59,971 - DEBUG - Formatting results for 1 stores with params: query='stores in 81775' size=5 page=1 filters={'zipCode': '81775'}
+2025-03-14 09:05:00,964 - DEBUG - Detected product type: phones
+2025-03-14 09:05:00,964 - DEBUG - Using original query: find phones with large storage
+2025-03-14 09:05:00,964 - DEBUG - Extracted search parameters: {'query': 'find phones with large storage', 'size': 5, 'page': 1, 'filters': {}}
+2025-03-14 09:05:00,964 - DEBUG - Extracted search parameters: {'query': 'find phones with large storage', 'size': 5, 'page': 1, 'filters': {}}
+2025-03-14 09:05:00,967 - DEBUG - load_ssl_context verify=True cert=None trust_env=True http2=False
+2025-03-14 09:05:00,967 - DEBUG - load_verify_locations cafile='/Users/kevin/github/chat_in_a_box/.venv/lib/python3.11/site-packages/certifi/cacert.pem'
+2025-03-14 09:05:00,972 - DEBUG - connect_tcp.started host='localhost' port=3000 local_address=None timeout=10.0 socket_options=None
+2025-03-14 09:05:00,973 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x103f02f10>
+2025-03-14 09:05:00,973 - DEBUG - send_request_headers.started request=<Request [b'POST']>
+2025-03-14 09:05:00,973 - DEBUG - send_request_headers.complete
+2025-03-14 09:05:00,973 - DEBUG - send_request_body.started request=<Request [b'POST']>
+2025-03-14 09:05:00,973 - DEBUG - send_request_body.complete
+2025-03-14 09:05:00,973 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
+2025-03-14 09:05:01,036 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'vary', b'RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch'), (b'content-type', b'application/json'), (b'Date', b'Fri, 14 Mar 2025 13:05:01 GMT'), (b'Connection', b'keep-alive'), (b'Keep-Alive', b'timeout=5'), (b'Transfer-Encoding', b'chunked')])
+2025-03-14 09:05:01,036 - INFO - HTTP Request: POST http://localhost:3000/api/products "HTTP/1.1 200 OK"
+2025-03-14 09:05:01,036 - DEBUG - receive_response_body.started request=<Request [b'POST']>
+2025-03-14 09:05:01,036 - DEBUG - receive_response_body.complete
+2025-03-14 09:05:01,036 - DEBUG - response_closed.started
+2025-03-14 09:05:01,036 - DEBUG - response_closed.complete
+2025-03-14 09:05:01,037 - DEBUG - API response data structure: {
+  "data": {
+    "products": [
+      {
+        "id": "13419",
+        "skuId": "13419",
+        "baseId": "68",
+        "title": "TechPhone Lite - 64GB, 6.5\", Blue",
+        "price": 982.39,
+        "description": "A budget-friendly smartphone with all the features you need.",
+        "stock": 299,
+        "releaseYear": 2024,
+        "storage": "64GB",
+        "screenSize": 6.5,
+        "color": "Blue",
+        "brand": "Generic",
+        "model": "Smartphone",
+        "rating": 4.9,
+        "reviewCount": 561,
+        "cameraMP": "108MP main, 20MP front",
+        "batteryMah": 4200,
+        "weightG": 196,
+        "dimensions": "162.5 x 75.8 x 8.6 mm",
+        "os": "Android 12",
+        "processor": "MediaTek Dimensity 9000",
+        "ram": "4GB",
+        "waterResistant": "No",
+        "wirelessCharging": "Yes",
+        "fastCharging": "Yes",
+        "fiveGCompatible": "Yes",
+        "category": "Electronics > Smartphones > iOS Phones",
+        "tags": "Generic, Smartphone, Blue, 64GB, premium, 5G, fast charging",
+        "discountPercentage": 0,
+        "originalPrice": 982.39,
+        "shippingWeight": "324g",
+        "availability": "In Stock",
+        "warranty": "2 Year Limited Warranty"
+      },
+      {
+        "id": "13426",
+        "skuId": "13426",
+        "baseId": "68",
+        "title": "TechPhone Lite - 64GB, 6.7\", White",
+        "price": 1012.39,
+        "description": "A budget-friendly smartphone with all the features you need.",
+        "stock": 299,
+        "releaseYear": 2024,
+        "storage": "64GB",
+        "screenSize": 6.7,
+        "color": "White",
+        "brand": "Generic",
+        "model": "Smartphone",
+        "rating": 4.9,
+        "reviewCount": 424,
+        "cameraMP": "108MP main, 20MP front",
+        "batteryMah": 5000,
+        "weightG": 222,
+        "dimensions": "167.5 x 78.2 x 8.7 mm",
+        "os": "Android 12",
+        "processor": "MediaTek Dimensity 9000",
+        "ram": "6GB",
+        "waterResistant": "IP67",
+        "wirelessCharging": "Yes",
+        "fastCharging": "Yes",
+        "fiveGCompatible": "Yes",
+        "category": "Electronics > Mobile Phones > Smartphones",
+        "tags": "Generic, Smartphone, White, 64GB, premium, 5G, fast charging",
+        "discountPercentage": 21.2,
+        "originalPrice": 1284.76,
+        "shippingWeight": "306g",
+        "availability": "In Stock",
+        "warranty": "1 Year Limited Warranty"
+      },
+      {
+        "id": "13427",
+        "skuId": "13427",
+        "baseId": "68",
+        "title": "TechPhone Lite - 64GB, 6.7\", Blue",
+        "price": 1012.39,
+        "description": "A budget-friendly smartphone with all the features you need.",
+        "stock": 299,
+        "releaseYear": 2024,
+        "storage": "64GB",
+        "screenSize": 6.7,
+        "color": "Blue",
+        "brand": "Generic",
+        "model": "Smartphone",
+        "rating": 4.9,
+        "reviewCount": 62,
+        "cameraMP": "64MP main, 20MP front",
+        "batteryMah": 4700,
+        "weightG": 209,
+        "dimensions": "167.5 x 78.2 x 8.7 mm",
+        "os": "Android 12",
+        "processor": "Snapdragon 8 Gen 1",
+        "ram": "4GB",
+        "waterResistant": "No",
+        "wirelessCharging": "Yes",
+        "fastCharging": "Yes",
+        "fiveGCompatible": "Yes",
+        "category": "Telecommunications > Mobile Phones",
+        "tags": "Generic, Smartphone, Blue, 64GB, premium, 5G, fast charging",
+        "discountPercentage": 0,
+        "originalPrice": 1012.39,
+        "shippingWeight": "328g",
+        "availability": "In Stock",
+        "warranty": "1 Year Limited Warranty"
+      },
+      {
+        "id": "13429",
+        "skuId": "13429",
+        "baseId": "68",
+        "title": "TechPhone Lite - 64GB, 6.7\", Green",
+        "price": 1012.39,
+        "description": "A budget-friendly smartphone with all the features you need.",
+        "stock": 299,
+        "releaseYear": 2024,
+        "storage": "64GB",
+        "screenSize": 6.7,
+        "color": "Green",
+        "brand": "Generic",
+        "model": "Smartphone",
+        "rating": 4.9,
+        "reviewCount": 698,
+        "cameraMP": "108MP main, 16MP front",
+        "batteryMah": 5000,
+        "weightG": 218,
+        "dimensions": "167.5 x 78.2 x 8.7 mm",
+        "os": "Android 12",
+        "processor": "MediaTek Dimensity 9000",
+        "ram": "4GB",
+        "waterResistant": "No",
+        "wirelessCharging": "Yes",
+        "fastCharging": "Yes",
+        "fiveGCompatible": "Yes",
+        "category": "Electronics > Smartphones > Android Phones",
+        "tags": "Generic, Smartphone, Green, 64GB, premium, 5G, fast charging",
+        "discountPercentage": 7.5,
+        "originalPrice": 1094.48,
+        "shippingWeight": "342g",
+        "availability": "In Stock",
+        "warranty": "2 Year Limited Warranty"
+      },
+      {
+        "id": "13438",
+        "skuId": "13438",
+        "baseId": "68",
+        "title": "TechPhone Lite - 64GB, 7.1\", Silver",
+        "price": 1042.3899999999999,
+        "description": "A budget-friendly smartphone with all the features you need.",
+        "stock": 299,
+        "releaseYear": 2024,
+        "storage": "64GB",
+        "screenSize": 7.1,
+        "color": "Silver",
+        "brand": "Generic",
+        "model": "Smartphone",
+        "rating": 4.9,
+        "reviewCount": 737,
+        "cameraMP": "64MP main, 20MP front",
+        "batteryMah": 5000,
+        "weightG": 228,
+        "dimensions": "177.5 x 82.8 x 8.8 mm",
+        "os": "Android 12",
+        "processor": "MediaTek Dimensity 9000",
+        "ram": "4GB",
+        "waterResistant": "No",
+        "wirelessCharging": "Yes",
+        "fastCharging": "Yes",
+        "fiveGCompatible": "Yes",
+        "category": "Electronics > Smartphones > iOS Phones",
+        "tags": "Generic, Smartphone, Silver, 64GB, premium, 5G, fast charging",
+        "discountPercentage": 0,
+        "originalPrice": 1042.3899999999999,
+        "shippingWeight": "350g",
+        "availability": "In Stock",
+        "warranty": "2 Year Limited Warranty"
+      }
+    ],
+    "total": 10000
+  },
+  "success": true
+}
+2025-03-14 09:05:01,037 - DEBUG - Found 5 products out of 10000 total
+2025-03-14 09:05:01,037 - DEBUG - Products found: [{'id': '13419', 'title': 'TechPhone Lite - 64GB, 6.5", Blue', 'price': 982.39, 'description': 'A budget-friendly smartphone with all the features you need.', 'stock': 299, 'storage': '64GB', 'color': 'Blue', 'brand': 'Generic', 'model': 'Smartphone', 'rating': 4.9, 'dimensions': '162.5 x 75.8 x 8.6 mm', 'os': 'Android 12', 'processor': 'MediaTek Dimensity 9000', 'ram': '4GB', 'category': 'Electronics > Smartphones > iOS Phones', 'tags': 'Generic, Smartphone, Blue, 64GB, premium, 5G, fast charging', 'availability': 'In Stock', 'warranty': '2 Year Limited Warranty'}, {'id': '13426', 'title': 'TechPhone Lite - 64GB, 6.7", White', 'price': 1012.39, 'description': 'A budget-friendly smartphone with all the features you need.', 'stock': 299, 'storage': '64GB', 'color': 'White', 'brand': 'Generic', 'model': 'Smartphone', 'rating': 4.9, 'dimensions': '167.5 x 78.2 x 8.7 mm', 'os': 'Android 12', 'processor': 'MediaTek Dimensity 9000', 'ram': '6GB', 'category': 'Electronics > Mobile Phones > Smartphones', 'tags': 'Generic, Smartphone, White, 64GB, premium, 5G, fast charging', 'availability': 'In Stock', 'warranty': '1 Year Limited Warranty'}, {'id': '13427', 'title': 'TechPhone Lite - 64GB, 6.7", Blue', 'price': 1012.39, 'description': 'A budget-friendly smartphone with all the features you need.', 'stock': 299, 'storage': '64GB', 'color': 'Blue', 'brand': 'Generic', 'model': 'Smartphone', 'rating': 4.9, 'dimensions': '167.5 x 78.2 x 8.7 mm', 'os': 'Android 12', 'processor': 'Snapdragon 8 Gen 1', 'ram': '4GB', 'category': 'Telecommunications > Mobile Phones', 'tags': 'Generic, Smartphone, Blue, 64GB, premium, 5G, fast charging', 'availability': 'In Stock', 'warranty': '1 Year Limited Warranty'}, {'id': '13429', 'title': 'TechPhone Lite - 64GB, 6.7", Green', 'price': 1012.39, 'description': 'A budget-friendly smartphone with all the features you need.', 'stock': 299, 'storage': '64GB', 'color': 'Green', 'brand': 'Generic', 'model': 'Smartphone', 'rating': 4.9, 'dimensions': '167.5 x 78.2 x 8.7 mm', 'os': 'Android 12', 'processor': 'MediaTek Dimensity 9000', 'ram': '4GB', 'category': 'Electronics > Smartphones > Android Phones', 'tags': 'Generic, Smartphone, Green, 64GB, premium, 5G, fast charging', 'availability': 'In Stock', 'warranty': '2 Year Limited Warranty'}, {'id': '13438', 'title': 'TechPhone Lite - 64GB, 7.1", Silver', 'price': 1042.3899999999999, 'description': 'A budget-friendly smartphone with all the features you need.', 'stock': 299, 'storage': '64GB', 'color': 'Silver', 'brand': 'Generic', 'model': 'Smartphone', 'rating': 4.9, 'dimensions': '177.5 x 82.8 x 8.8 mm', 'os': 'Android 12', 'processor': 'MediaTek Dimensity 9000', 'ram': '4GB', 'category': 'Electronics > Smartphones > iOS Phones', 'tags': 'Generic, Smartphone, Silver, 64GB, premium, 5G, fast charging', 'availability': 'In Stock', 'warranty': '2 Year Limited Warranty'}]
+2025-03-14 09:05:01,037 - DEBUG - close.started
+2025-03-14 09:05:01,037 - DEBUG - close.complete
+2025-03-14 09:10:18,890 - DEBUG - Detected product type: phones
+2025-03-14 09:10:18,890 - DEBUG - Using original query: find phones with large storage
+2025-03-14 09:10:18,890 - DEBUG - Extracted search parameters: {'query': 'find phones with large storage', 'size': 5, 'page': 1, 'filters': {}}
+2025-03-14 09:10:18,890 - DEBUG - Extracted search parameters: {'query': 'find phones with large storage', 'size': 5, 'page': 1, 'filters': {}}
+2025-03-14 09:10:18,894 - DEBUG - load_ssl_context verify=True cert=None trust_env=True http2=False
+2025-03-14 09:10:18,894 - DEBUG - load_verify_locations cafile='/Users/kevin/github/chat_in_a_box/.venv/lib/python3.11/site-packages/certifi/cacert.pem'
+2025-03-14 09:10:18,900 - DEBUG - connect_tcp.started host='localhost' port=3000 local_address=None timeout=10.0 socket_options=None
+2025-03-14 09:10:18,901 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x107f17010>
+2025-03-14 09:10:18,901 - DEBUG - send_request_headers.started request=<Request [b'POST']>
+2025-03-14 09:10:18,901 - DEBUG - send_request_headers.complete
+2025-03-14 09:10:18,901 - DEBUG - send_request_body.started request=<Request [b'POST']>
+2025-03-14 09:10:18,901 - DEBUG - send_request_body.complete
+2025-03-14 09:10:18,902 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
+2025-03-14 09:10:19,088 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'vary', b'RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch'), (b'content-type', b'application/json'), (b'Date', b'Fri, 14 Mar 2025 13:10:19 GMT'), (b'Connection', b'keep-alive'), (b'Keep-Alive', b'timeout=5'), (b'Transfer-Encoding', b'chunked')])
+2025-03-14 09:10:19,088 - INFO - HTTP Request: POST http://localhost:3000/api/products "HTTP/1.1 200 OK"
+2025-03-14 09:10:19,088 - DEBUG - receive_response_body.started request=<Request [b'POST']>
+2025-03-14 09:10:19,088 - DEBUG - receive_response_body.complete
+2025-03-14 09:10:19,088 - DEBUG - response_closed.started
+2025-03-14 09:10:19,088 - DEBUG - response_closed.complete
+2025-03-14 09:10:19,089 - DEBUG - API response data structure: {
+  "data": {
+    "products": [
+      {
+        "id": "13419",
+        "skuId": "13419",
+        "baseId": "68",
+        "title": "TechPhone Lite - 64GB, 6.5\", Blue",
+        "price": 982.39,
+        "description": "A budget-friendly smartphone with all the features you need.",
+        "stock": 299,
+        "releaseYear": 2024,
+        "storage": "64GB",
+        "screenSize": 6.5,
+        "color": "Blue",
+        "brand": "Generic",
+        "model": "Smartphone",
+        "rating": 4.9,
+        "reviewCount": 561,
+        "cameraMP": "108MP main, 20MP front",
+        "batteryMah": 4200,
+        "weightG": 196,
+        "dimensions": "162.5 x 75.8 x 8.6 mm",
+        "os": "Android 12",
+        "processor": "MediaTek Dimensity 9000",
+        "ram": "4GB",
+        "waterResistant": "No",
+        "wirelessCharging": "Yes",
+        "fastCharging": "Yes",
+        "fiveGCompatible": "Yes",
+        "category": "Electronics > Smartphones > iOS Phones",
+        "tags": "Generic, Smartphone, Blue, 64GB, premium, 5G, fast charging",
+        "discountPercentage": 0,
+        "originalPrice": 982.39,
+        "shippingWeight": "324g",
+        "availability": "In Stock",
+        "warranty": "2 Year Limited Warranty"
+      },
+      {
+        "id": "13426",
+        "skuId": "13426",
+        "baseId": "68",
+        "title": "TechPhone Lite - 64GB, 6.7\", White",
+        "price": 1012.39,
+        "description": "A budget-friendly smartphone with all the features you need.",
+        "stock": 299,
+        "releaseYear": 2024,
+        "storage": "64GB",
+        "screenSize": 6.7,
+        "color": "White",
+        "brand": "Generic",
+        "model": "Smartphone",
+        "rating": 4.9,
+        "reviewCount": 424,
+        "cameraMP": "108MP main, 20MP front",
+        "batteryMah": 5000,
+        "weightG": 222,
+        "dimensions": "167.5 x 78.2 x 8.7 mm",
+        "os": "Android 12",
+        "processor": "MediaTek Dimensity 9000",
+        "ram": "6GB",
+        "waterResistant": "IP67",
+        "wirelessCharging": "Yes",
+        "fastCharging": "Yes",
+        "fiveGCompatible": "Yes",
+        "category": "Electronics > Mobile Phones > Smartphones",
+        "tags": "Generic, Smartphone, White, 64GB, premium, 5G, fast charging",
+        "discountPercentage": 21.2,
+        "originalPrice": 1284.76,
+        "shippingWeight": "306g",
+        "availability": "In Stock",
+        "warranty": "1 Year Limited Warranty"
+      },
+      {
+        "id": "13427",
+        "skuId": "13427",
+        "baseId": "68",
+        "title": "TechPhone Lite - 64GB, 6.7\", Blue",
+        "price": 1012.39,
+        "description": "A budget-friendly smartphone with all the features you need.",
+        "stock": 299,
+        "releaseYear": 2024,
+        "storage": "64GB",
+        "screenSize": 6.7,
+        "color": "Blue",
+        "brand": "Generic",
+        "model": "Smartphone",
+        "rating": 4.9,
+        "reviewCount": 62,
+        "cameraMP": "64MP main, 20MP front",
+        "batteryMah": 4700,
+        "weightG": 209,
+        "dimensions": "167.5 x 78.2 x 8.7 mm",
+        "os": "Android 12",
+        "processor": "Snapdragon 8 Gen 1",
+        "ram": "4GB",
+        "waterResistant": "No",
+        "wirelessCharging": "Yes",
+        "fastCharging": "Yes",
+        "fiveGCompatible": "Yes",
+        "category": "Telecommunications > Mobile Phones",
+        "tags": "Generic, Smartphone, Blue, 64GB, premium, 5G, fast charging",
+        "discountPercentage": 0,
+        "originalPrice": 1012.39,
+        "shippingWeight": "328g",
+        "availability": "In Stock",
+        "warranty": "1 Year Limited Warranty"
+      },
+      {
+        "id": "13429",
+        "skuId": "13429",
+        "baseId": "68",
+        "title": "TechPhone Lite - 64GB, 6.7\", Green",
+        "price": 1012.39,
+        "description": "A budget-friendly smartphone with all the features you need.",
+        "stock": 299,
+        "releaseYear": 2024,
+        "storage": "64GB",
+        "screenSize": 6.7,
+        "color": "Green",
+        "brand": "Generic",
+        "model": "Smartphone",
+        "rating": 4.9,
+        "reviewCount": 698,
+        "cameraMP": "108MP main, 16MP front",
+        "batteryMah": 5000,
+        "weightG": 218,
+        "dimensions": "167.5 x 78.2 x 8.7 mm",
+        "os": "Android 12",
+        "processor": "MediaTek Dimensity 9000",
+        "ram": "4GB",
+        "waterResistant": "No",
+        "wirelessCharging": "Yes",
+        "fastCharging": "Yes",
+        "fiveGCompatible": "Yes",
+        "category": "Electronics > Smartphones > Android Phones",
+        "tags": "Generic, Smartphone, Green, 64GB, premium, 5G, fast charging",
+        "discountPercentage": 7.5,
+        "originalPrice": 1094.48,
+        "shippingWeight": "342g",
+        "availability": "In Stock",
+        "warranty": "2 Year Limited Warranty"
+      },
+      {
+        "id": "13438",
+        "skuId": "13438",
+        "baseId": "68",
+        "title": "TechPhone Lite - 64GB, 7.1\", Silver",
+        "price": 1042.3899999999999,
+        "description": "A budget-friendly smartphone with all the features you need.",
+        "stock": 299,
+        "releaseYear": 2024,
+        "storage": "64GB",
+        "screenSize": 7.1,
+        "color": "Silver",
+        "brand": "Generic",
+        "model": "Smartphone",
+        "rating": 4.9,
+        "reviewCount": 737,
+        "cameraMP": "64MP main, 20MP front",
+        "batteryMah": 5000,
+        "weightG": 228,
+        "dimensions": "177.5 x 82.8 x 8.8 mm",
+        "os": "Android 12",
+        "processor": "MediaTek Dimensity 9000",
+        "ram": "4GB",
+        "waterResistant": "No",
+        "wirelessCharging": "Yes",
+        "fastCharging": "Yes",
+        "fiveGCompatible": "Yes",
+        "category": "Electronics > Smartphones > iOS Phones",
+        "tags": "Generic, Smartphone, Silver, 64GB, premium, 5G, fast charging",
+        "discountPercentage": 0,
+        "originalPrice": 1042.3899999999999,
+        "shippingWeight": "350g",
+        "availability": "In Stock",
+        "warranty": "2 Year Limited Warranty"
+      }
+    ],
+    "total": 10000
+  },
+  "success": true
+}
+2025-03-14 09:10:19,089 - DEBUG - Found 5 products out of 10000 total
+2025-03-14 09:10:19,089 - DEBUG - Products found: [{'id': '13419', 'title': 'TechPhone Lite - 64GB, 6.5", Blue', 'price': 982.39, 'description': 'A budget-friendly smartphone with all the features you need.', 'stock': 299, 'storage': '64GB', 'color': 'Blue', 'brand': 'Generic', 'model': 'Smartphone', 'rating': 4.9, 'dimensions': '162.5 x 75.8 x 8.6 mm', 'os': 'Android 12', 'processor': 'MediaTek Dimensity 9000', 'ram': '4GB', 'category': 'Electronics > Smartphones > iOS Phones', 'tags': 'Generic, Smartphone, Blue, 64GB, premium, 5G, fast charging', 'availability': 'In Stock', 'warranty': '2 Year Limited Warranty'}, {'id': '13426', 'title': 'TechPhone Lite - 64GB, 6.7", White', 'price': 1012.39, 'description': 'A budget-friendly smartphone with all the features you need.', 'stock': 299, 'storage': '64GB', 'color': 'White', 'brand': 'Generic', 'model': 'Smartphone', 'rating': 4.9, 'dimensions': '167.5 x 78.2 x 8.7 mm', 'os': 'Android 12', 'processor': 'MediaTek Dimensity 9000', 'ram': '6GB', 'category': 'Electronics > Mobile Phones > Smartphones', 'tags': 'Generic, Smartphone, White, 64GB, premium, 5G, fast charging', 'availability': 'In Stock', 'warranty': '1 Year Limited Warranty'}, {'id': '13427', 'title': 'TechPhone Lite - 64GB, 6.7", Blue', 'price': 1012.39, 'description': 'A budget-friendly smartphone with all the features you need.', 'stock': 299, 'storage': '64GB', 'color': 'Blue', 'brand': 'Generic', 'model': 'Smartphone', 'rating': 4.9, 'dimensions': '167.5 x 78.2 x 8.7 mm', 'os': 'Android 12', 'processor': 'Snapdragon 8 Gen 1', 'ram': '4GB', 'category': 'Telecommunications > Mobile Phones', 'tags': 'Generic, Smartphone, Blue, 64GB, premium, 5G, fast charging', 'availability': 'In Stock', 'warranty': '1 Year Limited Warranty'}, {'id': '13429', 'title': 'TechPhone Lite - 64GB, 6.7", Green', 'price': 1012.39, 'description': 'A budget-friendly smartphone with all the features you need.', 'stock': 299, 'storage': '64GB', 'color': 'Green', 'brand': 'Generic', 'model': 'Smartphone', 'rating': 4.9, 'dimensions': '167.5 x 78.2 x 8.7 mm', 'os': 'Android 12', 'processor': 'MediaTek Dimensity 9000', 'ram': '4GB', 'category': 'Electronics > Smartphones > Android Phones', 'tags': 'Generic, Smartphone, Green, 64GB, premium, 5G, fast charging', 'availability': 'In Stock', 'warranty': '2 Year Limited Warranty'}, {'id': '13438', 'title': 'TechPhone Lite - 64GB, 7.1", Silver', 'price': 1042.3899999999999, 'description': 'A budget-friendly smartphone with all the features you need.', 'stock': 299, 'storage': '64GB', 'color': 'Silver', 'brand': 'Generic', 'model': 'Smartphone', 'rating': 4.9, 'dimensions': '177.5 x 82.8 x 8.8 mm', 'os': 'Android 12', 'processor': 'MediaTek Dimensity 9000', 'ram': '4GB', 'category': 'Electronics > Smartphones > iOS Phones', 'tags': 'Generic, Smartphone, Silver, 64GB, premium, 5G, fast charging', 'availability': 'In Stock', 'warranty': '2 Year Limited Warranty'}]
+2025-03-14 09:10:19,089 - DEBUG - close.started
+2025-03-14 09:10:19,089 - DEBUG - close.complete
+2025-03-14 09:11:31,369 - DEBUG - Detected product type: phones
+2025-03-14 09:11:31,369 - DEBUG - Detected color: blue (mapped to Blue)
+2025-03-14 09:11:31,369 - DEBUG - Detected storage: 64GB
+2025-03-14 09:11:31,369 - DEBUG - Detected max price: $400
+2025-03-14 09:11:31,369 - DEBUG - Using product type as query: phones
+2025-03-14 09:11:31,369 - DEBUG - Extracted search parameters: {'query': 'phones', 'size': 5, 'page': 1, 'filters': {'color': 'Blue', 'storage': '64GB', 'max_price': 400}}
+2025-03-14 09:11:31,369 - DEBUG - Extracted search parameters: {'query': 'phones', 'size': 5, 'page': 1, 'filters': {'color': 'Blue', 'storage': '64GB', 'max_price': 400}}
+2025-03-14 09:11:31,372 - DEBUG - load_ssl_context verify=True cert=None trust_env=True http2=False
+2025-03-14 09:11:31,372 - DEBUG - load_verify_locations cafile='/Users/kevin/github/chat_in_a_box/.venv/lib/python3.11/site-packages/certifi/cacert.pem'
+2025-03-14 09:11:31,377 - DEBUG - connect_tcp.started host='localhost' port=3000 local_address=None timeout=10.0 socket_options=None
+2025-03-14 09:11:31,378 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x113448950>
+2025-03-14 09:11:31,378 - DEBUG - send_request_headers.started request=<Request [b'POST']>
+2025-03-14 09:11:31,379 - DEBUG - send_request_headers.complete
+2025-03-14 09:11:31,379 - DEBUG - send_request_body.started request=<Request [b'POST']>
+2025-03-14 09:11:31,379 - DEBUG - send_request_body.complete
+2025-03-14 09:11:31,379 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
+2025-03-14 09:11:31,390 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'vary', b'RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch'), (b'content-type', b'application/json'), (b'Date', b'Fri, 14 Mar 2025 13:11:31 GMT'), (b'Connection', b'keep-alive'), (b'Keep-Alive', b'timeout=5'), (b'Transfer-Encoding', b'chunked')])
+2025-03-14 09:11:31,390 - INFO - HTTP Request: POST http://localhost:3000/api/products "HTTP/1.1 200 OK"
+2025-03-14 09:11:31,390 - DEBUG - receive_response_body.started request=<Request [b'POST']>
+2025-03-14 09:11:31,390 - DEBUG - receive_response_body.complete
+2025-03-14 09:11:31,390 - DEBUG - response_closed.started
+2025-03-14 09:11:31,390 - DEBUG - response_closed.complete
+2025-03-14 09:11:31,390 - DEBUG - API response data structure: {
+  "data": {
+    "products": [],
+    "total": 0
+  },
+  "success": true
+}
+2025-03-14 09:11:31,390 - DEBUG - Found 0 products out of 0 total
+2025-03-14 09:11:31,390 - DEBUG - Products found: []
+2025-03-14 09:11:31,390 - DEBUG - close.started
+2025-03-14 09:11:31,390 - DEBUG - close.complete
+2025-03-14 09:11:41,770 - DEBUG - Detected product type: phones
+2025-03-14 09:11:41,770 - DEBUG - Detected storage: 64GB
+2025-03-14 09:11:41,771 - DEBUG - Detected max price: $400
+2025-03-14 09:11:41,771 - DEBUG - Using product type as query: phones
+2025-03-14 09:11:41,771 - DEBUG - Extracted search parameters: {'query': 'phones', 'size': 5, 'page': 1, 'filters': {'storage': '64GB', 'max_price': 400}}
+2025-03-14 09:11:41,771 - DEBUG - Extracted search parameters: {'query': 'phones', 'size': 5, 'page': 1, 'filters': {'storage': '64GB', 'max_price': 400}}
+2025-03-14 09:11:41,774 - DEBUG - load_ssl_context verify=True cert=None trust_env=True http2=False
+2025-03-14 09:11:41,774 - DEBUG - load_verify_locations cafile='/Users/kevin/github/chat_in_a_box/.venv/lib/python3.11/site-packages/certifi/cacert.pem'
+2025-03-14 09:11:41,779 - DEBUG - connect_tcp.started host='localhost' port=3000 local_address=None timeout=10.0 socket_options=None
+2025-03-14 09:11:41,780 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x112716e90>
+2025-03-14 09:11:41,780 - DEBUG - send_request_headers.started request=<Request [b'POST']>
+2025-03-14 09:11:41,780 - DEBUG - send_request_headers.complete
+2025-03-14 09:11:41,780 - DEBUG - send_request_body.started request=<Request [b'POST']>
+2025-03-14 09:11:41,780 - DEBUG - send_request_body.complete
+2025-03-14 09:11:41,780 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
+2025-03-14 09:11:41,789 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'vary', b'RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch'), (b'content-type', b'application/json'), (b'Date', b'Fri, 14 Mar 2025 13:11:41 GMT'), (b'Connection', b'keep-alive'), (b'Keep-Alive', b'timeout=5'), (b'Transfer-Encoding', b'chunked')])
+2025-03-14 09:11:41,789 - INFO - HTTP Request: POST http://localhost:3000/api/products "HTTP/1.1 200 OK"
+2025-03-14 09:11:41,789 - DEBUG - receive_response_body.started request=<Request [b'POST']>
+2025-03-14 09:11:41,789 - DEBUG - receive_response_body.complete
+2025-03-14 09:11:41,789 - DEBUG - response_closed.started
+2025-03-14 09:11:41,789 - DEBUG - response_closed.complete
+2025-03-14 09:11:41,789 - DEBUG - API response data structure: {
+  "data": {
+    "products": [],
+    "total": 0
+  },
+  "success": true
+}
+2025-03-14 09:11:41,789 - DEBUG - Found 0 products out of 0 total
+2025-03-14 09:11:41,790 - DEBUG - Products found: []
+2025-03-14 09:11:41,790 - DEBUG - close.started
+2025-03-14 09:11:41,790 - DEBUG - close.complete
+2025-03-14 09:11:56,174 - DEBUG - Detected product type: phones
+2025-03-14 09:11:56,174 - DEBUG - Detected storage: 64GB
+2025-03-14 09:11:56,174 - DEBUG - Using product type as query: phones
+2025-03-14 09:11:56,174 - DEBUG - Extracted search parameters: {'query': 'phones', 'size': 5, 'page': 1, 'filters': {'storage': '64GB'}}
+2025-03-14 09:11:56,174 - DEBUG - Extracted search parameters: {'query': 'phones', 'size': 5, 'page': 1, 'filters': {'storage': '64GB'}}
+2025-03-14 09:11:56,177 - DEBUG - load_ssl_context verify=True cert=None trust_env=True http2=False
+2025-03-14 09:11:56,177 - DEBUG - load_verify_locations cafile='/Users/kevin/github/chat_in_a_box/.venv/lib/python3.11/site-packages/certifi/cacert.pem'
+2025-03-14 09:11:56,182 - DEBUG - connect_tcp.started host='localhost' port=3000 local_address=None timeout=10.0 socket_options=None
+2025-03-14 09:11:56,184 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x10d916dd0>
+2025-03-14 09:11:56,184 - DEBUG - send_request_headers.started request=<Request [b'POST']>
+2025-03-14 09:11:56,184 - DEBUG - send_request_headers.complete
+2025-03-14 09:11:56,184 - DEBUG - send_request_body.started request=<Request [b'POST']>
+2025-03-14 09:11:56,184 - DEBUG - send_request_body.complete
+2025-03-14 09:11:56,184 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
+2025-03-14 09:11:56,193 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'vary', b'RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch'), (b'content-type', b'application/json'), (b'Date', b'Fri, 14 Mar 2025 13:11:56 GMT'), (b'Connection', b'keep-alive'), (b'Keep-Alive', b'timeout=5'), (b'Transfer-Encoding', b'chunked')])
+2025-03-14 09:11:56,193 - INFO - HTTP Request: POST http://localhost:3000/api/products "HTTP/1.1 200 OK"
+2025-03-14 09:11:56,193 - DEBUG - receive_response_body.started request=<Request [b'POST']>
+2025-03-14 09:11:56,193 - DEBUG - receive_response_body.complete
+2025-03-14 09:11:56,193 - DEBUG - response_closed.started
+2025-03-14 09:11:56,193 - DEBUG - response_closed.complete
+2025-03-14 09:11:56,193 - DEBUG - API response data structure: {
+  "data": {
+    "products": [],
+    "total": 0
+  },
+  "success": true
+}
+2025-03-14 09:11:56,193 - DEBUG - Found 0 products out of 0 total
+2025-03-14 09:11:56,193 - DEBUG - Products found: []
+2025-03-14 09:11:56,193 - DEBUG - close.started
+2025-03-14 09:11:56,193 - DEBUG - close.complete
+2025-03-14 09:12:03,600 - DEBUG - Detected product type: phones
+2025-03-14 09:12:03,600 - DEBUG - Detected max price: $400
+2025-03-14 09:12:03,600 - DEBUG - Using product type as query: phones
+2025-03-14 09:12:03,600 - DEBUG - Extracted search parameters: {'query': 'phones', 'size': 5, 'page': 1, 'filters': {'max_price': 400}}
+2025-03-14 09:12:03,600 - DEBUG - Extracted search parameters: {'query': 'phones', 'size': 5, 'page': 1, 'filters': {'max_price': 400}}
+2025-03-14 09:12:03,603 - DEBUG - load_ssl_context verify=True cert=None trust_env=True http2=False
+2025-03-14 09:12:03,603 - DEBUG - load_verify_locations cafile='/Users/kevin/github/chat_in_a_box/.venv/lib/python3.11/site-packages/certifi/cacert.pem'
+2025-03-14 09:12:03,608 - DEBUG - connect_tcp.started host='localhost' port=3000 local_address=None timeout=10.0 socket_options=None
+2025-03-14 09:12:03,609 - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x104517450>
+2025-03-14 09:12:03,609 - DEBUG - send_request_headers.started request=<Request [b'POST']>
+2025-03-14 09:12:03,609 - DEBUG - send_request_headers.complete
+2025-03-14 09:12:03,609 - DEBUG - send_request_body.started request=<Request [b'POST']>
+2025-03-14 09:12:03,609 - DEBUG - send_request_body.complete
+2025-03-14 09:12:03,609 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
+2025-03-14 09:12:03,622 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'vary', b'RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch'), (b'content-type', b'application/json'), (b'Date', b'Fri, 14 Mar 2025 13:12:03 GMT'), (b'Connection', b'keep-alive'), (b'Keep-Alive', b'timeout=5'), (b'Transfer-Encoding', b'chunked')])
+2025-03-14 09:12:03,623 - INFO - HTTP Request: POST http://localhost:3000/api/products "HTTP/1.1 200 OK"
+2025-03-14 09:12:03,623 - DEBUG - receive_response_body.started request=<Request [b'POST']>
+2025-03-14 09:12:03,623 - DEBUG - receive_response_body.complete
+2025-03-14 09:12:03,623 - DEBUG - response_closed.started
+2025-03-14 09:12:03,623 - DEBUG - response_closed.complete
+2025-03-14 09:12:03,623 - DEBUG - API response data structure: {
+  "data": {
+    "products": [
+      {
+        "id": "6001",
+        "skuId": "6001",
+        "baseId": "31",
+        "title": "SmartCom Quantum - 64GB, 5.8\", Black",
+        "price": 245.55,
+        "description": "An ultra-slim smartphone with an impressive camera and long battery life.",
+        "stock": 91,
+        "releaseYear": 2020,
+        "storage": "64GB",
+        "screenSize": 5.8,
+        "color": "Black",
+        "brand": "Generic",
+        "model": "Smartphone",
+        "rating": 3.3,
+        "reviewCount": 110,
+        "cameraMP": "16MP main, 10MP front",
+        "batteryMah": 3200,
+        "weightG": 162,
+        "dimensions": "145.0 x 67.7 x 8.4 mm",
+        "os": "Android 11",
+        "processor": "MediaTek Helio P35",
+        "ram": "6GB",
+        "waterResistant": "No",
+        "wirelessCharging": "No",
+        "fastCharging": "No",
+        "fiveGCompatible": "No",
+        "category": "Electronics > Mobile Phones > Smartphones",
+        "tags": "Generic, Smartphone, Black, 64GB, budget",
+        "discountPercentage": 19.8,
+        "originalPrice": 306.17,
+        "shippingWeight": "215g",
+        "availability": "In Stock",
+        "warranty": "2 Year Limited Warranty"
+      },
+      {
+        "id": "6002",
+        "skuId": "6002",
+        "baseId": "31",
+        "title": "SmartCom Quantum - 64GB, 5.8\", White",
+        "price": 245.55,
+        "description": "An ultra-slim smartphone with an impressive camera and long battery life.",
+        "stock": 91,
+        "releaseYear": 2020,
+        "storage": "64GB",
+        "screenSize": 5.8,
+        "color": "White",
+        "brand": "Generic",
+        "model": "Smartphone",
+        "rating": 3.4,
+        "reviewCount": 81,
+        "cameraMP": "16MP main, 10MP front",
+        "batteryMah": 3200,
+        "weightG": 163,
+        "dimensions": "145.0 x 67.7 x 8.4 mm",
+        "os": "Android 11",
+        "processor": "Exynos 850",
+        "ram": "4GB",
+        "waterResistant": "No",
+        "wirelessCharging": "No",
+        "fastCharging": "No",
+        "fiveGCompatible": "No",
+        "category": "Electronics > Mobile Phones > Smartphones",
+        "tags": "Generic, Smartphone, White, 64GB, budget",
+        "discountPercentage": 18.4,
+        "originalPrice": 300.92,
+        "shippingWeight": "240g",
+        "availability": "In Stock",
+        "warranty": "2 Year Limited Warranty"
+      },
+      {
+        "id": "6003",
+        "skuId": "6003",
+        "baseId": "31",
+        "title": "SmartCom Quantum - 64GB, 5.8\", Blue",
+        "price": 245.55,
+        "description": "An ultra-slim smartphone with an impressive camera and long battery life.",
+        "stock": 91,
+        "releaseYear": 2020,
+        "storage": "64GB",
+        "screenSize": 5.8,
+        "color": "Blue",
+        "brand": "Generic",
+        "model": "Smartphone",
+        "rating": 3.8,
+        "reviewCount": 161,
+        "cameraMP": "12MP main, 10MP front",
+        "batteryMah": 3000,
+        "weightG": 158,
+        "dimensions": "145.0 x 67.7 x 8.4 mm",
+        "os": "Android 12",
+        "processor": "Snapdragon 480",
+        "ram": "4GB",
+        "waterResistant": "No",
+        "wirelessCharging": "No",
+        "fastCharging": "Yes",
+        "fiveGCompatible": "No",
+        "category": "Mobile Devices > Smartphones",
+        "tags": "Generic, Smartphone, Blue, 64GB, budget, fast charging",
+        "discountPercentage": 0,
+        "originalPrice": 245.55,
+        "shippingWeight": "281g",
+        "availability": "In Stock",
+        "warranty": "2 Year Limited Warranty"
+      },
+      {
+        "id": "6004",
+        "skuId": "6004",
+        "baseId": "31",
+        "title": "SmartCom Quantum - 64GB, 5.8\", Red",
+        "price": 245.55,
+        "description": "An ultra-slim smartphone with an impressive camera and long battery life.",
+        "stock": 91,
+        "releaseYear": 2020,
+        "storage": "64GB",
+        "screenSize": 5.8,
+        "color": "Red",
+        "brand": "Generic",
+        "model": "Smartphone",
+        "rating": 3.3,
+        "reviewCount": 109,
+        "cameraMP": "20MP main, 10MP front",
+        "batteryMah": 3200,
+        "weightG": 156,
+        "dimensions": "145.0 x 67.7 x 8.4 mm",
+        "os": "Android 12",
+        "processor": "Exynos 850",
+        "ram": "6GB",
+        "waterResistant": "No",
+        "wirelessCharging": "No",
+        "fastCharging": "Yes",
+        "fiveGCompatible": "No",
+        "category": "Electronics > Smartphones > Android Phones",
+        "tags": "Generic, Smartphone, Red, 64GB, budget, fast charging",
+        "discountPercentage": 0,
+        "originalPrice": 245.55,
+        "shippingWeight": "258g",
+        "availability": "In Stock",
+        "warranty": "1 Year Limited Warranty"
+      },
+      {
+        "id": "6005",
+        "skuId": "6005",
+        "baseId": "31",
+        "title": "SmartCom Quantum - 64GB, 5.8\", Green",
+        "price": 245.55,
+        "description": "An ultra-slim smartphone with an impressive camera and long battery life.",
+        "stock": 91,
+        "releaseYear": 2020,
+        "storage": "64GB",
+        "screenSize": 5.8,
+        "color": "Green",
+        "brand": "Generic",
+        "model": "Smartphone",
+        "rating": 3.5,
+        "reviewCount": 37,
+        "cameraMP": "12MP main, 10MP front",
+        "batteryMah": 3500,
+        "weightG": 171,
+        "dimensions": "145.0 x 67.7 x 8.4 mm",
+        "os": "Android 12",
+        "processor": "Exynos 850",
+        "ram": "6GB",
+        "waterResistant": "No",
+        "wirelessCharging": "No",
+        "fastCharging": "Yes",
+        "fiveGCompatible": "No",
+        "category": "Electronics > Mobile Phones > Smartphones",
+        "tags": "Generic, Smartphone, Green, 64GB, budget, fast charging",
+        "discountPercentage": 21.2,
+        "originalPrice": 311.61,
+        "shippingWeight": "279g",
+        "availability": "In Stock",
+        "warranty": "2 Year Limited Warranty"
+      }
+    ],
+    "total": 10000
+  },
+  "success": true
+}
+2025-03-14 09:12:03,623 - DEBUG - Found 5 products out of 10000 total
+2025-03-14 09:12:03,623 - DEBUG - Products found: [{'id': '6001', 'title': 'SmartCom Quantum - 64GB, 5.8", Black', 'price': 245.55, 'description': 'An ultra-slim smartphone with an impressive camera and long battery life.', 'stock': 91, 'storage': '64GB', 'color': 'Black', 'brand': 'Generic', 'model': 'Smartphone', 'rating': 3.3, 'dimensions': '145.0 x 67.7 x 8.4 mm', 'os': 'Android 11', 'processor': 'MediaTek Helio P35', 'ram': '6GB', 'category': 'Electronics > Mobile Phones > Smartphones', 'tags': 'Generic, Smartphone, Black, 64GB, budget', 'availability': 'In Stock', 'warranty': '2 Year Limited Warranty'}, {'id': '6002', 'title': 'SmartCom Quantum - 64GB, 5.8", White', 'price': 245.55, 'description': 'An ultra-slim smartphone with an impressive camera and long battery life.', 'stock': 91, 'storage': '64GB', 'color': 'White', 'brand': 'Generic', 'model': 'Smartphone', 'rating': 3.4, 'dimensions': '145.0 x 67.7 x 8.4 mm', 'os': 'Android 11', 'processor': 'Exynos 850', 'ram': '4GB', 'category': 'Electronics > Mobile Phones > Smartphones', 'tags': 'Generic, Smartphone, White, 64GB, budget', 'availability': 'In Stock', 'warranty': '2 Year Limited Warranty'}, {'id': '6003', 'title': 'SmartCom Quantum - 64GB, 5.8", Blue', 'price': 245.55, 'description': 'An ultra-slim smartphone with an impressive camera and long battery life.', 'stock': 91, 'storage': '64GB', 'color': 'Blue', 'brand': 'Generic', 'model': 'Smartphone', 'rating': 3.8, 'dimensions': '145.0 x 67.7 x 8.4 mm', 'os': 'Android 12', 'processor': 'Snapdragon 480', 'ram': '4GB', 'category': 'Mobile Devices > Smartphones', 'tags': 'Generic, Smartphone, Blue, 64GB, budget, fast charging', 'availability': 'In Stock', 'warranty': '2 Year Limited Warranty'}, {'id': '6004', 'title': 'SmartCom Quantum - 64GB, 5.8", Red', 'price': 245.55, 'description': 'An ultra-slim smartphone with an impressive camera and long battery life.', 'stock': 91, 'storage': '64GB', 'color': 'Red', 'brand': 'Generic', 'model': 'Smartphone', 'rating': 3.3, 'dimensions': '145.0 x 67.7 x 8.4 mm', 'os': 'Android 12', 'processor': 'Exynos 850', 'ram': '6GB', 'category': 'Electronics > Smartphones > Android Phones', 'tags': 'Generic, Smartphone, Red, 64GB, budget, fast charging', 'availability': 'In Stock', 'warranty': '1 Year Limited Warranty'}, {'id': '6005', 'title': 'SmartCom Quantum - 64GB, 5.8", Green', 'price': 245.55, 'description': 'An ultra-slim smartphone with an impressive camera and long battery life.', 'stock': 91, 'storage': '64GB', 'color': 'Green', 'brand': 'Generic', 'model': 'Smartphone', 'rating': 3.5, 'dimensions': '145.0 x 67.7 x 8.4 mm', 'os': 'Android 12', 'processor': 'Exynos 850', 'ram': '6GB', 'category': 'Electronics > Mobile Phones > Smartphones', 'tags': 'Generic, Smartphone, Green, 64GB, budget, fast charging', 'availability': 'In Stock', 'warranty': '2 Year Limited Warranty'}]
+2025-03-14 09:12:03,623 - DEBUG - close.started
+2025-03-14 09:12:03,623 - DEBUG - close.complete

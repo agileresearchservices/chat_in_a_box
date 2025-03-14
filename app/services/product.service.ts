@@ -342,7 +342,13 @@ function buildSearchQuery(query: ProductQuery): OpenSearchQuery {
 
   // Original filters
   if (filters.color) {
-    filter.push({ term: { Color: filters.color } });
+    // Use exact term matching since the agent now provides the correctly capitalized color
+    filter.push({ 
+      term: { 
+        Color: filters.color
+      } 
+    });
+    logger.debug(`Using color filter: "${filters.color}"`);
   }
 
   if (filters.storage) {

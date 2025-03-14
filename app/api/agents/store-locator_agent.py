@@ -66,9 +66,12 @@ class StoreLocatorAgent(Agent):
         
         # More flexible state patterns (both abbreviations and full names)
         self.state_patterns = [
-            r'(?:in|at|near)\s+(?:[A-Za-z0-9\s]+,\s+)?([A-Za-z]{2})(?:\s+\d{5}|\s*$)',
-            r'(?:in|at|near)\s+(?:[A-Za-z0-9\s]+,\s+)?(Alabama|Alaska|Arizona|Arkansas|California|Colorado|Connecticut|Delaware|Florida|Georgia|Hawaii|Idaho|Illinois|Indiana|Iowa|Kansas|Kentucky|Louisiana|Maine|Maryland|Massachusetts|Michigan|Minnesota|Mississippi|Missouri|Montana|Nebraska|Nevada|New\s+Hampshire|New\s+Jersey|New\s+Mexico|New\s+York|North\s+Carolina|North\s+Dakota|Ohio|Oklahoma|Oregon|Pennsylvania|Rhode\s+Island|South\s+Carolina|South\s+Dakota|Tennessee|Texas|Utah|Vermont|Virginia|Washington|West\s+Virginia|Wisconsin|Wyoming)(?:\s+\d{5}|\s*$)',
-            r'\b(AL|AK|AZ|AR|CA|CO|CT|DE|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY)\b'
+            r'(?:in|at|near)\s+(?:[A-Za-z0-9\s]+,\s+)?([A-Za-z]{2})(?:\s+\d{5}|\s*$|[.?!])',
+            r'(?:in|at|near)\s+(?:[A-Za-z0-9\s]+,\s+)?(Alabama|Alaska|Arizona|Arkansas|California|Colorado|Connecticut|Delaware|Florida|Georgia|Hawaii|Idaho|Illinois|Indiana|Iowa|Kansas|Kentucky|Louisiana|Maine|Maryland|Massachusetts|Michigan|Minnesota|Mississippi|Missouri|Montana|Nebraska|Nevada|New\s+Hampshire|New\s+Jersey|New\s+Mexico|New\s+York|North\s+Carolina|North\s+Dakota|Ohio|Oklahoma|Oregon|Pennsylvania|Rhode\s+Island|South\s+Carolina|South\s+Dakota|Tennessee|Texas|Utah|Vermont|Virginia|Washington|West\s+Virginia|Wisconsin|Wyoming)(?:\s+\d{5}|\s*$|[.?!])',
+            r'\b(AL|AK|AZ|AR|CA|CO|CT|DE|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY)\b',
+            r'what stores are in\s+([A-Za-z]{2})(?:\s+\d{5}|\s*$|[.?!])',  # Special case for "What stores are in XX"
+            r'stores\s+in\s+([A-Za-z]{2})(?:\s+\d{5}|\s*$|[.?!])',  # Special case for "stores in XX"
+            r'what stores are in\s+(New\s+York|New\s+Jersey|New\s+Mexico|New\s+Hampshire|North\s+Dakota|North\s+Carolina|South\s+Dakota|South\s+Carolina|Rhode\s+Island|West\s+Virginia)(?:\s+\d{5}|\s*$|[.?!])'  # Special case for compound state names
         ]
         
         # State abbreviations lookup table
@@ -85,6 +88,16 @@ class StoreLocatorAgent(Agent):
             'Virginia': 'VA', 'Washington': 'WA', 'West Virginia': 'WV', 'Wisconsin': 'WI', 'Wyoming': 'WY'
         }
 
+        # Reverse lookup for abbreviation to full state name
+        self.abbrev_to_state = {v: k for k, v in self.state_abbrevs.items()}
+        
+        # Special compound state names that need careful handling
+        self.compound_state_names = [
+            'New York', 'New Jersey', 'New Mexico', 'New Hampshire', 
+            'North Dakota', 'North Carolina', 'South Dakota', 'South Carolina',
+            'Rhode Island', 'West Virginia'
+        ]
+        
     def extract_search_params(self, query: str, keep_original_query: bool = False) -> StoreFilterParams:
         """
         Extract search parameters from a natural language query
@@ -102,6 +115,60 @@ class StoreLocatorAgent(Agent):
             - state: State (2-letter code)
             - zipCode: ZIP code
         """
+        logging.debug(f"Processing store query: {query}")
+
+        # DIRECT HANDLING FOR COMPOUND STATE NAMES - must be first to avoid incorrect city extraction
+        compound_state_pattern = r'(what|where|which|find|show|list|tell\s+me\s+about)\s+stores\s+(are\s+)?(in|at|near|around)\s+({})(?:\s|\b|$)'
+        
+        # Build a regex pattern for all compound state names
+        compound_states_regex = '|'.join([re.escape(state) for state in self.compound_state_names])
+        compound_pattern = compound_state_pattern.format(compound_states_regex)
+        
+        match = re.search(compound_pattern, query, re.IGNORECASE)
+        if match:
+            matched_state = match.group(4)
+            # Find the closest match in our compound state names list (case insensitive)
+            matched_state = next((state for state in self.compound_state_names 
+                                if state.lower() == matched_state.lower() 
+                                or state.lower() in matched_state.lower()), None)
+            
+            if matched_state:
+                state_code = self.state_abbrevs.get(matched_state)
+                if state_code:
+                    logging.debug(f"Direct match for compound state query: {query} -> {matched_state} ({state_code})")
+                    search_params = StoreFilterParams(
+                        query='',
+                        size=5,
+                        page=1,
+                        filters={
+                            'state': state_code
+                        }
+                    )
+                    return search_params
+        
+        # Check for compound state names next
+        for compound_state in self.compound_state_names:
+            if compound_state.lower() in query.lower():
+                # Check if it's in a context that suggests it's being used as a state
+                state_pattern = re.compile(r'(?:stores?|locations?|shops?|outlets?)(?:\s+(?:in|at|near|around|of))\s+' + 
+                                         re.escape(compound_state), re.IGNORECASE)
+                if state_pattern.search(query):
+                    logging.debug(f"Detected compound state name: {compound_state}")
+                    
+                    # Create search parameters with the state
+                    state_code = self.state_abbrevs.get(compound_state)
+                    if state_code:
+                        logging.debug(f"Using state code {state_code} for {compound_state}")
+                        search_params = StoreFilterParams(
+                            query='',
+                            size=5,
+                            page=1,
+                            filters={
+                                'state': state_code
+                            }
+                        )
+                        return search_params
+        
         # Special handling for queries that contain "ZIP code" followed by a ZIP
         # This is to avoid interpreting "ZIP code" as a city name
         if "ZIP code" in query or "zip code" in query:
@@ -192,10 +259,14 @@ class StoreLocatorAgent(Agent):
                     
                     state = potential_state
                     logging.debug(f"Found state abbreviation: {state}")
-                    break
-                elif potential_state in self.state_abbrevs:
-                    state = self.state_abbrevs[potential_state]
-                    logging.debug(f"Found state name: {potential_state}, abbreviation: {state}")
+                    
+                    # For "what stores are in XX" pattern, we'll skip city extraction
+                    # since we've already identified the state code directly
+                    if pattern.startswith(r'what stores are in') or pattern.startswith(r'stores\s+in'):
+                        logging.debug(f"Detected direct state query pattern, skipping city extraction")
+                        city = None
+                        break
+                    
                     break
         
         # THEN extract city - but don't consider state abbreviations or ZIP codes as cities
@@ -203,7 +274,14 @@ class StoreLocatorAgent(Agent):
         state_abbrevs_list_set = set(state_abbrevs_list)
         query_for_city = query_without_zip  # Use the version without ZIP code
         
-        if not (len(query_for_city.strip()) == 2 and query_for_city.strip().upper() in state_abbrevs_list_set):  # Skip if query is just a state code
+        # Skip city extraction for simple state queries like "What stores are in NY?"
+        simple_state_query = re.search(r'(what|which|where).+stores.+in\s+([A-Za-z]{2})\s*[.?!]?$', query, re.IGNORECASE)
+        if simple_state_query:
+            logging.debug(f"Skipping city extraction for simple state query: {query}")
+        # Skip city extraction if the query is just a state code
+        elif len(query_for_city.strip()) == 2 and query_for_city.strip().upper() in state_abbrevs_list_set:
+            logging.debug(f"Skipping city extraction for pure state code: {query_for_city}")
+        else:
             # First try patterns with clear context (in/at/near)
             for pattern in self.city_patterns[0:2]:  # First try patterns with context
                 match = re.search(pattern, query_for_city, re.IGNORECASE)
@@ -215,6 +293,12 @@ class StoreLocatorAgent(Agent):
                     
                     # Further clean by removing trailing digits (ZIP codes)
                     potential_city = re.sub(r'\s+\d+$', '', potential_city)
+                    
+                    # Filter out phrases that clearly aren't cities
+                    non_city_phrases = ['stores are in', 'stores in', 'locations in', 'shops in']
+                    if potential_city.lower() in non_city_phrases:
+                        logging.debug(f"Skipping non-city phrase: {potential_city}")
+                        continue
                     
                     # Validate the potential city:
                     # 1. Not empty
