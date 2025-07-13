@@ -1,0 +1,9 @@
+2025-07-13 10:33:24,721 - INFO - Extracted city: Boston, timeframe: now
+2025-07-13 10:33:24,722 - INFO - Calling weather API for Boston, timeframe: now
+2025-07-13 10:33:25,793 - INFO - HTTP Request: POST http://localhost:3000/api/weather "HTTP/1.1 200 OK"
+2025-07-13 10:33:38,846 - INFO - Extracted city: Grainger, timeframe: now
+2025-07-13 10:33:38,846 - INFO - Calling weather API for Grainger, timeframe: now
+2025-07-13 10:33:39,661 - INFO - HTTP Request: POST http://localhost:3000/api/weather "HTTP/1.1 200 OK"
+2025-07-13 10:45:02,577 - INFO - Extracted city: Grainger, timeframe: now
+2025-07-13 10:45:02,577 - INFO - Calling weather API for Grainger, timeframe: now
+2025-07-13 10:45:03,219 - INFO - HTTP Request: POST http://localhost:3000/api/weather "HTTP/1.1 200 OK"
